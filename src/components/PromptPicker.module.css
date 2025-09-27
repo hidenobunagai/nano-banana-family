@@ -1,0 +1,122 @@
+.root {
+  border: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  min-inline-size: auto;
+}
+
+.legend {
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 1.05rem;
+}
+
+.categories {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.category {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.categoryTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(255, 183, 3, 0.9);
+}
+
+.options {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: linear-gradient(145deg, rgba(20, 20, 20, 0.9), rgba(12, 12, 12, 0.85));
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease,
+    background 0.2s ease;
+  cursor: pointer;
+}
+
+.option:hover {
+  border-color: rgba(255, 255, 255, 0.35);
+  transform: translateY(-1px);
+}
+
+.option:focus-within {
+  outline: 2px solid rgba(255, 183, 3, 0.6);
+  outline-offset: 3px;
+}
+
+.optionSelected {
+  border-color: rgba(255, 183, 3, 0.8);
+  background: linear-gradient(145deg, rgba(255, 183, 3, 0.25), rgba(255, 183, 3, 0.08));
+  box-shadow: 0 12px 28px rgba(255, 183, 3, 0.16);
+}
+
+.radio {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: #ffb703;
+  flex-shrink: 0;
+}
+
+.optionText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.optionLabel {
+  color: rgba(255, 255, 255, 0.98);
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .option {
+    padding: 1rem 1.1rem;
+    gap: 1rem;
+  }
+
+  .option:hover {
+    transform: none;
+  }
+
+  .radio {
+    width: 1.2rem;
+    height: 1.2rem;
+  }
+
+  .optionLabel {
+    font-size: 1.05rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .legend {
+    font-size: 1.1rem;
+  }
+
+  .categories {
+    gap: 1.3rem;
+  }
+
+  .option {
+    padding: 1rem 1.1rem;
+  }
+}
