@@ -76,16 +76,26 @@ const extractErrorMessage = (value: unknown, fallbackMessage: string): string =>
   return fallbackMessage;
 };
 
-type Mode = "simple" | "flipbook";
+type Mode = "simple" | "flipbook" | "freestyle";
+
+type UploadSlot = {
+  id: string;
+  file: File | null;
+  previewUrl: string | null;
+  isOptimizing: boolean;
+  selectionToken: string | null;
+};
 
 const MODE_LABELS: Record<Mode, string> = {
   simple: "画像編集モード",
   flipbook: "パラパラ漫画モード",
+  freestyle: "自由編集モード",
 };
 
 const MODE_DESCRIPTIONS: Record<Mode, string> = {
   simple: "アップロードした画像を Gemini でアレンジするシンプルな編集モードです。",
   flipbook: "1枚の画像から物語を膨らませ、4コマのパラパラ漫画を作成します。",
+  freestyle: "複数枚の参考画像と自由入力の指示で、理想の1枚を Gemini に仕上げてもらえます。",
 };
 
 const MODE_OPTIONS: { id: Mode; label: string; description: string }[] = [
@@ -98,6 +108,11 @@ const MODE_OPTIONS: { id: Mode; label: string; description: string }[] = [
     id: "flipbook",
     label: "パラパラ漫画モード",
     description: "写真から4枚の連続した物語カットを生成します。",
+  },
+  {
+    id: "freestyle",
+    label: "自由編集モード",
+    description: "複数の画像を参考に、自由なプロンプトで理想の1枚を作成します。",
   },
 ];
 
@@ -119,6 +134,17 @@ const FLIPBOOK_GUIDANCE = [
   "3コマ目: アクションや感情が高まる場面に発展させます。",
   "4コマ目: 物語の余韻が感じられるエンディングを描きます。",
 ];
+
+const FREESTYLE_PROGRESS_STEPS: ProgressStep[] = [
+  { id: "gather", label: "参考画像を読み込み中...", estimatedDuration: 1600 },
+  { id: "plan", label: "編集プランを構築中...", estimatedDuration: 1800 },
+  { id: "prompt", label: "指示内容を解釈中...", estimatedDuration: 1500 },
+  { id: "generate", label: "Gemini で画像を生成中...", estimatedDuration: 6200 },
+  { id: "refine", label: "仕上がりを調整中...", estimatedDuration: 1400 },
+  { id: "complete", label: "完了", estimatedDuration: 400 },
+];
+
+const MAX_FREESTYLE_UPLOADS = 5;
 
 const formatFrameFileName = (index: number, timestamp: number | null) => {
   const safeTimestamp = timestamp ?? Date.now();
@@ -270,7 +296,13 @@ export default function Home() {
       </header>
 
       <section className={styles.content}>
-        {mode === "simple" ? <SimpleEditor /> : <FlipbookCreator />}
+        {mode === "simple" ? (
+          <SimpleEditor />
+        ) : mode === "flipbook" ? (
+          <FlipbookCreator />
+        ) : (
+          <FreestyleEditor />
+        )}
       </section>
     </main>
   );
@@ -615,6 +647,415 @@ function SimpleEditor() {
           </div>
         ) : (
           <p className={styles.helper}>編集結果がここに表示されます。</p>
+        )}
+      </aside>
+    </>
+  );
+}
+
+function FreestyleEditor() {
+  const slotIdCounterRef = useRef(0);
+  const createEmptySlot = useCallback((): UploadSlot => {
+    slotIdCounterRef.current += 1;
+    return {
+      id: `slot-${slotIdCounterRef.current}`,
+      file: null,
+      previewUrl: null,
+      isOptimizing: false,
+      selectionToken: null,
+    };
+  }, [slotIdCounterRef]);
+
+  const [prompt, setPrompt] = useState("");
+  const [uploads, setUploads] = useState<UploadSlot[]>(() => [createEmptySlot()]);
+  const uploadsRef = useRef<UploadSlot[]>(uploads);
+  const [resultImage, setResultImage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [downloadFileName, setDownloadFileName] = useState<string | null>(null);
+
+  const handleProgressComplete = useCallback(() => {
+    setIsSubmitting(false);
+  }, []);
+
+  const { progress, currentStep, complete: completeProgress } = useProgressSimulation({
+    isActive: isSubmitting,
+    onComplete: handleProgressComplete,
+    steps: FREESTYLE_PROGRESS_STEPS,
+  });
+
+  useEffect(() => {
+    uploadsRef.current = uploads;
+  }, [uploads]);
+
+  useEffect(() => {
+    return () => {
+      uploadsRef.current.forEach((slot) => {
+        if (slot.previewUrl) {
+          URL.revokeObjectURL(slot.previewUrl);
+        }
+      });
+    };
+  }, []);
+
+  useEffect(() => {
+    if (resultImage) {
+      const timestamp = Date.now();
+      setDownloadFileName(`hide-nb-freestyle-${timestamp}.png`);
+    } else {
+      setDownloadFileName(null);
+    }
+  }, [resultImage]);
+
+  const hasAtLeastOneFile = uploads.some((slot) => Boolean(slot.file));
+  const isOptimizingAny = uploads.some((slot) => slot.isOptimizing);
+  const canAddMoreUploads = uploads.length < MAX_FREESTYLE_UPLOADS;
+  const promptIsEmpty = prompt.trim().length === 0;
+
+  const handleAddSlot = () => {
+    if (!canAddMoreUploads) {
+      return;
+    }
+    setUploads((previous) => [...previous, createEmptySlot()]);
+    setResultImage(null);
+    setErrorMessage(null);
+  };
+
+  const handleRemoveSlot = (slotId: string) => {
+    setUploads((previous) => {
+      if (previous.length <= 1) {
+        return previous;
+      }
+
+      const target = previous.find((slot) => slot.id === slotId);
+      if (target?.previewUrl) {
+        URL.revokeObjectURL(target.previewUrl);
+      }
+
+      const next = previous.filter((slot) => slot.id !== slotId);
+      return next.length === 0 ? [createEmptySlot()] : next;
+    });
+    setResultImage(null);
+    setErrorMessage(null);
+  };
+
+  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>, slotId: string) => {
+    const input = event.target;
+    const file = input.files?.[0] ?? null;
+    const selectionToken = file ? `${Date.now()}-${Math.random().toString(36).slice(2)}` : null;
+
+    setUploads((previous) =>
+      previous.map((slot) => {
+        if (slot.id !== slotId) {
+          return slot;
+        }
+
+        if (slot.previewUrl) {
+          URL.revokeObjectURL(slot.previewUrl);
+        }
+
+        return {
+          ...slot,
+          file: null,
+          previewUrl: null,
+          isOptimizing: Boolean(file),
+          selectionToken,
+        };
+      }),
+    );
+
+    setResultImage(null);
+    setErrorMessage(null);
+
+    if (!file) {
+      setUploads((previous) =>
+        previous.map((slot) =>
+          slot.id === slotId
+            ? {
+                ...slot,
+                isOptimizing: false,
+                selectionToken: null,
+              }
+            : slot,
+        ),
+      );
+      input.value = "";
+      return;
+    }
+
+    try {
+      const optimizedFile = await resizeImage(file);
+      const previewUrl = URL.createObjectURL(optimizedFile);
+
+      setUploads((previous) =>
+        previous.map((slot) => {
+          if (slot.id !== slotId) {
+            return slot;
+          }
+
+          if (slot.selectionToken !== selectionToken) {
+            URL.revokeObjectURL(previewUrl);
+            return slot;
+          }
+
+          return {
+            ...slot,
+            file: optimizedFile,
+            previewUrl,
+            isOptimizing: false,
+            selectionToken: null,
+          };
+        }),
+      );
+    } catch (error) {
+      console.error("Image optimization error:", error);
+      setErrorMessage(error instanceof Error ? error.message : "画像の最適化に失敗しました。");
+      const fallbackUrl = URL.createObjectURL(file);
+
+      setUploads((previous) =>
+        previous.map((slot) => {
+          if (slot.id !== slotId) {
+            return slot;
+          }
+
+          if (slot.selectionToken !== selectionToken) {
+            URL.revokeObjectURL(fallbackUrl);
+            return slot;
+          }
+
+          return {
+            ...slot,
+            file,
+            previewUrl: fallbackUrl,
+            isOptimizing: false,
+            selectionToken: null,
+          };
+        }),
+      );
+    } finally {
+      setUploads((previous) =>
+        previous.map((slot) => {
+          if (slot.id !== slotId) {
+            return slot;
+          }
+
+          if (slot.selectionToken !== selectionToken) {
+            return slot;
+          }
+
+          return {
+            ...slot,
+            isOptimizing: false,
+            selectionToken: null,
+          };
+        }),
+      );
+    }
+
+    input.value = "";
+  };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const trimmedPrompt = prompt.trim();
+    const selectedFiles = uploads
+      .map((slot) => slot.file)
+      .filter((slotFile): slotFile is File => Boolean(slotFile));
+
+    if (trimmedPrompt.length === 0) {
+      setErrorMessage("編集内容を入力してください。");
+      return;
+    }
+
+    if (selectedFiles.length === 0) {
+      setErrorMessage("画像を1枚以上アップロードしてください。");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setResultImage(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("prompt", trimmedPrompt);
+      selectedFiles.forEach((file) => {
+        formData.append("images", file);
+      });
+
+      const response = await fetch("/api/freestyle-edit", {
+        method: "POST",
+        body: formData,
+      });
+
+      const contentType = response.headers.get("content-type") ?? "";
+      const isJsonResponse = contentType.includes("application/json");
+      const rawBody = await response.text();
+      let parsedBody: unknown = rawBody;
+
+      if (isJsonResponse && rawBody) {
+        try {
+          parsedBody = JSON.parse(rawBody) as unknown;
+        } catch {
+          if (response.ok) {
+            throw new Error("サーバーの応答を読み取れませんでした。時間をおいて再度お試しください。");
+          }
+        }
+      }
+
+      if (!response.ok) {
+        const fallbackMessage =
+          response.status >= 500
+            ? "サーバーでエラーが発生しました。時間をおいて再度お試しください。"
+            : "画像の生成に失敗しました。入力内容をご確認のうえ、再度お試しください。";
+
+        throw new Error(extractErrorMessage(parsedBody, fallbackMessage));
+      }
+
+      if (!isJsonResponse || !isApiSuccessResponse(parsedBody)) {
+        throw new Error("サーバーからの画像データを取得できませんでした。時間をおいて再度お試しください。");
+      }
+
+      const mimeType = parsedBody.mimeType?.trim() ? parsedBody.mimeType : "image/png";
+      const imageUrl = `data:${mimeType};base64,${parsedBody.imageBase64}`;
+      setResultImage(imageUrl);
+    } catch (error) {
+      if (error instanceof Error) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage("予期しないエラーが発生しました。");
+      }
+    } finally {
+      completeProgress();
+    }
+  };
+
+  return (
+    <>
+      <form className={styles.editor} onSubmit={handleSubmit}>
+        <div className={styles.field}>
+          <span className={styles.label}>1. どんな仕上がりにしたいか自由に記入</span>
+          <textarea
+            className={styles.textArea}
+            value={prompt}
+            onChange={(event) => setPrompt(event.target.value)}
+            placeholder="例: 子どもたちが描いたドラゴンのスケッチをもとに、ファンタジー映画のポスター風に仕上げてほしい"
+          />
+          <p className={styles.helper}>
+            アップロードする画像ごとに参考にしてほしいポイントがあれば、詳しく書くとより反映されやすくなります。
+          </p>
+        </div>
+
+        <div className={styles.field}>
+          <span className={styles.label}>2. 参考にしたい画像をアップロード</span>
+          <p className={styles.helper}>
+            {`最大 ${MAX_FREESTYLE_UPLOADS} 枚まで追加できます。アップロードした順番は参考優先度の目安になります。`}
+          </p>
+          <div className={styles.multiUploadList}>
+            {uploads.map((slot, index) => (
+              <div key={slot.id} className={`${styles.multiUploadItem} ${styles.fadeInUp}`}>
+                <div className={styles.multiUploadHeader}>
+                  <span className={styles.subLabel}>参考画像 {index + 1}</span>
+                  {uploads.length > 1 ? (
+                    <button
+                      type="button"
+                      className={styles.removeUploadButton}
+                      onClick={() => handleRemoveSlot(slot.id)}
+                    >
+                      削除
+                    </button>
+                  ) : null}
+                </div>
+                <input
+                  className={styles.fileInput}
+                  type="file"
+                  accept="image/*"
+                  onChange={(event) => handleFileChange(event, slot.id)}
+                />
+                {slot.previewUrl ? (
+                  <div className={`${styles.preview} ${styles.fadeInUp}`}>
+                    <span className={styles.helper}>アップロードした画像</span>
+                    <Image
+                      src={slot.previewUrl}
+                      alt="アップロードした画像"
+                      className={`${styles.previewImage} ${styles.fadeIn}`}
+                      width={900}
+                      height={600}
+                      unoptimized
+                    />
+                  </div>
+                ) : slot.isOptimizing ? (
+                  <p className={styles.helper}>画像を最適化中...</p>
+                ) : (
+                  <p className={styles.helper}>JPG / PNG / WebP の画像を選択してください。</p>
+                )}
+                {slot.file ? <p className={styles.fileName}>{slot.file.name}</p> : null}
+              </div>
+            ))}
+          </div>
+          <div className={styles.multiUploadActions}>
+            <button
+              type="button"
+              className={styles.addUploadButton}
+              onClick={handleAddSlot}
+              disabled={!canAddMoreUploads}
+            >
+              + 参考画像を追加
+            </button>
+          </div>
+        </div>
+
+        <button
+          className={styles.primaryButton}
+          type="submit"
+          disabled={isSubmitting || !hasAtLeastOneFile || isOptimizingAny || promptIsEmpty}
+        >
+          {isSubmitting ? (
+            <>
+              <div className={styles.spinner}></div>
+              自由編集中...
+            </>
+          ) : (
+            "Gemini に生成を依頼"
+          )}
+        </button>
+
+        {errorMessage && <p className={styles.error}>{errorMessage}</p>}
+      </form>
+
+      <aside className={styles.resultPane}>
+        <h2 className={styles.label}>仕上がり</h2>
+        {isSubmitting ? (
+          <div className={styles.fadeInUp}>
+            <ProgressDisplay
+              isVisible={true}
+              currentStep={currentStep}
+              progress={progress}
+              steps={FREESTYLE_PROGRESS_STEPS}
+              title="Gemini が自由編集しています..."
+            />
+          </div>
+        ) : resultImage ? (
+          <div className={`${styles.resultCard} ${styles.fadeInUp}`}>
+            <Image
+              src={resultImage}
+              alt="編集後の画像"
+              className={`${styles.resultImage} ${styles.fadeIn}`}
+              width={900}
+              height={600}
+              unoptimized
+            />
+            <a
+              href={resultImage}
+              download={downloadFileName ?? undefined}
+              className={styles.primaryButton}
+            >
+              画像をダウンロード
+            </a>
+          </div>
+        ) : (
+          <p className={styles.helper}>生成結果がここに表示されます。</p>
         )}
       </aside>
     </>
