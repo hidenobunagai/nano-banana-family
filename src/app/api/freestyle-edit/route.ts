@@ -7,7 +7,7 @@ import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB, resolveMimeType } from "@/utils/
 
 export const runtime = "nodejs";
 
-const DEFAULT_MODEL = process.env.GEMINI_IMAGE_MODEL ?? "gemini-2.5-flash-image-preview";
+const DEFAULT_MODEL = process.env.GEMINI_IMAGE_MODEL ?? "gemini-2.5-flash-image";
 const MAX_IMAGE_COUNT = 5;
 
 export async function POST(request: Request) {
