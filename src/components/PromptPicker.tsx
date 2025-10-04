@@ -7,12 +7,13 @@ type PromptPickerProps = {
   groups: PromptGroups;
   selectedPromptId: string;
   onSelect: (promptId: string) => void;
+  legend?: string;
 };
 
-export function PromptPicker({ groups, selectedPromptId, onSelect }: PromptPickerProps) {
+export function PromptPicker({ groups, selectedPromptId, onSelect, legend = "プロンプトを選ぶ" }: PromptPickerProps) {
   return (
     <fieldset className={styles.root}>
-      <legend className={styles.legend}>1. プロンプトを選ぶ</legend>
+      <legend className={styles.legend}>{legend}</legend>
       <div className={styles.categories}>
         {Object.entries(groups).map(([category, prompts]) => (
           <div key={category} className={styles.category}>
