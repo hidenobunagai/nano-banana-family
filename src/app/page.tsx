@@ -505,12 +505,8 @@ function SimpleEditor() {
     <>
       <form className={styles.editor} onSubmit={handleSubmit}>
         <div className={styles.field}>
-          <PromptPicker groups={groupedPrompts} selectedPromptId={selectedPromptId} onSelect={setSelectedPromptId} />
-        </div>
-
-        <div className={styles.field}>
           <span className={styles.label}>
-            {requiresDualUpload ? "2. 2枚の画像をアップロード" : "2. 画像をアップロード"}
+            {requiresDualUpload ? "1. 2枚の画像をアップロード" : "1. 画像をアップロード"}
           </span>
 
           {requiresDualUpload ? (
@@ -600,6 +596,15 @@ function SimpleEditor() {
               )}
             </>
           )}
+        </div>
+
+        <div className={styles.field}>
+          <PromptPicker
+            legend="2. プロンプトを選ぶ"
+            groups={groupedPrompts}
+            selectedPromptId={selectedPromptId}
+            onSelect={setSelectedPromptId}
+          />
         </div>
 
         <button
@@ -935,20 +940,7 @@ function FreestyleEditor() {
     <>
       <form className={styles.editor} onSubmit={handleSubmit}>
         <div className={styles.field}>
-          <span className={styles.label}>1. どんな仕上がりにしたいか自由に記入</span>
-          <textarea
-            className={styles.textArea}
-            value={prompt}
-            onChange={(event) => setPrompt(event.target.value)}
-            placeholder="例: 子どもたちが描いたドラゴンのスケッチをもとに、ファンタジー映画のポスター風に仕上げてほしい"
-          />
-          <p className={styles.helper}>
-            アップロードする画像ごとに参考にしてほしいポイントがあれば、詳しく書くとより反映されやすくなります。
-          </p>
-        </div>
-
-        <div className={styles.field}>
-          <span className={styles.label}>2. 参考にしたい画像をアップロード</span>
+          <span className={styles.label}>1. 参考にしたい画像をアップロード</span>
           <p className={styles.helper}>
             {`最大 ${MAX_FREESTYLE_UPLOADS} 枚まで追加できます。アップロードした順番は参考優先度の目安になります。`}
           </p>
@@ -1004,6 +996,19 @@ function FreestyleEditor() {
               + 参考画像を追加
             </button>
           </div>
+        </div>
+
+        <div className={styles.field}>
+          <span className={styles.label}>2. どんな仕上がりにしたいか自由に記入</span>
+          <textarea
+            className={styles.textArea}
+            value={prompt}
+            onChange={(event) => setPrompt(event.target.value)}
+            placeholder="例: 子どもたちが描いたドラゴンのスケッチをもとに、ファンタジー映画のポスター風に仕上げてほしい"
+          />
+          <p className={styles.helper}>
+            アップロードした画像ごとに参考にしてほしいポイントがあれば、詳しく書くとより反映されやすくなります。
+          </p>
         </div>
 
         <button
@@ -1260,30 +1265,16 @@ function FlipbookCreator() {
     <>
       <form className={styles.editor} onSubmit={handleSubmit}>
         <div className={styles.field}>
-          <label className={styles.label} htmlFor="flipbook-story">
-            1. ストーリーのアイデア
+          <label className={styles.label} htmlFor="flipbook-image">
+            1. 主役の画像をアップロード
           </label>
-          <textarea
-            id="flipbook-story"
-            className={styles.textArea}
-            rows={4}
-            placeholder="例: 夕暮れの公園で遊ぶ子供が、ふと空を見上げて流れ星を見つける物語"
-            value={storyIdea}
-            onChange={(event) => setStoryIdea(event.target.value)}
+          <input
+            id="flipbook-image"
+            className={styles.fileInput}
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
           />
-          <div className={styles.flipbookGuidance}>
-            <p className={styles.helper}>Gemini は次の 4 コマ構成で物語をふくらませます:</p>
-            <ol className={styles.flipbookGuideList}>
-              {FLIPBOOK_GUIDANCE.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ol>
-          </div>
-        </div>
-
-        <div className={styles.field}>
-          <span className={styles.label}>2. 主役の画像をアップロード</span>
-          <input className={styles.fileInput} type="file" accept="image/*" onChange={handleFileChange} />
         </div>
 
         {previewUrl ? (
@@ -1303,6 +1294,28 @@ function FlipbookCreator() {
         ) : (
           <p className={styles.helper}>JPG / PNG / WebP 形式の画像を選択してください。</p>
         )}
+
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="flipbook-story">
+            2. ストーリーのアイデア
+          </label>
+          <textarea
+            id="flipbook-story"
+            className={styles.textArea}
+            rows={4}
+            placeholder="例: 夕暮れの公園で遊ぶ子供が、ふと空を見上げて流れ星を見つける物語"
+            value={storyIdea}
+            onChange={(event) => setStoryIdea(event.target.value)}
+          />
+          <div className={styles.flipbookGuidance}>
+            <p className={styles.helper}>Gemini は次の 4 コマ構成で物語をふくらませます:</p>
+            <ol className={styles.flipbookGuideList}>
+              {FLIPBOOK_GUIDANCE.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ol>
+          </div>
+        </div>
 
         <button
           className={styles.primaryButton}
