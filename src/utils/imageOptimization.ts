@@ -21,7 +21,7 @@ const DEFAULT_OPTIONS: Required<ResizeOptions> = {
  */
 export async function resizeImage(file: File, options: ResizeOptions = {}): Promise<File> {
   const opts = { ...DEFAULT_OPTIONS, ...options };
-  
+
   // Check if file is an image
   if (!file.type.startsWith('image/')) {
     throw new Error('ファイルが画像ではありません。');
@@ -31,6 +31,23 @@ export async function resizeImage(file: File, options: ResizeOptions = {}): Prom
   const supportedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
   if (!supportedTypes.includes(file.type.toLowerCase())) {
     throw new Error('サポートされていない画像形式です。JPG、PNG、WebP形式をご利用ください。');
+  }
+
+  // For files from cloud storage (Google Drive, etc.) on Android,
+  // we need to ensure the file is fully loaded before processing
+  let processableFile: File;
+  try {
+    // Read the file completely to ensure it's accessible
+    const arrayBuffer = await file.arrayBuffer();
+    // Recreate the file from the buffer to ensure it's in memory
+    const blob = new Blob([arrayBuffer], { type: file.type });
+    processableFile = new File([blob], file.name, {
+      type: file.type,
+      lastModified: file.lastModified,
+    });
+  } catch (error) {
+    // If reading fails, it might be a network/permission issue
+    throw new Error('ファイルの読み込みに失敗しました。ネットワーク接続とファイルへのアクセス許可を確認してください。');
   }
 
   return new Promise((resolve, reject) => {
@@ -43,7 +60,7 @@ export async function resizeImage(file: File, options: ResizeOptions = {}): Prom
       return;
     }
 
-    const objectUrl = URL.createObjectURL(file);
+    const objectUrl = URL.createObjectURL(processableFile);
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
     const clearResources = () => {
@@ -72,8 +89,8 @@ export async function resizeImage(file: File, options: ResizeOptions = {}): Prom
         );
 
         // If no resizing is needed and file size is acceptable, return original
-        if (newWidth === img.width && newHeight === img.height && file.size <= opts.maxFileSizeMB * 1024 * 1024) {
-          resolve(file);
+        if (newWidth === img.width && newHeight === img.height && processableFile.size <= opts.maxFileSizeMB * 1024 * 1024) {
+          resolve(processableFile);
           return;
         }
 
@@ -97,14 +114,14 @@ export async function resizeImage(file: File, options: ResizeOptions = {}): Prom
             }
 
             // Create new file with optimized image
-            const optimizedFile = new File([blob], file.name, {
-              type: file.type,
+            const optimizedFile = new File([blob], processableFile.name, {
+              type: processableFile.type,
               lastModified: Date.now(),
             });
 
             resolve(optimizedFile);
           },
-          file.type,
+          processableFile.type,
           opts.quality
         );
       } catch (error) {
