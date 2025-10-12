@@ -131,16 +131,23 @@ const withPWA = withPWAInit({
       },
     },
     {
+      // Image generation API routes - always use network, no caching, no timeout
       urlPattern: ({ url }: { url: URL }) => {
-        // Exclude image generation API routes - they should never be cached and can take long time
-        if (
-          url.pathname === "/api/edit-image" ||
-          url.pathname === "/api/freestyle-edit" ||
-          url.pathname === "/api/create-flipbook"
-        ) {
-          return false;
-        }
-        // Handle other API routes (excluding auth)
+        return (
+          url.origin === self.origin &&
+          (url.pathname === "/api/edit-image" ||
+            url.pathname === "/api/freestyle-edit" ||
+            url.pathname === "/api/create-flipbook")
+        );
+      },
+      handler: "NetworkOnly",
+      options: {
+        cacheName: "image-generation-api",
+      },
+    },
+    {
+      urlPattern: ({ url }: { url: URL }) => {
+        // Handle other API routes (excluding auth and image generation)
         return url.origin === self.origin && url.pathname.startsWith("/api/") && !url.pathname.startsWith("/api/auth/");
       },
       handler: "NetworkFirst",
