@@ -719,11 +719,6 @@
   text-align: center;
 }
 
-@media (min-width: 960px) {
-  .content {
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-  }
-}
 
 /* Loading Animations */
 .spinner {
