@@ -111,7 +111,8 @@
   font-size: 0.95rem;
   color: rgba(255, 255, 255, 0.78);
   line-height: 1.6;
-  max-width: 560px;
+  max-width: min(720px, 100%);
+  text-wrap: balance;
 }
 
 .menuOverlay {
