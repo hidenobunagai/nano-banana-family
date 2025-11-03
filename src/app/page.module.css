@@ -536,6 +536,36 @@
   color: rgba(255, 255, 255, 0.8);
 }
 
+.promptSuggestionList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.promptSuggestionButton {
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.92);
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.promptSuggestionButton:hover,
+.promptSuggestionButton:focus-visible {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.promptSuggestionButton:focus-visible {
+  outline: 2px solid rgba(255, 183, 3, 0.5);
+  outline-offset: 2px;
+}
+
 .error {
   color: #ff6b6b;
   font-weight: 600;
