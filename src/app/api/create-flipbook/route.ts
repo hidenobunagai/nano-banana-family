@@ -1,13 +1,13 @@
-import { NextResponse } from "next/server";
 import { GoogleGenAI, Part } from "@google/genai";
 import { getServerSession } from "next-auth";
+import { NextResponse } from "next/server";
 
 import { authOptions } from "@/auth";
 import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB, resolveMimeType } from "@/utils/server/imageValidation";
 
 export const runtime = "nodejs";
 
-const DEFAULT_IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL ?? "gemini-2.5-flash-image-preview";
+const DEFAULT_IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL ?? "gemini-3-pro-image-preview";
 
 const FRAME_COUNT = 4;
 
@@ -27,7 +27,7 @@ const buildFramePrompt = (storyIdea: string, frameIndex: number) => {
     "The flipbook must feel like it is expanding upon the reference scene with gentle motion between frames.",
     `This is frame ${frameIndex + 1} of ${FRAME_COUNT}. ${guidance}`,
     "Describe motion by adjusting body pose, facial expression, and environment details slightly so that the next frame flows naturally from this one.",
-    "Do not add text, UI, or speech bubbles.",
+
     `Overall story idea from the user: ${storyIdea}`,
   ].join("\n");
 };

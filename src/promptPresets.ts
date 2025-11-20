@@ -11,7 +11,7 @@ export const PROMPT_PRESETS: PromptOption[] = [
     label: "1/7スケール・デスクトップフィギュア仕上げ",
     category: "クリエイティブ",
     prompt:
-      "Render a high-resolution photo of a 1/7 scale, fully commercialized figurine based on the character(s) in the uploaded image. Place the collectible on a modern computer desk inside a real-world studio environment with soft key and rim lighting. Keep the sculpt faithful to the original pose, costume, and likeness, but translate materials into premium painted PVC with subtle weathering. Mount the figure on a round, transparent acrylic base without any text or logos. Show the computer monitor displaying the 3D modeling viewport of this same figurine, and stage a deluxe packaging box beside it featuring flat, illustrated box art inspired by top-tier collectibles. Emphasize tangible materials, lens depth of field, and natural reflections.",
+      "Render a high-resolution photo of a 1/7 scale, fully commercialized figurine based on the character(s) in the uploaded image. Place the collectible on a modern computer desk inside a real-world studio environment with soft key and rim lighting. Keep the sculpt faithful to the original pose, costume, and likeness, but translate materials into premium painted PVC with subtle weathering. Mount the figure on a round, transparent acrylic base. Show the computer monitor displaying the 3D modeling viewport of this same figurine, and stage a deluxe packaging box beside it featuring flat, illustrated box art inspired by top-tier collectibles. Emphasize tangible materials, lens depth of field, and natural reflections.",
   },
   {
     id: "mono-top-angle-portrait",
@@ -25,14 +25,14 @@ export const PROMPT_PRESETS: PromptOption[] = [
     label: "3x3ヘアスタイル・アバター生成",
     category: "ビジネス",
     prompt:
-      "Produce a polished 3x3 grid of square avatar portraits of the same person. Keep consistent studio lighting, a soft gradient background, and uniform framing. Vary the hairstyle dramatically in each tile, changing length, color, and styling accessories while preserving facial features, skin tone, and expression continuity. Output as a single cohesive grid image with thin dividers and no additional text.",
+      "Produce a polished 3x3 grid of square avatar portraits of the same person. Keep consistent studio lighting, a soft gradient background, and uniform framing. Vary the hairstyle dramatically in each tile, changing length, color, and styling accessories while preserving facial features, skin tone, and expression continuity. Output as a single cohesive grid image with thin dividers.",
   },
   {
     id: "studio-strip-grid",
     label: "3x3スタジオフォトストリップ",
     category: "クリエイティブ",
     prompt:
-      "Turn the uploaded photo into a contact-sheet style 3x3 grid composed of narrow vertical photo strips. Maintain consistent high-end studio lighting, seamless neutral backdrops, and coordinated wardrobe styling throughout. In each strip, direct the subject through a different pose and facial expression that feels suitable for professional headshots, editorial portraits, or fashion lookbooks. Balance the grid with thin white gutters, subtle film-edge markings, and natural skin retouching while preserving likeness. Deliver as one unified layout with crisp resolution and no extra typography.",
+      "Turn the uploaded photo into a contact-sheet style 3x3 grid composed of narrow vertical photo strips. Maintain consistent high-end studio lighting, seamless neutral backdrops, and coordinated wardrobe styling throughout. In each strip, direct the subject through a different pose and facial expression that feels suitable for professional headshots, editorial portraits, or fashion lookbooks. Balance the grid with thin white gutters, subtle film-edge markings, and natural skin retouching while preserving likeness. Deliver as one unified layout with crisp resolution.",
   },
   {
     id: "lego-pack",
@@ -116,7 +116,7 @@ export const PROMPT_PRESETS: PromptOption[] = [
     label: "ライフステージ年齢変化コラージュ",
     category: "クリエイティブ",
     prompt:
-      "Produce a single ultra-high-resolution horizontal collage featuring five evenly spaced portraits of the same person at ages 5, 15, 25, 45, and 65. Maintain identical camera framing, straight-on head-and-shoulders, with soft, diffused studio lighting against a smooth warm-gray seamless backdrop. Ensure facial structure, eye color, and defining traits remain consistent while reflecting natural age progression in skin texture, hairstyle, and wardrobe appropriate to each life stage. Separate panels with slim white dividers and hand-lettered age labels centered beneath each portrait. Avoid extra text or background elements.",
+      "Produce a single ultra-high-resolution horizontal collage featuring five evenly spaced portraits of the same person at ages 5, 15, 25, 45, and 65. Maintain identical camera framing, straight-on head-and-shoulders, with soft, diffused studio lighting against a smooth warm-gray seamless backdrop. Ensure facial structure, eye color, and defining traits remain consistent while reflecting natural age progression in skin texture, hairstyle, and wardrobe appropriate to each life stage. Separate panels with slim white dividers and hand-lettered age labels centered beneath each portrait.",
   },
   {
     id: "retro-yearbook",

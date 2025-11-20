@@ -1,13 +1,13 @@
-import { NextResponse } from "next/server";
 import { GoogleGenAI, Part } from "@google/genai";
 import { getServerSession } from "next-auth";
+import { NextResponse } from "next/server";
 
 import { authOptions } from "@/auth";
 import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB, resolveMimeType } from "@/utils/server/imageValidation";
 
 export const runtime = "nodejs";
 
-const DEFAULT_MODEL = process.env.GEMINI_IMAGE_MODEL ?? "gemini-2.5-flash-image";
+const DEFAULT_MODEL = process.env.GEMINI_IMAGE_MODEL ?? "gemini-3-pro-image-preview";
 const MAX_IMAGE_COUNT = 5;
 
 export async function POST(request: Request) {
