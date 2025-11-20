@@ -16,41 +16,23 @@ type PromptPickerProps = {
 
 export function PromptPicker({ groups, selectedPromptId, onSelect, legend = "プロンプトを選ぶ" }: PromptPickerProps) {
   const [query, setQuery] = useState("");
-  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(() => new Set());
+
+  const categories = useMemo(() => Object.keys(groups), [groups]);
+  const [activeTab, setActiveTab] = useState<string>(() => categories[0] || "");
 
   const normalizedQuery = query.trim().toLowerCase();
 
-  const filteredEntries = useMemo(() => {
-    const entries = Object.entries(groups);
-
-    if (!normalizedQuery) {
-      return entries;
+  const displayedPrompts = useMemo(() => {
+    if (normalizedQuery) {
+      const allPrompts = Object.values(groups).flat();
+      return allPrompts.filter((prompt) => {
+        const haystack = `${prompt.label} ${prompt.prompt} ${prompt.id}`.toLowerCase();
+        return haystack.includes(normalizedQuery);
+      });
     }
 
-    return entries
-      .map(([category, prompts]) => {
-        const filteredPrompts = prompts.filter((prompt) => {
-          const haystack = `${prompt.label} ${prompt.prompt} ${prompt.id}`.toLowerCase();
-          return haystack.includes(normalizedQuery);
-        });
-        return [category, filteredPrompts] as const;
-      })
-      .filter(([, prompts]) => prompts.length > 0);
-  }, [groups, normalizedQuery]);
-
-  const hasResults = filteredEntries.some(([, prompts]) => prompts.length > 0);
-
-  const toggleCategory = (category: string) => {
-    setCollapsedCategories((previous) => {
-      const next = new Set(previous);
-      if (next.has(category)) {
-        next.delete(category);
-      } else {
-        next.add(category);
-      }
-      return next;
-    });
-  };
+    return groups[activeTab] || [];
+  }, [groups, activeTab, normalizedQuery]);
 
   const resetSearch = () => {
     setQuery("");
@@ -58,10 +40,10 @@ export function PromptPicker({ groups, selectedPromptId, onSelect, legend = "プ
 
   const getPromptPreview = (prompt: PromptOption) => {
     const condensed = prompt.prompt.replace(/\s+/g, " ").trim();
-    if (condensed.length <= 120) {
+    if (condensed.length <= 100) {
       return condensed;
     }
-    return `${condensed.slice(0, 120)}…`;
+    return `${condensed.slice(0, 100)}…`;
   };
 
   return (
@@ -81,7 +63,7 @@ export function PromptPicker({ groups, selectedPromptId, onSelect, legend = "プ
           <input
             type="search"
             className={styles.searchInput}
-            placeholder="キーワードで絞り込む"
+            placeholder="キーワードで検索..."
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />
@@ -93,54 +75,45 @@ export function PromptPicker({ groups, selectedPromptId, onSelect, legend = "プ
         )}
       </div>
 
-      <div className={styles.categories}>
-        {hasResults ? (
-          filteredEntries.map(([category, prompts]) => {
-            const isCollapsed = normalizedQuery ? false : collapsedCategories.has(category);
+      {!normalizedQuery && categories.length > 0 && (
+        <div className={styles.tabs} role="tablist">
+          {categories.map((category) => (
+            <button
+              key={category}
+              type="button"
+              role="tab"
+              aria-selected={activeTab === category}
+              className={`${styles.tab} ${activeTab === category ? styles.tabActive : ""}`.trim()}
+              onClick={() => setActiveTab(category)}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div className={styles.grid}>
+        {displayedPrompts.length > 0 ? (
+          displayedPrompts.map((prompt) => {
+            const isSelected = prompt.id === selectedPromptId;
             return (
-              <section key={category} className={styles.category}>
-                <button
-                  type="button"
-                  className={styles.categoryHeader}
-                  onClick={() => toggleCategory(category)}
-                  aria-expanded={!isCollapsed}
-                >
-                  <span className={styles.categoryTitle}>{category}</span>
-                  <span className={styles.categoryCount}>{prompts.length}</span>
-                  <span
-                    aria-hidden="true"
-                    className={`${styles.collapseIcon} ${isCollapsed ? styles.collapseIconCollapsed : ""}`.trim()}
-                  >
-                    <svg viewBox="0 0 24 24" focusable="false" className={styles.collapseIconSvg}>
-                      <path d="M7 10l5 5 5-5H7z" fill="currentColor" />
-                    </svg>
-                  </span>
-                </button>
-                <div className={`${styles.options} ${isCollapsed ? styles.optionsCollapsed : ""}`.trim()}>
-                  {prompts.map((prompt) => {
-                    const isSelected = prompt.id === selectedPromptId;
-                    return (
-                      <label
-                        key={prompt.id}
-                        className={`${styles.option} ${isSelected ? styles.optionSelected : ""}`.trim()}
-                      >
-                        <input
-                          className={styles.radio}
-                          type="radio"
-                          name="prompt"
-                          value={prompt.id}
-                          checked={isSelected}
-                          onChange={() => onSelect(prompt.id)}
-                        />
-                        <span className={styles.optionText}>
-                          <span className={styles.optionLabel}>{prompt.label}</span>
-                          <span className={styles.optionDescription}>{getPromptPreview(prompt)}</span>
-                        </span>
-                      </label>
-                    );
-                  })}
+              <label
+                key={prompt.id}
+                className={`${styles.card} ${isSelected ? styles.cardSelected : ""}`.trim()}
+              >
+                <input
+                  className={styles.radio}
+                  type="radio"
+                  name="prompt"
+                  value={prompt.id}
+                  checked={isSelected}
+                  onChange={() => onSelect(prompt.id)}
+                />
+                <div className={styles.cardContent}>
+                  <span className={styles.cardLabel}>{prompt.label}</span>
+                  <span className={styles.cardDescription}>{getPromptPreview(prompt)}</span>
                 </div>
-              </section>
+              </label>
             );
           })
         ) : (
