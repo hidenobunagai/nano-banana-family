@@ -76,7 +76,7 @@ const extractErrorMessage = (value: unknown, fallbackMessage: string): string =>
   return fallbackMessage;
 };
 
-type Mode = "simple" | "flipbook" | "freestyle";
+type Mode = "simple" | "flipbook" | "freestyle" | "prompt";
 
 type UploadSlot = {
   id: string;
@@ -90,12 +90,14 @@ const MODE_LABELS: Record<Mode, string> = {
   simple: "画像編集モード",
   flipbook: "パラパラ漫画モード",
   freestyle: "自由編集モード",
+  prompt: "プロンプト生成モード",
 };
 
 const MODE_DESCRIPTIONS: Record<Mode, string> = {
   simple: "アップロードした画像を Gemini でアレンジするシンプルな編集モードです。",
   flipbook: "1枚の画像から物語を膨らませ、4コマのパラパラ漫画を作成します。",
   freestyle: "複数枚の参考画像と自由入力の指示で、理想の1枚を Gemini に仕上げてもらえます。",
+  prompt: "画像をアップロードせず、文章だけで理想の1枚を作成します。",
 };
 
 const MODE_OPTIONS: { id: Mode; label: string; description: string }[] = [
@@ -113,6 +115,11 @@ const MODE_OPTIONS: { id: Mode; label: string; description: string }[] = [
     id: "freestyle",
     label: "自由編集モード",
     description: "複数の画像を参考に、自由なプロンプトで理想の1枚を作成します。",
+  },
+  {
+    id: "prompt",
+    label: "プロンプト生成モード",
+    description: "文章だけを入力してゼロからイメージを生成します。",
   },
 ];
 
@@ -145,6 +152,20 @@ const FREESTYLE_PROGRESS_STEPS: ProgressStep[] = [
 ];
 
 const MAX_FREESTYLE_UPLOADS = 5;
+
+const PROMPT_ONLY_PROGRESS_STEPS: ProgressStep[] = [
+  { id: "plan", label: "イメージを構想中...", estimatedDuration: 1400 },
+  { id: "prompt", label: "指示内容を読み取り中...", estimatedDuration: 1600 },
+  { id: "generate", label: "Gemini で画像を生成中...", estimatedDuration: 6400 },
+  { id: "refine", label: "仕上がりを整えています...", estimatedDuration: 1200 },
+  { id: "complete", label: "完了", estimatedDuration: 400 },
+];
+
+const PROMPT_ONLY_SUGGESTIONS = [
+  "黄昏の砂浜で家族が手をつないで散歩しているシネマティックな写真",
+  "80年代SFアニメ風の未来都市を飛ぶジェットボードに乗った少年のイラスト",
+  "木漏れ日の森で紅葉した葉が舞う中、静かに読書する女性を描いた油彩画",
+];
 
 const formatFrameFileName = (index: number, timestamp: number | null) => {
   const safeTimestamp = timestamp ?? Date.now();
@@ -300,8 +321,10 @@ export default function Home() {
           <SimpleEditor />
         ) : mode === "flipbook" ? (
           <FlipbookCreator />
-        ) : (
+        ) : mode === "freestyle" ? (
           <FreestyleEditor />
+        ) : (
+          <PromptOnlyCreator />
         )}
       </section>
     </main>
@@ -652,6 +675,184 @@ function SimpleEditor() {
           </div>
         ) : (
           <p className={styles.helper}>編集結果がここに表示されます。</p>
+        )}
+      </aside>
+    </>
+  );
+}
+
+function PromptOnlyCreator() {
+  const [prompt, setPrompt] = useState("");
+  const [resultImage, setResultImage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [downloadFileName, setDownloadFileName] = useState<string | null>(null);
+
+  const handleProgressComplete = useCallback(() => {
+    setIsSubmitting(false);
+  }, []);
+
+  const { progress, currentStep, complete: completeProgress } = useProgressSimulation({
+    isActive: isSubmitting,
+    onComplete: handleProgressComplete,
+    steps: PROMPT_ONLY_PROGRESS_STEPS,
+  });
+
+  useEffect(() => {
+    if (resultImage) {
+      const timestamp = Date.now();
+      setDownloadFileName(`hide-nb-prompt-${timestamp}.png`);
+    } else {
+      setDownloadFileName(null);
+    }
+  }, [resultImage]);
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setPrompt(suggestion);
+    setResultImage(null);
+    setErrorMessage(null);
+  };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const trimmedPrompt = prompt.trim();
+
+    if (trimmedPrompt.length === 0) {
+      setErrorMessage("プロンプトを入力してください。");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setResultImage(null);
+
+    try {
+      const response = await fetch("/api/prompt-generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ prompt: trimmedPrompt }),
+      });
+
+      const contentType = response.headers.get("content-type") ?? "";
+      const isJsonResponse = contentType.includes("application/json");
+      const rawBody = await response.text();
+      let parsedBody: unknown = rawBody;
+
+      if (isJsonResponse && rawBody) {
+        try {
+          parsedBody = JSON.parse(rawBody) as unknown;
+        } catch {
+          if (response.ok) {
+            throw new Error("サーバーの応答を読み取れませんでした。時間をおいて再度お試しください。");
+          }
+        }
+      }
+
+      if (!response.ok) {
+        const fallbackMessage =
+          response.status >= 500
+            ? "サーバーでエラーが発生しました。時間をおいて再度お試しください。"
+            : "画像生成に失敗しました。入力内容をご確認のうえ、再度お試しください。";
+
+        throw new Error(extractErrorMessage(parsedBody, fallbackMessage));
+      }
+
+      if (!isJsonResponse || !isApiSuccessResponse(parsedBody)) {
+        throw new Error("サーバーからの画像データを取得できませんでした。時間をおいて再度お試しください。");
+      }
+
+      const mimeType = parsedBody.mimeType?.trim() ? parsedBody.mimeType : "image/png";
+      const imageUrl = `data:${mimeType};base64,${parsedBody.imageBase64}`;
+      setResultImage(imageUrl);
+    } catch (error) {
+      if (error instanceof Error) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage("予期しないエラーが発生しました。");
+      }
+    } finally {
+      completeProgress();
+    }
+  };
+
+  const promptIsEmpty = prompt.trim().length === 0;
+
+  return (
+    <>
+      <form className={styles.editor} onSubmit={handleSubmit}>
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="prompt-only-text">
+            1. 作りたいイメージを文章で伝える
+          </label>
+          <textarea
+            id="prompt-only-text"
+            className={styles.textArea}
+            rows={6}
+            placeholder="例: 星空の下でランタンを掲げる少年の幻想的なイラスト"
+            value={prompt}
+            onChange={(event) => setPrompt(event.target.value)}
+          />
+          <p className={styles.helper}>
+            想像しているシーンや雰囲気、色合い、時間帯などを具体的に書き込むと精度が上がります。
+          </p>
+          <div className={styles.promptSuggestionList}>
+            {PROMPT_ONLY_SUGGESTIONS.map((suggestion) => (
+              <button
+                key={suggestion}
+                type="button"
+                className={styles.promptSuggestionButton}
+                onClick={() => handleSuggestionClick(suggestion)}
+              >
+                {suggestion}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <button className={styles.primaryButton} type="submit" disabled={isSubmitting || promptIsEmpty}>
+          {isSubmitting ? (
+            <>
+              <div className={styles.spinner}></div>
+              生成中...
+            </>
+          ) : (
+            "Gemini にお任せ"
+          )}
+        </button>
+
+        {errorMessage && <p className={styles.error}>{errorMessage}</p>}
+      </form>
+
+      <aside className={styles.resultPane}>
+        <h2 className={styles.label}>仕上がり</h2>
+        {isSubmitting ? (
+          <div className={styles.fadeInUp}>
+            <ProgressDisplay
+              isVisible={true}
+              currentStep={currentStep}
+              progress={progress}
+              steps={PROMPT_ONLY_PROGRESS_STEPS}
+            />
+          </div>
+        ) : resultImage ? (
+          <div className={`${styles.resultCard} ${styles.fadeInUp}`}>
+            <Image
+              src={resultImage}
+              alt="生成した画像"
+              className={`${styles.resultImage} ${styles.fadeIn}`}
+              width={900}
+              height={600}
+              unoptimized
+            />
+            <a href={resultImage} download={downloadFileName ?? undefined} className={styles.primaryButton}>
+              画像をダウンロード
+            </a>
+          </div>
+        ) : (
+          <p className={styles.helper}>生成した画像がここに表示されます。</p>
         )}
       </aside>
     </>

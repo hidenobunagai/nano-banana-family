@@ -45,7 +45,7 @@ export async function resizeImage(file: File, options: ResizeOptions = {}): Prom
       type: file.type,
       lastModified: file.lastModified,
     });
-  } catch (error) {
+  } catch {
     // If reading fails, it might be a network/permission issue
     throw new Error('ファイルの読み込みに失敗しました。ネットワーク接続とファイルへのアクセス許可を確認してください。');
   }

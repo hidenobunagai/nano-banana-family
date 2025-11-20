@@ -132,4 +132,11 @@ export const PROMPT_PRESETS: PromptOption[] = [
     prompt:
       "Design a glossy international fashion magazine cover starring the subject. Dress them in avant-garde couture with confident posing and dramatic studio lighting against a minimalist color-blocked background. Maintain precise facial likeness and premium retouching. Add multilingual cover lines, barcode, issue date, and a sophisticated masthead, arranging typography to balance negative space. Apply subtle texture, shadows, and highlights so the cover feels ready for newsstand printing.",
   },
+  {
+    id: "disney-pixar-portrait",
+    label: "ディズニー・ピクサー3Dポートレート",
+    category: "クリエイティブ",
+    prompt:
+      "3D in the style of Disney-Pixar, person attached in the uploaded reference image ( Keep face of person 100% accurate from the reference image. ) in fluorescent green glasses, a person focused but smiling, with hair styled naturally and wearing a large neon green knitted sweater, white trousers, gray concrete background in the background, warm cinematic lighting, high detail, 8K, without text and numbers. The image is made with high detail, with subtle highlights of light on a glossy translucent body, which corresponds to the warm cinematic lighting of the stage, front view, portrait",
+  },
 ];
