@@ -1,0 +1,78 @@
+﻿
+> nano-banana-family@0.1.0 build C:\Users\hiden\Projects\nano-banana-family
+> next build
+
+   笆ｲ Next.js 16.0.10 (Turbopack)
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+pnpm :  筧ｯ ERROR: Thi
+s build is using Turb
+opack, with a `webpac
+k` config and no `tur
+bopack` config.
+発生場所 行:1 文字:1
++ pnpm run build 2>&1
+ | Out-File -Encoding
+ utf8 build_log_utf8.
+txt
++ ~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo   
+           : NotSpe  
+  cified: ( 筧ｯ ERR   
+ OR: This...bopac    
+k` config.:Strin    g
+) [], RemoteExc    ep
+tion
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 
+   This may be a mist
+ake.
+
+   As of Next.js 16 T
+urbopack is enabled b
+y default and
+   custom webpack con
+figurations may need 
+to be migrated to Tur
+bopack.
+
+   NOTE: your `webpac
+k` config may have be
+en added by a configu
+ration plugin.
+
+   To configure Turbo
+pack, see https://nex
+tjs.org/docs/app/api-
+reference/next-config
+-js/turbopack
+
+   TIP: Many applicat
+ions work fine under 
+Turbopack with no con
+figuration,
+   if that is the cas
+e for you, you can si
+lence this error by p
+assing the
+   `--turbopack` or `
+--webpack` flag expli
+citly or simply setti
+ng an 
+   empty turbopack co
+nfig in your Next con
+fig file (e.g. `turbo
+pack: {}`).
+
+> Build error occurre
+d
+Error: Call retries w
+ere exceeded
+    at ignore-listed 
+frames {
+  type: 'WorkerError'
+}
+窶右LIFECYCLE窶・Command failed with exit code 1.
