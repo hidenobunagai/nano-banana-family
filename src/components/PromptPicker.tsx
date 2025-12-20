@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
-
+import { cn } from "@/components/ui/Button";
 import { PromptOption } from "@/promptPresets";
-import styles from "./PromptPicker.module.css";
+import { Check, Search, X } from "lucide-react";
+import { useMemo, useState } from "react";
 
 type PromptGroups = Record<string, PromptOption[]>;
 
@@ -14,7 +14,12 @@ type PromptPickerProps = {
   legend?: string;
 };
 
-export function PromptPicker({ groups, selectedPromptId, onSelect, legend = "プロンプトを選ぶ" }: PromptPickerProps) {
+export function PromptPicker({
+  groups,
+  selectedPromptId,
+  onSelect,
+  legend = "プロンプトを選ぶ",
+}: PromptPickerProps) {
   const [query, setQuery] = useState("");
 
   const categories = useMemo(() => Object.keys(groups), [groups]);
@@ -26,98 +31,136 @@ export function PromptPicker({ groups, selectedPromptId, onSelect, legend = "プ
     if (normalizedQuery) {
       const allPrompts = Object.values(groups).flat();
       return allPrompts.filter((prompt) => {
-        const haystack = `${prompt.label} ${prompt.prompt} ${prompt.id}`.toLowerCase();
+        const haystack =
+          `${prompt.label} ${prompt.prompt} ${prompt.id}`.toLowerCase();
         return haystack.includes(normalizedQuery);
       });
     }
-
     return groups[activeTab] || [];
   }, [groups, activeTab, normalizedQuery]);
 
-  const resetSearch = () => {
-    setQuery("");
-  };
+  const resetSearch = () => setQuery("");
 
   const getPromptPreview = (prompt: PromptOption) => {
     const condensed = prompt.prompt.replace(/\s+/g, " ").trim();
-    if (condensed.length <= 100) {
-      return condensed;
-    }
-    return `${condensed.slice(0, 100)}…`;
+    return condensed.length <= 100 ? condensed : `${condensed.slice(0, 100)}…`;
   };
 
   return (
-    <fieldset className={styles.root}>
-      <legend className={styles.legend}>{legend}</legend>
+    <fieldset className="space-y-4">
+      {/* Header / Tabs */}
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <legend className="text-lg font-semibold text-slate-200 flex items-center gap-2">
+            {legend}
+          </legend>
+          <div className="relative w-64 max-w-full">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+              <Search className="w-4 h-4" />
+            </div>
+            <input
+              type="search"
+              className="w-full pl-9 pr-9 py-2 bg-slate-900/50 border border-white/10 rounded-full text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+              placeholder="キーワードで検索..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={resetSearch}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </div>
 
-      <div className={styles.toolbar}>
-        <label className={styles.searchField}>
-          <span className={styles.searchIcon} aria-hidden="true">
-            <svg viewBox="0 0 24 24" focusable="false" className={styles.searchIconSvg}>
-              <path
-                d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.71.71l.27.28v.79L20 20.5 20.5 20l-5-6zM10.5 15a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z"
-                fill="currentColor"
-              />
-            </svg>
-          </span>
-          <input
-            type="search"
-            className={styles.searchInput}
-            placeholder="キーワードで検索..."
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-          />
-        </label>
-        {query && (
-          <button type="button" className={styles.clearButton} onClick={resetSearch}>
-            クリア
-          </button>
+        {!normalizedQuery && categories.length > 0 && (
+          <div
+            className="flex flex-wrap gap-2 pb-2 border-b border-white/10"
+            role="tablist"
+          >
+            {categories.map((category) => {
+              const isActive = activeTab === category;
+              return (
+                <button
+                  key={category}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => setActiveTab(category)}
+                  className={cn(
+                    "px-4 py-1.5 rounded-full text-sm font-medium transition-all",
+                    isActive
+                      ? "bg-amber-500 text-slate-900 shadow-lg shadow-amber-500/20"
+                      : "bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200"
+                  )}
+                >
+                  {category}
+                </button>
+              );
+            })}
+          </div>
         )}
       </div>
 
-      {!normalizedQuery && categories.length > 0 && (
-        <div className={styles.tabs} role="tablist">
-          {categories.map((category) => (
-            <button
-              key={category}
-              type="button"
-              role="tab"
-              aria-selected={activeTab === category}
-              className={`${styles.tab} ${activeTab === category ? styles.tabActive : ""}`.trim()}
-              onClick={() => setActiveTab(category)}
-            >
-              {category}
-            </button>
-          ))}
-        </div>
-      )}
-
-      <div className={styles.grid}>
+      {/* Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
         {displayedPrompts.length > 0 ? (
           displayedPrompts.map((prompt) => {
             const isSelected = prompt.id === selectedPromptId;
             return (
               <label
                 key={prompt.id}
-                className={`${styles.card} ${isSelected ? styles.cardSelected : ""}`.trim()}
+                className={cn(
+                  "relative flex gap-3 p-3 rounded-xl border cursor-pointer transition-all hover:scale-[1.01]",
+                  isSelected
+                    ? "bg-amber-500/10 border-amber-500/50 ring-1 ring-amber-500/50"
+                    : "bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/10"
+                )}
               >
                 <input
-                  className={styles.radio}
                   type="radio"
                   name="prompt"
                   value={prompt.id}
                   checked={isSelected}
                   onChange={() => onSelect(prompt.id)}
+                  className="sr-only"
                 />
-                <div className={styles.cardContent}>
-                  <span className={styles.cardLabel}>{prompt.label}</span>
-                  <span className={styles.cardDescription}>{getPromptPreview(prompt)}</span>
+                <div
+                  className={cn(
+                    "flex-shrink-0 w-5 h-5 rounded-full border flex items-center justify-center mt-0.5 transition-colors",
+                    isSelected
+                      ? "bg-amber-500 border-amber-500"
+                      : "border-slate-600 bg-slate-800"
+                  )}
+                >
+                  {isSelected && (
+                    <Check className="w-3.5 h-3.5 text-slate-900" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span
+                    className={cn(
+                      "block font-medium mb-1",
+                      isSelected ? "text-amber-400" : "text-slate-200"
+                    )}
+                  >
+                    {prompt.label}
+                  </span>
+                  <span className="block text-xs text-slate-400 line-clamp-2 leading-relaxed">
+                    {getPromptPreview(prompt)}
+                  </span>
                 </div>
               </label>
             );
           })
         ) : (
-          <p className={styles.emptyState}>一致するプリセットが見つかりませんでした。</p>
+          <div className="col-span-full py-12 text-center text-slate-500">
+            一致するプリセットが見つかりませんでした。
+          </div>
         )}
       </div>
     </fieldset>

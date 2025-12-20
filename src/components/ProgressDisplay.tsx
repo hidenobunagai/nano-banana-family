@@ -1,4 +1,5 @@
-import styles from "./ProgressDisplay.module.css";
+import { cn } from "@/components/ui/Button";
+import { Check, Circle, Loader2 } from "lucide-react";
 
 export interface ProgressStep {
   id: string;
@@ -28,45 +29,69 @@ export function ProgressDisplay({
   const currentStepInfo = steps[currentStep];
 
   return (
-    <div className={styles.progressContainer}>
-      <div className={styles.progressHeader}>
-        <h3 className={styles.progressTitle}>
-          {title ?? "Gemini が画像を編集中..."}
-        </h3>
-      </div>
+    <div className="bg-slate-900/50 border border-white/10 rounded-xl p-6 backdrop-blur-md space-y-6">
+      <div className="space-y-4">
+        <div className="flex items-center justify-between text-sm">
+          <h3 className="font-semibold text-amber-400">
+            {title ?? "Gemini が画像を編集中..."}
+          </h3>
+          <span className="font-mono text-slate-400">
+            {Math.round(progress)}%
+          </span>
+        </div>
 
-      <div className={styles.progressBar}>
-        <div
-          className={styles.progressFill}
-          style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
-        />
-      </div>
-
-      <div className={styles.progressInfo}>
-        <div className={styles.percentage}>{Math.round(progress)}%</div>
-        <div className={styles.currentStep}>
-          {currentStepInfo ? currentStepInfo.label : "処理中..."}
+        {/* Progress Bar */}
+        <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-300 ease-out shadow-[0_0_10px_rgba(251,133,0,0.5)]"
+            style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
+          />
         </div>
       </div>
 
-      <div className={styles.stepsList}>
-        {steps.map((step, index) => (
-          <div
-            key={step.id}
-            className={`${styles.step} ${
-              index < currentStep
-                ? styles.stepCompleted
-                : index === currentStep
-                ? styles.stepActive
-                : styles.stepPending
-            }`}
-          >
-            <div className={styles.stepIndicator}>
-              {index < currentStep ? "✓" : index === currentStep ? "●" : "○"}
+      <div className="space-y-3 relative before:absolute before:inset-y-0 before:left-3 before:w-px before:bg-slate-800 before:z-0">
+        {steps.map((step, index) => {
+          const isCompleted = index < currentStep;
+          const isActive = index === currentStep;
+          const isPending = index > currentStep;
+
+          return (
+            <div
+              key={step.id}
+              className={cn(
+                "relative z-10 flex items-center gap-4 transition-colors duration-500",
+                isPending ? "opacity-40" : "opacity-100"
+              )}
+            >
+              <div
+                className={cn(
+                  "w-6 h-6 rounded-full flex items-center justify-center border transition-all duration-300 bg-slate-950",
+                  isCompleted
+                    ? "border-amber-500 text-amber-500"
+                    : isActive
+                    ? "border-amber-400 text-amber-400 ring-2 ring-amber-500/20"
+                    : "border-slate-700 text-slate-700"
+                )}
+              >
+                {isCompleted ? (
+                  <Check className="w-3.5 h-3.5" />
+                ) : isActive ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Circle className="w-2 h-2 fill-current" />
+                )}
+              </div>
+              <span
+                className={cn(
+                  "text-sm font-medium transition-colors",
+                  isActive ? "text-slate-100" : "text-slate-400"
+                )}
+              >
+                {step.label}
+              </span>
             </div>
-            <div className={styles.stepLabel}>{step.label}</div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
