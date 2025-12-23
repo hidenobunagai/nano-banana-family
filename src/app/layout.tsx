@@ -1,17 +1,22 @@
 import type { Metadata, Viewport } from "next";
+import { Outfit, Inter } from "next/font/google"; // UI/UX Pro Max: Premium fonts
 import { AuthProvider } from "./providers";
 import "./globals.css";
 
 import { Analytics } from "@vercel/analytics/next";
 
-// Temporarily use system fonts for development
-const geistSans = {
-  variable: "--font-geist-sans",
-};
+// UI/UX Pro Max: Modern Typography
+const outfit = Outfit({
+  subsets: ["latin"],
+  variable: "--font-outfit",
+  display: "swap",
+});
 
-const geistMono = {
-  variable: "--font-geist-mono",
-};
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: {
@@ -36,6 +41,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
+  themeColor: "#020617", // Match background
 };
 
 export default function RootLayout({
@@ -44,8 +50,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="ja" className={`${outfit.variable} ${inter.variable}`}>
+      {/* UI/UX Pro Max: Global Background & Font Classes */}
+      <body className="font-sans bg-slate-950 text-slate-50 antialiased selection:bg-amber-500/30 selection:text-amber-200">
+        {/* Background Gradients for depth */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+          <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-500/10 rounded-full blur-[120px] mix-blend-screen" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-amber-500/10 rounded-full blur-[120px] mix-blend-screen" />
+        </div>
+
         <AuthProvider>{children}</AuthProvider>
         <Analytics />
       </body>
