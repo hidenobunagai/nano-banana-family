@@ -9,6 +9,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      AUTH_SECRET: ci-build-secret
     steps:
       - name: Checkout
         uses: actions/checkout@v4
