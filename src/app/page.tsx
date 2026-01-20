@@ -57,7 +57,7 @@ export default function Home() {
             size="lg"
             className="w-full h-12 text-lg font-medium bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 shadow-lg shadow-amber-500/25 border-0"
           >
-            Let's Start
+            Let&apos;s Start
           </Button>
         </motion.div>
       </main>

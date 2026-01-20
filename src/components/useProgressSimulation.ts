@@ -78,8 +78,14 @@ export function useProgressSimulation({
 
   useEffect(() => {
     if (!isActive) {
-      reset();
-      return;
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      const resetTimeout = setTimeout(() => {
+        reset();
+      }, 0);
+      return () => clearTimeout(resetTimeout);
     }
 
     const finalPhaseStepCount = Math.min(2, steps.length);

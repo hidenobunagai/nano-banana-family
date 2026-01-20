@@ -12,18 +12,34 @@ Family-only image editing studio built with Next.js and Google Gemini. It authen
 
 ## Tech Stack
 
-- Next.js 15 (App Router) & React 19
+- Next.js 16 (App Router) & React 19
 - TypeScript
 - NextAuth (Google provider)
 - Google Gemini API (via `@google/genai`)
 - Vercel Analytics
+
+## Architecture Overview
+
+- `src/app` contains App Router routes, layouts, and page UI.
+- `src/app/api` holds route handlers for image editing, prompt generation, and flipbook creation.
+- `src/components/layout` houses layout primitives, `src/components/features` holds feature-level UI, and `src/components/ui` keeps reusable controls.
+- `src/utils` includes shared helpers, with `src/utils/server` reserved for server-only logic.
+- `src/auth.ts` configures NextAuth, and `src/promptPresets.ts` defines the default prompt library.
+
+## API Routes
+
+- `POST /api/edit-image` edits an uploaded image with a preset prompt (supports an optional second image).
+- `POST /api/freestyle-edit` edits up to five uploaded images based on a freeform prompt.
+- `POST /api/prompt-generate` generates a single image from a text prompt.
+- `POST /api/create-flipbook` creates a four-frame flipbook from a reference image and story idea.
+- `GET|POST /api/auth/*` handles NextAuth Google sign-in.
 
 ## Getting Started
 
 ### 1. Clone and install
 
 ```bash
-npm install
+bun install
 ```
 
 ### 2. Configure environment variables
@@ -44,10 +60,20 @@ Values can be set in a local `.env.local` or configured in the Vercel dashboard.
 ### 3. Run locally
 
 ```bash
-npm run dev
+bun run dev
 ```
 
 Visit <http://localhost:3000> and sign in with an allowed Google account to try the studio.
+
+## Quality Checks
+
+```bash
+bun run lint
+bun run typecheck
+bun run test
+bun run test:coverage
+bun run format
+```
 
 ## Prompt Presets
 
@@ -80,5 +106,5 @@ or connect the GitHub repo in the Vercel dashboard for automatic deployments. An
 ## Progressive Web App
 
 - Install the app on iOS or Android from the browser share/install menu. The manifest and service worker are generated automatically via `next-pwa`.
-- When developing locally, run `npm run dev` and open <http://localhost:3000>; Chrome will expose the "Install app" option once the site is served over HTTPS (use `vercel dev` or `npm run build && npm run start` for a production-like HTTPS setup).
+- When developing locally, run `bun run dev` and open <http://localhost:3000>; Chrome will expose the "Install app" option once the site is served over HTTPS (use `vercel dev` or `bun run build && bun run start` for a production-like HTTPS setup).
 - Generated assets (`public/sw.js`, `public/workbox-*.js`) are ignored by Git and created during `next build`.
