@@ -152,7 +152,7 @@ export function FlipbookCreator() {
                     max="1000"
                     value={playbackDelay}
                     onChange={(e) => setPlaybackDelay(Number(e.target.value))}
-                    className="accent-amber-500 h-1 bg-slate-700 rounded-lg appearance-none w-20 cursor-pointer"
+                    className="accent-emerald-500 h-1 bg-slate-700 rounded-lg appearance-none w-20 cursor-pointer"
                   />
                 </div>
               </div>
@@ -177,7 +177,7 @@ export function FlipbookCreator() {
                 <Button
                   variant="default"
                   onClick={() => setIsPlaying(!isPlaying)}
-                  className="w-32 bg-amber-500 hover:bg-amber-600 text-white border-0"
+                  className="w-32 bg-emerald-500 hover:bg-emerald-400 text-white border-0"
                 >
                   {isPlaying ? (
                     <Pause className="w-4 h-4 mr-2" />
@@ -206,7 +206,7 @@ export function FlipbookCreator() {
                     className={cn(
                       "relative aspect-square rounded-lg overflow-hidden border-2 transition-all cursor-pointer",
                       currentFrame === i
-                        ? "border-amber-500 scale-105 shadow-lg shadow-amber-500/20"
+                        ? "border-emerald-500 scale-105 shadow-lg shadow-emerald-500/20"
                         : "border-transparent opacity-60 hover:opacity-100 hover:border-white/20"
                     )}
                   >
@@ -246,7 +246,7 @@ export function FlipbookCreator() {
         </Section>
         <Section title="2. ストーリーのアイデア">
           <textarea
-            className="w-full h-24 rounded-xl bg-slate-900/50 border border-white/10 p-4 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-shadow"
+            className="w-full h-24 rounded-xl bg-slate-900/50 border border-white/10 p-4 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-shadow"
             placeholder="例: 夕暮れの公園で遊ぶ子供が、ふと空を見上げて流れ星を見つける物語"
             value={storyIdea}
             onChange={(e) => setStoryIdea(e.target.value)}
@@ -265,7 +265,7 @@ export function FlipbookCreator() {
         <Button
           type="submit"
           size="lg"
-          className="w-full h-14 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 border-0 shadow-lg shadow-amber-500/20"
+          className="w-full h-14 bg-emerald-500 hover:bg-emerald-400 border-0 shadow-lg shadow-emerald-500/20"
           disabled={isSubmitting || !selectedFile || !storyIdea.trim()}
         >
           {isSubmitting ? (

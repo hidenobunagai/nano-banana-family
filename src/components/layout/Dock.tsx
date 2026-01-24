@@ -75,9 +75,9 @@ function DockItem({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       className={cn(
-        "relative flex flex-col items-center justify-center w-14 h-14 rounded-xl transition-all duration-300",
+        "relative flex flex-col items-center justify-center w-14 h-14 rounded-xl transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50",
         active
-          ? "bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/25"
+          ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/25"
           : "hover:bg-white/10 text-slate-400 hover:text-white"
       )}
     >

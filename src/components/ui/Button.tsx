@@ -9,17 +9,17 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center rounded-full text-sm font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95",
+  "inline-flex items-center justify-center rounded-full text-sm font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95",
   {
     variants: {
       variant: {
         default:
-          "bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 hover:from-amber-400 hover:to-orange-500 hover:-translate-y-0.5 border border-white/5",
+          "bg-emerald-500 text-white shadow-lg shadow-emerald-500/25 hover:bg-emerald-400 hover:shadow-emerald-500/40 hover:-translate-y-0.5 border border-white/5",
         ghost: "hover:bg-slate-800/50 text-slate-400 hover:text-slate-100",
         outline:
           "border border-slate-700 bg-slate-900/30 hover:bg-slate-800 hover:border-slate-500 text-slate-200 backdrop-blur-sm",
         glass:
-          "bg-white/5 backdrop-blur-md border border-white/10 text-white hover:bg-white/10 shadow-lg hover:shadow-amber-500/10 hover:border-white/20",
+          "bg-white/5 backdrop-blur-md border border-white/10 text-white hover:bg-white/10 shadow-lg hover:shadow-emerald-500/10 hover:border-white/20",
       },
       size: {
         default: "h-11 px-6 py-2",

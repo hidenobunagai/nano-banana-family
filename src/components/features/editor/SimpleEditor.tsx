@@ -265,7 +265,7 @@ export function SimpleEditor() {
           <Button
             type="submit"
             size="lg"
-            className="w-full text-lg h-14 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 shadow-lg shadow-amber-500/20 border-0"
+            className="w-full text-lg h-14 bg-emerald-500 hover:bg-emerald-400 shadow-lg shadow-emerald-500/20 border-0"
             disabled={isSubmitting || !hasRequiredFiles || isOptimizingAny}
           >
             {isSubmitting ? (

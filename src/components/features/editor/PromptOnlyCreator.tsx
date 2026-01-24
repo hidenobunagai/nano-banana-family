@@ -129,7 +129,7 @@ export function PromptOnlyCreator() {
       <form onSubmit={handleSubmit} className="space-y-8">
         <Section title="1. 作りたいイメージを文章で伝える">
           <textarea
-            className="w-full h-32 rounded-xl bg-slate-900/50 border border-white/10 p-4 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 resize-y transition-shadow"
+            className="w-full h-32 rounded-xl bg-slate-900/50 border border-white/10 p-4 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 resize-y transition-shadow"
             placeholder="例: 星空の下でランタンを掲げる少年の幻想的なイラスト"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
@@ -151,7 +151,7 @@ export function PromptOnlyCreator() {
         <Button
           type="submit"
           size="lg"
-          className="w-full h-14 text-lg bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 shadow-lg shadow-amber-500/20 border-0"
+          className="w-full h-14 text-lg bg-emerald-500 hover:bg-emerald-400 shadow-lg shadow-emerald-500/20 border-0"
           disabled={isSubmitting || !prompt.trim()}
         >
           {isSubmitting ? (

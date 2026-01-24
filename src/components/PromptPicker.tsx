@@ -60,7 +60,7 @@ export function PromptPicker({
             </div>
             <input
               type="search"
-              className="w-full pl-9 pr-9 py-2 bg-slate-900/50 border border-white/10 rounded-full text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+              className="w-full pl-9 pr-9 py-2 bg-slate-900/50 border border-white/10 rounded-full text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
               placeholder="キーワードで検索..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -94,7 +94,7 @@ export function PromptPicker({
                   className={cn(
                     "px-4 py-1.5 rounded-full text-sm font-medium transition-all",
                     isActive
-                      ? "bg-amber-500 text-slate-900 shadow-lg shadow-amber-500/20"
+                      ? "bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20"
                       : "bg-white/5 text-slate-400 hover:bg-white/10 hover:text-slate-200"
                   )}
                 >
@@ -116,11 +116,11 @@ export function PromptPicker({
                 key={prompt.id}
                 className={cn(
                   "relative flex gap-3 p-3 rounded-xl border cursor-pointer transition-all hover:scale-[1.01]",
-                  isSelected
-                    ? "bg-amber-500/10 border-amber-500/50 ring-1 ring-amber-500/50"
-                    : "bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/10"
-                )}
-              >
+                    isSelected
+                      ? "bg-emerald-500/10 border-emerald-500/50 ring-1 ring-emerald-500/50"
+                      : "bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/10"
+                  )}
+                >
                 <input
                   type="radio"
                   name="prompt"
@@ -133,7 +133,7 @@ export function PromptPicker({
                   className={cn(
                     "flex-shrink-0 w-5 h-5 rounded-full border flex items-center justify-center mt-0.5 transition-colors",
                     isSelected
-                      ? "bg-amber-500 border-amber-500"
+                      ? "bg-emerald-500 border-emerald-500"
                       : "border-slate-600 bg-slate-800"
                   )}
                 >
@@ -145,7 +145,7 @@ export function PromptPicker({
                   <span
                     className={cn(
                       "block font-medium mb-1",
-                      isSelected ? "text-amber-400" : "text-slate-200"
+                      isSelected ? "text-emerald-400" : "text-slate-200"
                     )}
                   >
                     {prompt.label}

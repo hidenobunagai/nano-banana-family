@@ -89,16 +89,16 @@ export function FileInput({
             className={cn(
               "relative flex flex-col items-center justify-center w-full h-48 rounded-2xl border-2 border-dashed transition-all cursor-pointer group overflow-hidden",
               isDragging
-                ? "border-amber-500/80 bg-amber-500/10 scale-[1.02]"
+                ? "border-emerald-500/80 bg-emerald-500/10 scale-[1.02]"
                 : "border-slate-700 hover:border-slate-500 bg-slate-900/30 hover:bg-slate-800/40"
             )}
           >
             {/* Animated Background Gradient on Hover */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/0 via-amber-500/0 to-amber-500/0 group-hover:from-amber-500/5 group-hover:via-amber-500/5 group-hover:to-transparent transition-all duration-500" />
+            <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/0 via-emerald-500/0 to-emerald-500/0 group-hover:from-emerald-500/5 group-hover:via-emerald-500/5 group-hover:to-transparent transition-all duration-500" />
 
-            <div className="flex flex-col items-center justify-center pt-5 pb-6 text-slate-400 group-hover:text-amber-200 transition-colors z-10">
+            <div className="flex flex-col items-center justify-center pt-5 pb-6 text-slate-400 group-hover:text-emerald-200 transition-colors z-10">
               {isOptimizing ? (
-                <Loader2 className="w-10 h-10 mb-3 animate-spin text-amber-500" />
+                <Loader2 className="w-10 h-10 mb-3 animate-spin text-emerald-500" />
               ) : (
                 <Upload
                   className={cn(

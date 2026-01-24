@@ -29,10 +29,10 @@ export function ProgressDisplay({
   const currentStepInfo = steps[currentStep];
 
   return (
-    <div className="bg-slate-900/50 border border-white/10 rounded-xl p-6 backdrop-blur-md space-y-6">
-      <div className="space-y-4">
-        <div className="flex items-center justify-between text-sm">
-          <h3 className="font-semibold text-amber-400">
+      <div className="bg-slate-900/50 border border-white/10 rounded-xl p-6 backdrop-blur-md space-y-6">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between text-sm">
+          <h3 className="font-semibold text-emerald-400">
             {title ?? "Gemini が画像を編集中..."}
           </h3>
           <span className="font-mono text-slate-400">
@@ -43,7 +43,7 @@ export function ProgressDisplay({
         {/* Progress Bar */}
         <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-300 ease-out shadow-[0_0_10px_rgba(251,133,0,0.5)]"
+            className="h-full bg-emerald-500 transition-all duration-300 ease-out shadow-[0_0_10px_rgba(16,185,129,0.35)]"
             style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
           />
         </div>
@@ -67,9 +67,9 @@ export function ProgressDisplay({
                 className={cn(
                   "w-6 h-6 rounded-full flex items-center justify-center border transition-all duration-300 bg-slate-950",
                   isCompleted
-                    ? "border-amber-500 text-amber-500"
+                    ? "border-emerald-500 text-emerald-500"
                     : isActive
-                    ? "border-amber-400 text-amber-400 ring-2 ring-amber-500/20"
+                    ? "border-emerald-400 text-emerald-400 ring-2 ring-emerald-500/20"
                     : "border-slate-700 text-slate-700"
                 )}
               >

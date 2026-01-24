@@ -52,11 +52,11 @@ export default function RootLayout({
   return (
     <html lang="ja" className={`${outfit.variable} ${inter.variable}`}>
       {/* UI/UX Pro Max: Global Background & Font Classes */}
-      <body className="font-sans bg-slate-950 text-slate-50 antialiased selection:bg-amber-500/30 selection:text-amber-200">
+      <body className="font-sans bg-slate-950 text-slate-50 antialiased selection:bg-emerald-500/30 selection:text-emerald-200">
         {/* Background Gradients for depth */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-          <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-500/10 rounded-full blur-[120px] mix-blend-screen" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-amber-500/10 rounded-full blur-[120px] mix-blend-screen" />
+          <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-emerald-500/10 rounded-full blur-[120px] mix-blend-screen" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-emerald-500/10 rounded-full blur-[120px] mix-blend-screen" />
         </div>
 
         <AuthProvider>{children}</AuthProvider>

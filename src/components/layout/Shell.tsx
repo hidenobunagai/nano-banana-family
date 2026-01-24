@@ -17,7 +17,7 @@ export function Shell({
   onSignOut,
 }: ShellProps) {
   return (
-    <div className="flex h-screen w-full overflow-hidden text-slate-100 selection:bg-amber-500/30">
+    <div className="flex h-dvh w-full overflow-hidden text-slate-100 selection:bg-emerald-500/30">
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         {/* Top Bar (Glass) */}
         <header className="absolute top-0 left-0 right-0 h-20 flex items-center justify-between px-8 z-30 bg-slate-950/50 backdrop-blur-xl border-b border-white/5 transition-all">
@@ -30,7 +30,7 @@ export function Shell({
         </header>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden pt-24 p-6 lg:p-12 pb-32 scroll-smooth relative">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 lg:px-12 pt-24 pb-32 scroll-smooth relative">
           <div className="max-w-[1400px] mx-auto w-full animate-in fade-in slide-in-from-bottom-8 duration-700">
             {children}
           </div>

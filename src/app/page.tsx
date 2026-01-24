@@ -20,9 +20,9 @@ export default function Home() {
 
   if (status === "loading") {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-[#020617] text-white">
+      <main className="min-h-dvh flex items-center justify-center bg-[#020617] text-white">
         <div className="flex flex-col items-center gap-4 animate-pulse">
-          <Loader2 className="w-10 h-10 animate-spin text-amber-500" />
+          <Loader2 className="w-10 h-10 animate-spin text-emerald-500" />
           <p className="text-slate-400 font-medium font-sans">読み込み中...</p>
         </div>
       </main>
@@ -31,10 +31,10 @@ export default function Home() {
 
   if (status !== "authenticated") {
     return (
-      <main className="min-h-screen flex items-center justify-center p-6 bg-[#020617] relative overflow-hidden">
+      <main className="min-h-dvh flex items-center justify-center p-6 bg-[#020617] relative overflow-hidden">
         {/* Background Effects */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-amber-500/10 rounded-full blur-[120px] pointer-events-none animate-float" />
-        <div className="absolute bottom-0 right-0 w-[600px] h-[400px] bg-purple-500/10 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none animate-float" />
+        <div className="absolute bottom-0 right-0 w-[600px] h-[400px] bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none" />
 
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
@@ -43,7 +43,7 @@ export default function Home() {
           className="relative w-full max-w-md p-8 rounded-3xl glass-panel flex flex-col items-center text-center gap-8"
         >
           <div className="space-y-4">
-            <h1 className="text-4xl font-display font-bold bg-gradient-to-br from-amber-200 via-orange-400 to-amber-600 bg-clip-text text-transparent drop-shadow-sm">
+            <h1 className="text-4xl font-display font-bold bg-gradient-to-br from-emerald-200 via-emerald-400 to-emerald-600 bg-clip-text text-transparent drop-shadow-sm">
               Hide NB Studio
             </h1>
             <p className="text-slate-400 leading-relaxed font-sans">
@@ -55,7 +55,7 @@ export default function Home() {
           <Button
             onClick={() => signIn("google")}
             size="lg"
-            className="w-full h-12 text-lg font-medium bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 shadow-lg shadow-amber-500/25 border-0"
+            className="w-full h-12 text-lg font-medium bg-emerald-500 hover:bg-emerald-400 shadow-lg shadow-emerald-500/25 border-0"
           >
             Let&apos;s Start
           </Button>
