@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   },
   description: "Family-only Gemini image editor with guided prompt presets.",
   applicationName: "Hide NB Studio",
-  manifest: "/manifest.webmanifest",
+  manifest: "/manifest.webmanifest?v=2",
   appleWebApp: {
     capable: true,
     title: "Hide NB Studio",
