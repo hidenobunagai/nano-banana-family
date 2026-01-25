@@ -14,6 +14,11 @@ export default function manifest(): MetadataRoute.Manifest {
     scope: "/",
     icons: [
       {
+        src: "/icon.svg",
+        sizes: "any",
+        type: "image/svg+xml",
+      },
+      {
         src: "/icons/android-chrome-192x192.png",
         sizes: "192x192",
         type: "image/png",
