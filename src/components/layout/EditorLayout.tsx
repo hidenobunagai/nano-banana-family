@@ -7,9 +7,9 @@ interface EditorLayoutProps {
 
 export function EditorLayout({ children, resultPane }: EditorLayoutProps) {
   return (
-    <div className="flex flex-col xl:flex-row gap-8 items-start w-full max-w-[1600px] mx-auto">
-      <div className="w-full xl:flex-1 min-w-0 space-y-8">{children}</div>
-      <div className="w-full xl:w-[520px] shrink-0 xl:sticky top-24">
+    <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_520px] gap-8 items-start w-full max-w-[1600px] mx-auto">
+      <div className="min-w-0 space-y-8">{children}</div>
+      <div className="xl:sticky xl:top-24 space-y-4">
         {resultPane}
       </div>
     </div>
