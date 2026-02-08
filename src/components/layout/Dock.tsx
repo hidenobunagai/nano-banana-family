@@ -2,7 +2,7 @@
 
 import { cn } from "@/components/ui/Button";
 import { AnimatePresence, motion } from "framer-motion";
-import { Film, LogOut, MessageSquare, Palette, Wand2 } from "lucide-react";
+import { Palette, Wand2 } from "lucide-react";
 import { useState } from "react";
 
 // Re-using the Mode type here for now to avoid circular deps if Sidebar is deleted
@@ -11,7 +11,6 @@ export type NavMode = "simple" | "flipbook" | "freestyle" | "prompt";
 interface DockProps {
   currentMode: NavMode;
   onModeChange: (mode: NavMode) => void;
-  onSignOut: () => void;
 }
 
 const MENU_ITEMS = [
@@ -19,7 +18,7 @@ const MENU_ITEMS = [
   { id: "freestyle", label: "Freestyle", icon: Palette },
 ] as const;
 
-export function Dock({ currentMode, onModeChange, onSignOut }: DockProps) {
+export function Dock({ currentMode, onModeChange }: DockProps) {
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
       <motion.div
