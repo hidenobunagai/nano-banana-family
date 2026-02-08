@@ -16,9 +16,7 @@ interface DockProps {
 
 const MENU_ITEMS = [
   { id: "simple", label: "Editor", icon: Wand2 },
-  { id: "flipbook", label: "Flipbook", icon: Film },
   { id: "freestyle", label: "Freestyle", icon: Palette },
-  { id: "prompt", label: "Prompt", icon: MessageSquare },
 ] as const;
 
 export function Dock({ currentMode, onModeChange, onSignOut }: DockProps) {
@@ -39,16 +37,6 @@ export function Dock({ currentMode, onModeChange, onSignOut }: DockProps) {
             label={item.label}
           />
         ))}
-
-        <div className="w-px h-8 bg-white/10 mx-2" />
-
-        <DockItem
-          active={false}
-          onClick={onSignOut}
-          icon={LogOut}
-          label="Sign Out"
-          isDanger
-        />
       </motion.div>
     </div>
   );

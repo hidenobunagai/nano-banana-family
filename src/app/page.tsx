@@ -1,14 +1,18 @@
 "use client";
 
+import { FreestyleEditor } from "@/components/features/editor/FreestyleEditor";
 import { SimpleEditor } from "@/components/features/editor/SimpleEditor";
+import { Dock, type NavMode } from "@/components/layout/Dock";
 import { Shell } from "@/components/layout/Shell";
 import { Button } from "@/components/ui/Button";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import { signIn, signOut, useSession } from "next-auth/react";
+import { useState } from "react";
 
 export default function Home() {
   const { status } = useSession();
+  const [mode, setMode] = useState<NavMode>("simple");
 
   const handleSignOut = () => void signOut();
 
@@ -61,13 +65,25 @@ export default function Home() {
   return (
     <Shell onSignOut={handleSignOut}>
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full"
+        key={mode}
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -20 }}
+        transition={{ duration: 0.3 }}
+        className="w-full pb-24"
       >
-        <SimpleEditor />
+        {mode === "simple" ? (
+          <SimpleEditor />
+        ) : (
+          <FreestyleEditor />
+        )}
       </motion.div>
+      
+      <Dock 
+        currentMode={mode} 
+        onModeChange={setMode} 
+        onSignOut={handleSignOut} 
+      />
     </Shell>
   );
 }
