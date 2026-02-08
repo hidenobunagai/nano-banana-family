@@ -1,20 +1,14 @@
 "use client";
 
-import { FlipbookCreator } from "@/components/features/editor/FlipbookCreator";
-import { FreestyleEditor } from "@/components/features/editor/FreestyleEditor";
-import { PromptOnlyCreator } from "@/components/features/editor/PromptOnlyCreator";
 import { SimpleEditor } from "@/components/features/editor/SimpleEditor";
-import { type NavMode } from "@/components/layout/Dock";
 import { Shell } from "@/components/layout/Shell";
 import { Button } from "@/components/ui/Button";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import { signIn, signOut, useSession } from "next-auth/react";
-import { useState } from "react";
 
 export default function Home() {
   const { status } = useSession();
-  const [mode, setMode] = useState<NavMode>("simple");
 
   const handleSignOut = () => void signOut();
 
@@ -65,24 +59,14 @@ export default function Home() {
   }
 
   return (
-    <Shell currentMode={mode} onModeChange={setMode} onSignOut={handleSignOut}>
+    <Shell onSignOut={handleSignOut}>
       <motion.div
-        key={mode}
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: -20 }}
-        transition={{ duration: 0.3 }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
         className="w-full"
       >
-        {mode === "simple" ? (
-          <SimpleEditor />
-        ) : mode === "flipbook" ? (
-          <FlipbookCreator />
-        ) : mode === "freestyle" ? (
-          <FreestyleEditor />
-        ) : (
-          <PromptOnlyCreator />
-        )}
+        <SimpleEditor />
       </motion.div>
     </Shell>
   );

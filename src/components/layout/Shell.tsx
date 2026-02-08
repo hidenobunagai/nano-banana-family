@@ -1,19 +1,16 @@
 "use client";
 
 import * as React from "react";
-import { Dock, type NavMode } from "./Dock";
+import { LogOut } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 
 interface ShellProps {
   children: React.ReactNode;
-  currentMode: NavMode;
-  onModeChange: (mode: NavMode) => void;
   onSignOut: () => void;
 }
 
 export function Shell({
   children,
-  currentMode,
-  onModeChange,
   onSignOut,
 }: ShellProps) {
   return (
@@ -26,7 +23,16 @@ export function Shell({
               Hide NB Studio
             </h1>
           </div>
-          {/* We can add user profile or settings here later */}
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onSignOut}
+            className="text-slate-400 hover:text-red-400 hover:bg-red-950/30 gap-2"
+          >
+            <LogOut className="w-4 h-4" />
+            <span className="hidden sm:inline">Sign Out</span>
+          </Button>
         </header>
 
         {/* Content Area */}
@@ -35,13 +41,6 @@ export function Shell({
             {children}
           </div>
         </div>
-
-        {/* Floating Dock */}
-        <Dock
-          currentMode={currentMode}
-          onModeChange={onModeChange}
-          onSignOut={onSignOut}
-        />
       </main>
     </div>
   );
