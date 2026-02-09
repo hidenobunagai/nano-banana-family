@@ -2,6 +2,7 @@ const ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 const MIME_TYPE_NORMALIZATION: Record<string, string> = {
   "image/jpg": "image/jpeg",
+  "image/pjpeg": "image/jpeg",
 };
 
 const EXTENSION_TO_MIME: Record<string, string> = {
