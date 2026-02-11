@@ -1,6 +1,7 @@
 "use client";
 
 import { FreestyleEditor } from "@/components/features/editor/FreestyleEditor";
+import { IconCreator } from "@/components/features/editor/IconCreator";
 import { SimpleEditor } from "@/components/features/editor/SimpleEditor";
 import { Dock, type NavMode } from "@/components/layout/Dock";
 import { Shell } from "@/components/layout/Shell";
@@ -73,6 +74,8 @@ export default function Home() {
       >
         {mode === "simple" ? (
           <SimpleEditor />
+        ) : mode === "icon" ? (
+          <IconCreator />
         ) : (
           <FreestyleEditor />
         )}
