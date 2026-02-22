@@ -8,7 +8,7 @@ export default function manifest(): MetadataRoute.Manifest {
       "Family-only image editing studio powered by Google Gemini and curated prompt presets.",
     start_url: "/",
     display: "standalone",
-    background_color: "#0f172a",
+    background_color: "#ffffff",
     theme_color: "#0f172a",
     lang: "ja",
     scope: "/",
