@@ -1,9 +1,13 @@
-import { NextResponse } from "next/server";
 import { GoogleGenAI, Part } from "@google/genai";
 import { getServerSession } from "next-auth";
+import { NextResponse } from "next/server";
 
 import { authOptions } from "@/auth";
-import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB, resolveMimeType } from "@/utils/server/imageValidation";
+import {
+  MAX_FILE_SIZE_BYTES,
+  MAX_FILE_SIZE_MB,
+  resolveMimeType,
+} from "@/utils/server/imageValidation";
 
 export const runtime = "nodejs";
 
@@ -13,19 +17,13 @@ export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
 
   if (!session) {
-    return NextResponse.json(
-      { error: "認証が必要です。" },
-      { status: 401 },
-    );
+    return NextResponse.json({ error: "認証が必要です。" }, { status: 401 });
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
-    return NextResponse.json(
-      { error: "Gemini API キーが設定されていません。" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Gemini API キーが設定されていません。" }, { status: 500 });
   }
 
   const formData = await request.formData();
@@ -42,24 +40,15 @@ export async function POST(request: Request) {
   }
 
   if (typeof prompt !== "string" || prompt.trim().length === 0) {
-    return NextResponse.json(
-      { error: "プロンプトを選択してください。" },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "プロンプトを選択してください。" }, { status: 400 });
   }
 
   if (!(file instanceof File)) {
-    return NextResponse.json(
-      { error: "画像ファイルが添付されていません。" },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "画像ファイルが添付されていません。" }, { status: 400 });
   }
 
   if (file.size === 0) {
-    return NextResponse.json(
-      { error: "空の画像ファイルは処理できません。" },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "空の画像ファイルは処理できません。" }, { status: 400 });
   }
 
   if (file.size > MAX_FILE_SIZE_BYTES) {
@@ -135,7 +124,17 @@ export async function POST(request: Request) {
       });
     }
 
-    parts.push({ text: prompt });
+    const enhancedPrompt = [
+      "CRITICAL INSTRUCTION:",
+      "You MUST preserve the exact facial features, identity, and likeness of the person in the uploaded reference image(s).",
+      "The generated person MUST look 100% identical to the reference.",
+      "Do not alter their face, age, or ethnicity unless explicitly requested.",
+      "---",
+      "User Prompt:",
+      prompt,
+    ].join("\n");
+
+    parts.push({ text: enhancedPrompt });
 
     const response = await client.models.generateContent({
       model: DEFAULT_MODEL,
@@ -153,19 +152,14 @@ export async function POST(request: Request) {
     const resultMime = imageResult?.inlineData?.mimeType ?? "image/png";
 
     if (!base64Data) {
-      return NextResponse.json(
-        { error: "画像の生成に失敗しました。" },
-        { status: 502 },
-      );
+      return NextResponse.json({ error: "画像の生成に失敗しました。" }, { status: 502 });
     }
 
     return NextResponse.json({ imageBase64: base64Data, mimeType: resultMime });
   } catch (error) {
     console.error("Gemini edit error", error);
-    const errorMessage = error instanceof Error ? error.message : "画像編集中に予期しないエラーが発生しました。";
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 },
-    );
+    const errorMessage =
+      error instanceof Error ? error.message : "画像編集中に予期しないエラーが発生しました。";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

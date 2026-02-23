@@ -3,7 +3,11 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
 import { authOptions } from "@/auth";
-import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB, resolveMimeType } from "@/utils/server/imageValidation";
+import {
+  MAX_FILE_SIZE_BYTES,
+  MAX_FILE_SIZE_MB,
+  resolveMimeType,
+} from "@/utils/server/imageValidation";
 
 export const runtime = "nodejs";
 
@@ -14,19 +18,13 @@ export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
 
   if (!session) {
-    return NextResponse.json(
-      { error: "認証が必要です。" },
-      { status: 401 },
-    );
+    return NextResponse.json({ error: "認証が必要です。" }, { status: 401 });
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
-    return NextResponse.json(
-      { error: "Gemini API キーが設定されていません。" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Gemini API キーが設定されていません。" }, { status: 500 });
   }
 
   const formData = await request.formData();
@@ -41,17 +39,11 @@ export async function POST(request: Request) {
   }
 
   if (typeof prompt !== "string" || prompt.trim().length === 0) {
-    return NextResponse.json(
-      { error: "編集内容を入力してください。" },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "編集内容を入力してください。" }, { status: 400 });
   }
 
   if (files.length === 0) {
-    return NextResponse.json(
-      { error: "画像を1枚以上アップロードしてください。" },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "画像を1枚以上アップロードしてください。" }, { status: 400 });
   }
 
   if (files.length > MAX_IMAGE_COUNT) {
@@ -111,6 +103,7 @@ export async function POST(request: Request) {
     parts.push({
       text: [
         "You are a helpful creative image editor for the Hide NB Studio family app.",
+        "CRITICAL INSTRUCTION: You MUST preserve the exact facial features, identity, and likeness of the person in the uploaded reference image(s). The generated person MUST look 100% identical to the reference.",
         "Use the uploaded images purely as visual references.",
         "Blend the key elements from each reference in order, keeping the first uploads as the strongest guidance.",
         "Follow the user's instructions precisely and return exactly one polished image.",
@@ -135,10 +128,7 @@ export async function POST(request: Request) {
     const resultMime = imageResult?.inlineData?.mimeType ?? "image/png";
 
     if (!base64Data) {
-      return NextResponse.json(
-        { error: "画像の生成に失敗しました。" },
-        { status: 502 },
-      );
+      return NextResponse.json({ error: "画像の生成に失敗しました。" }, { status: 502 });
     }
 
     return NextResponse.json({ imageBase64: base64Data, mimeType: resultMime });
@@ -146,9 +136,6 @@ export async function POST(request: Request) {
     console.error("Gemini freestyle edit error", error);
     const errorMessage =
       error instanceof Error ? error.message : "画像生成中に予期しないエラーが発生しました。";
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

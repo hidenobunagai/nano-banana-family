@@ -71,13 +71,13 @@ export function buildIconPrompt({
   customPrompt,
 }: BuildIconPromptParams): string {
   const selectedStyle =
-    ICON_STYLES.find((s) => s.id === style) ??
-    ICON_STYLES.find((s) => s.id === "auto")!;
+    ICON_STYLES.find((s) => s.id === style) ?? ICON_STYLES.find((s) => s.id === "auto")!;
 
   const contextLines: string[] = [];
 
+  contextLines.push("You are a professional icon designer for the Hide NB Studio family app.");
   contextLines.push(
-    "You are a professional icon designer for the Hide NB Studio family app.",
+    "CRITICAL INSTRUCTION: You MUST preserve the exact facial features, identity, and likeness of the person in the uploaded reference image(s). The generated person MUST look 100% identical to the reference.",
   );
   contextLines.push(
     "Generate a single, high-quality square icon image (512x512 pixels) suitable for use as a contact icon in phone contact lists, LINE, and messaging apps.",
