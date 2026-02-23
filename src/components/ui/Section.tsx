@@ -19,7 +19,7 @@ export function Section({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay, ease: "easeOut" }}
-      className={`glass-panel p-6 rounded-2xl ${className}`}
+      className={`glass-panel p-4 sm:p-6 rounded-2xl ${className}`}
     >
       {title && (
         <h3 className="text-lg font-display font-semibold text-slate-200 mb-4 flex items-center gap-2">

@@ -220,7 +220,7 @@ export function SimpleEditor() {
         </Section>
       }
     >
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleSubmit} className="space-y-6 xl:space-y-8">
         <Section
           title={
             requiresDualUpload
