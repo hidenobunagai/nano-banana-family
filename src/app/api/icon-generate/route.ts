@@ -3,10 +3,7 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
 import { authOptions } from "@/auth";
-import {
-  buildIconPrompt,
-  type IconStyleId,
-} from "@/utils/server/iconPromptBuilder";
+import { buildIconPrompt, type IconStyleId } from "@/utils/server/iconPromptBuilder";
 import {
   MAX_FILE_SIZE_BYTES,
   MAX_FILE_SIZE_MB,
@@ -16,8 +13,7 @@ import { fetchUrlMetadata } from "@/utils/server/urlMetadata";
 
 export const runtime = "nodejs";
 
-const DEFAULT_MODEL =
-  process.env.GEMINI_IMAGE_MODEL ?? "gemini-3-pro-image-preview";
+const DEFAULT_MODEL = process.env.GEMINI_IMAGE_MODEL ?? "gemini-3.1-flash-image-preview";
 const MAX_IMAGE_COUNT = 3;
 const OG_IMAGE_FETCH_TIMEOUT_MS = 5000;
 
@@ -31,10 +27,7 @@ export async function POST(request: Request) {
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
-    return NextResponse.json(
-      { error: "Gemini API キーが設定されていません。" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Gemini API キーが設定されていません。" }, { status: 500 });
   }
 
   const formData = await request.formData();
@@ -44,15 +37,10 @@ export async function POST(request: Request) {
   const customPrompt = formData.get("customPrompt");
   const imageEntries = formData.getAll("images");
 
-  const files: File[] = imageEntries.filter(
-    (entry): entry is File => entry instanceof File,
-  );
+  const files: File[] = imageEntries.filter((entry): entry is File => entry instanceof File);
 
   if (typeof name !== "string" || name.trim().length === 0) {
-    return NextResponse.json(
-      { error: "連絡先名を入力してください。" },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "連絡先名を入力してください。" }, { status: 400 });
   }
 
   if (files.length > MAX_IMAGE_COUNT) {
@@ -63,8 +51,7 @@ export async function POST(request: Request) {
   }
 
   const trimmedName = name.trim();
-  const trimmedUrl =
-    typeof url === "string" && url.trim().length > 0 ? url.trim() : null;
+  const trimmedUrl = typeof url === "string" && url.trim().length > 0 ? url.trim() : null;
   const trimmedCustomPrompt =
     typeof customPrompt === "string" && customPrompt.trim().length > 0
       ? customPrompt.trim()
@@ -165,19 +152,14 @@ export async function POST(request: Request) {
     const resultMime = imageResult?.inlineData?.mimeType ?? "image/png";
 
     if (!base64Data) {
-      return NextResponse.json(
-        { error: "アイコンの生成に失敗しました。" },
-        { status: 502 },
-      );
+      return NextResponse.json({ error: "アイコンの生成に失敗しました。" }, { status: 502 });
     }
 
     return NextResponse.json({ imageBase64: base64Data, mimeType: resultMime });
   } catch (error) {
     console.error("Gemini icon generation error", error);
     const errorMessage =
-      error instanceof Error
-        ? error.message
-        : "アイコン生成中に予期しないエラーが発生しました。";
+      error instanceof Error ? error.message : "アイコン生成中に予期しないエラーが発生しました。";
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
@@ -189,10 +171,7 @@ async function fetchOgImage(
   imageUrl: string,
 ): Promise<{ base64: string; mimeType: string } | null> {
   const controller = new AbortController();
-  const timeout = setTimeout(
-    () => controller.abort(),
-    OG_IMAGE_FETCH_TIMEOUT_MS,
-  );
+  const timeout = setTimeout(() => controller.abort(), OG_IMAGE_FETCH_TIMEOUT_MS);
 
   try {
     const response = await fetch(imageUrl, {

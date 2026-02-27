@@ -53,7 +53,7 @@ Values can be set in a local `.env.local` or configured in the Vercel dashboard.
 | `AUTH_GOOGLE_SECRET`               | Google OAuth client secret                                         |
 | `ALLOWED_EMAILS`                   | Comma-separated list of emails allowed to sign in                  |
 | `GEMINI_API_KEY`                   | Google Gemini API key                                              |
-| `GEMINI_IMAGE_MODEL`               | Optional model override (default `gemini-2.5-flash-image-preview`) |
+| `GEMINI_IMAGE_MODEL`               | Optional model override (default `gemini-3.1-flash-image-preview`) |
 
 > Tip: When deploying on Vercel, add these variables under **Project Settings -> Environment Variables**. Any `.env.local` file is only for local development and should never contain production secrets committed to Git.
 

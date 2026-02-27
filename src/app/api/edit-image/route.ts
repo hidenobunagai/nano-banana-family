@@ -11,7 +11,7 @@ import {
 
 export const runtime = "nodejs";
 
-const DEFAULT_MODEL = process.env.GEMINI_IMAGE_MODEL ?? "gemini-3-pro-image-preview";
+const DEFAULT_MODEL = process.env.GEMINI_IMAGE_MODEL ?? "gemini-3.1-flash-image-preview";
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);

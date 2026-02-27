@@ -11,7 +11,7 @@ import {
 
 export const runtime = "nodejs";
 
-const DEFAULT_MODEL = process.env.GEMINI_IMAGE_MODEL ?? "gemini-3-pro-image-preview";
+const DEFAULT_MODEL = process.env.GEMINI_IMAGE_MODEL ?? "gemini-3.1-flash-image-preview";
 const MAX_IMAGE_COUNT = 5;
 
 export async function POST(request: Request) {
