@@ -33,7 +33,7 @@ export function Shell({ children, onSignOut }: ShellProps) {
         </header>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 sm:px-6 lg:px-12 pt-24 pb-32 scroll-smooth relative">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 sm:px-6 lg:px-12 pt-24 pb-20 scroll-smooth relative">
           <div className="max-w-[1400px] mx-auto w-full animate-in fade-in slide-in-from-bottom-8 duration-700">
             {children}
           </div>
