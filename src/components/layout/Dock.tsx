@@ -21,7 +21,7 @@ const MENU_ITEMS = [
 
 export function Dock({ currentMode, onModeChange }: DockProps) {
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 xl:-translate-x-[calc(50%+276px)] z-50">
       <motion.div
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
