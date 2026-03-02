@@ -64,7 +64,7 @@ export default function Home() {
   }
 
   return (
-    <Shell onSignOut={handleSignOut}>
+    <Shell onSignOut={handleSignOut} navMode={mode} onNavModeChange={setMode}>
       <motion.div
         key={mode}
         initial={{ opacity: 0, x: 20 }}

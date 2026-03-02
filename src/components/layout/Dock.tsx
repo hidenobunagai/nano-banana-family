@@ -24,7 +24,7 @@ export function Dock({ currentMode, onModeChange }: DockProps) {
       initial={{ y: 80, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ type: "spring", stiffness: 260, damping: 20 }}
-      className="fixed bottom-0 left-0 right-0 z-50 bg-slate-950/90 backdrop-blur-xl border-t border-white/10"
+      className="fixed bottom-0 left-0 right-0 z-50 bg-slate-950/90 backdrop-blur-xl border-t border-white/10 lg:hidden"
     >
       <div className="flex items-stretch justify-around h-16">
         {MENU_ITEMS.map((item) => (
