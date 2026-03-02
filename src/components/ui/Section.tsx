@@ -22,7 +22,7 @@ export function Section({
       className={`glass-panel p-4 sm:p-6 rounded-2xl ${className}`}
     >
       {title && (
-        <h3 className="text-lg font-display font-semibold text-slate-200 mb-4 flex items-center gap-2">
+        <h3 className="text-lg font-display font-semibold text-stone-700 mb-4 flex items-center gap-2">
           {title}
         </h3>
       )}

@@ -207,7 +207,7 @@ export function IconCreator() {
               {/* Circular preview */}
               <div className="flex flex-col items-center gap-4">
                 <div className="relative">
-                  <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-white/20 shadow-2xl shadow-emerald-500/10">
+                  <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-stone-200 shadow-2xl shadow-amber-500/10">
                     <Image
                       src={resultImage}
                       alt="Generated icon"
@@ -217,17 +217,17 @@ export function IconCreator() {
                       unoptimized
                     />
                   </div>
-                  <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg">
+                  <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-amber-500 rounded-full flex items-center justify-center shadow-lg">
                     <Sparkles className="w-5 h-5 text-white" />
                   </div>
                 </div>
-                <p className="text-slate-300 text-sm font-medium">
+                <p className="text-stone-600 text-sm font-medium">
                   {name}
                 </p>
               </div>
 
               {/* Square preview */}
-              <div className="rounded-xl overflow-hidden border border-white/20 shadow-xl">
+              <div className="rounded-xl overflow-hidden border border-stone-200 shadow-xl">
                 <Image
                   src={resultImage}
                   alt="Generated icon (square)"
@@ -246,8 +246,8 @@ export function IconCreator() {
               </Button>
             </div>
           ) : (
-            <div className="h-64 flex flex-col items-center justify-center text-slate-500 border-2 border-dashed border-slate-700 bg-slate-900/30 rounded-xl gap-3">
-              <User className="w-12 h-12 text-slate-600" />
+            <div className="h-64 flex flex-col items-center justify-center text-stone-400 border-2 border-dashed border-stone-200 bg-stone-50 rounded-xl gap-3">
+              <User className="w-12 h-12 text-stone-300" />
               <p className="text-sm">生成されたアイコンがここに表示されます</p>
             </div>
           )}
@@ -259,7 +259,7 @@ export function IconCreator() {
         <Section title="1. 連絡先名" delay={0}>
           <input
             type="text"
-            className="w-full rounded-xl bg-slate-900/50 border border-white/10 px-4 py-3 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-shadow text-lg"
+            className="w-full rounded-xl bg-white border border-stone-200 px-4 py-3 text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-shadow text-lg"
             placeholder="例: 桜小学校児童クラブ"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -269,16 +269,16 @@ export function IconCreator() {
         {/* 2. Reference URL */}
         <Section title="2. 参考URL（任意）" delay={0.05}>
           <div className="relative">
-            <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+            <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
             <input
               type="url"
-              className="w-full rounded-xl bg-slate-900/50 border border-white/10 pl-12 pr-4 py-3 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-shadow"
+              className="w-full rounded-xl bg-white border border-stone-200 pl-12 pr-4 py-3 text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-shadow"
               placeholder="https://example.com"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
             />
           </div>
-          <p className="text-xs text-slate-500 mt-2">
+          <p className="text-xs text-stone-400 mt-2">
             URLのタイトル・説明・OGP画像を自動取得してアイコンに反映します
           </p>
         </Section>
@@ -310,7 +310,7 @@ export function IconCreator() {
             <button
               type="button"
               onClick={addUploadSlot}
-              className="w-full h-20 rounded-xl border-2 border-dashed border-slate-700 hover:border-emerald-500/50 hover:bg-slate-900/50 transition-all flex items-center justify-center text-slate-500 hover:text-emerald-500 group cursor-pointer"
+              className="w-full h-20 rounded-xl border-2 border-dashed border-stone-200 hover:border-amber-500/50 hover:bg-amber-50 transition-all flex items-center justify-center text-stone-400 hover:text-amber-600 group cursor-pointer"
             >
               <span className="text-2xl mr-2 group-hover:scale-110 transition-transform">
                 +
@@ -333,8 +333,8 @@ export function IconCreator() {
                 className={cn(
                   "relative flex flex-col items-start gap-1 p-4 rounded-xl border-2 transition-all text-left cursor-pointer group",
                   selectedStyle === styleOpt.id
-                    ? "border-emerald-500 bg-emerald-500/10 shadow-lg shadow-emerald-500/10"
-                    : "border-slate-700 hover:border-slate-500 bg-slate-900/30 hover:bg-slate-800/40",
+                    ? "border-amber-500 bg-amber-500/10 shadow-lg shadow-amber-500/10"
+                    : "border-stone-200 hover:border-stone-300 bg-stone-50 hover:bg-stone-100",
                 )}
               >
                 <div className="flex items-center gap-2 w-full">
@@ -350,19 +350,19 @@ export function IconCreator() {
                     className={cn(
                       "font-semibold text-sm",
                       selectedStyle === styleOpt.id
-                        ? "text-emerald-300"
+                        ? "text-amber-600"
                         : "text-slate-200",
                     )}
                   >
                     {styleOpt.label}
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-stone-400 mt-1">
                   {styleOpt.description}
                 </p>
 
                 {selectedStyle === styleOpt.id && (
-                  <div className="absolute top-2 right-2 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center">
+                  <div className="absolute top-2 right-2 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center">
                     <svg
                       className="w-3 h-3 text-white"
                       fill="none"
@@ -386,7 +386,7 @@ export function IconCreator() {
         {/* 5. Custom Prompt */}
         <Section title="5. 追加の指示（任意）" delay={0.2}>
           <textarea
-            className="w-full h-20 rounded-xl bg-slate-900/50 border border-white/10 p-4 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-shadow resize-none"
+            className="w-full h-20 rounded-xl bg-white border border-stone-200 p-4 text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-shadow resize-none"
             placeholder="例: 桜の花びらをモチーフにして、ピンク系の暖かい色合いで..."
             value={customPrompt}
             onChange={(e) => setCustomPrompt(e.target.value)}
@@ -397,7 +397,7 @@ export function IconCreator() {
         <Button
           type="submit"
           size="lg"
-          className="w-full h-14 bg-emerald-500 hover:bg-emerald-400 border-0 shadow-lg shadow-emerald-500/20"
+          className="w-full h-14 bg-amber-500 hover:bg-amber-400 border-0 shadow-lg shadow-amber-500/20"
           disabled={!canSubmit}
         >
           {isSubmitting ? (

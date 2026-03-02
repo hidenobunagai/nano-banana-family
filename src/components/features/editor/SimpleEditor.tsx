@@ -193,7 +193,7 @@ export function SimpleEditor() {
             />
           ) : resultImage ? (
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
-              <div className="rounded-xl overflow-hidden border border-white/20 shadow-2xl">
+              <div className="rounded-xl overflow-hidden border border-stone-200 shadow-2xl">
                 <Image
                   src={resultImage}
                   alt="Result"
@@ -213,7 +213,7 @@ export function SimpleEditor() {
               </Button>
             </div>
           ) : (
-            <div className="h-64 rounded-xl border-2 border-dashed border-slate-700 bg-slate-900/30 flex items-center justify-center text-slate-500">
+            <div className="h-64 rounded-xl border-2 border-dashed border-stone-200 bg-stone-50 flex items-center justify-center text-stone-400">
               ここに結果が表示されます
             </div>
           )}
@@ -229,7 +229,7 @@ export function SimpleEditor() {
           }
         >
           {requiresDualUpload && (
-            <p className="text-sm text-slate-400 mb-4">
+            <p className="text-sm text-stone-400 mb-4">
               左側（プレイヤー1）と右側（プレイヤー2）の画像をそれぞれ選んでください。
             </p>
           )}
@@ -265,7 +265,7 @@ export function SimpleEditor() {
           <Button
             type="submit"
             size="lg"
-            className="w-full text-lg h-14 bg-emerald-500 hover:bg-emerald-400 shadow-lg shadow-emerald-500/20 border-0"
+            className="w-full text-lg h-14 bg-amber-500 hover:bg-amber-400 shadow-lg shadow-amber-500/20 border-0"
             disabled={isSubmitting || !hasRequiredFiles || isOptimizingAny}
           >
             {isSubmitting ? (

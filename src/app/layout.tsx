@@ -41,7 +41,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
-  themeColor: "#020617", // Match background
+  themeColor: "#FFFEF7", // Match background
 };
 
 export default function RootLayout({
@@ -52,11 +52,11 @@ export default function RootLayout({
   return (
     <html lang="ja" className={`${outfit.variable} ${inter.variable}`}>
       {/* UI/UX Pro Max: Global Background & Font Classes */}
-      <body className="font-sans bg-slate-950 text-slate-50 antialiased selection:bg-emerald-500/30 selection:text-emerald-200">
+      <body className="font-sans bg-[#FFFEF7] text-stone-900 antialiased selection:bg-amber-500/30 selection:text-amber-900">
         {/* Background Gradients for depth */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-          <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-emerald-500/10 rounded-full blur-[120px] mix-blend-screen" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-emerald-500/10 rounded-full blur-[120px] mix-blend-screen" />
+          <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-amber-300/15 rounded-full blur-[120px]" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-yellow-300/15 rounded-full blur-[120px]" />
         </div>
 
         <AuthProvider>{children}</AuthProvider>

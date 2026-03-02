@@ -137,7 +137,7 @@ export function FreestyleEditor() {
                 alt=""
                 width={900}
                 height={600}
-                className="rounded-xl w-full border border-white/20 shadow-xl"
+                className="rounded-xl w-full border border-stone-200 shadow-xl"
                 unoptimized
               />
               <Button asChild className="w-full" size="lg">
@@ -147,7 +147,7 @@ export function FreestyleEditor() {
               </Button>
             </div>
           ) : (
-            <div className="h-64 flex items-center justify-center text-slate-500 border-2 border-dashed border-slate-700 bg-slate-900/30 rounded-xl">
+            <div className="h-64 flex items-center justify-center text-stone-400 border-2 border-dashed border-stone-200 bg-stone-50 rounded-xl">
               結果エリア
             </div>
           )}
@@ -179,12 +179,12 @@ export function FreestyleEditor() {
             {uploads.length < MAX_FREESTYLE_UPLOADS && (
               <div className="space-y-3">
                 <div className="flex flex-col invisible">
-                  <span className="text-sm text-slate-400">Placeholder</span>
+                  <span className="text-sm text-stone-400">Placeholder</span>
                 </div>
                 <button
                   type="button"
                   onClick={addUploadSlot}
-                  className="w-full h-48 rounded-xl border-2 border-dashed border-slate-700 hover:border-emerald-500/50 hover:bg-slate-900/50 transition-all flex flex-col items-center justify-center text-slate-500 hover:text-emerald-500 group"
+                  className="w-full h-48 rounded-xl border-2 border-dashed border-stone-200 hover:border-amber-500/50 hover:bg-amber-50 transition-all flex flex-col items-center justify-center text-stone-400 hover:text-amber-600 group"
                 >
                   <span className="text-3xl mb-2 group-hover:scale-110 transition-transform">
                     +
@@ -197,7 +197,7 @@ export function FreestyleEditor() {
         </Section>
         <Section title="2. どんな仕上がりにしたいか自由に記入">
           <textarea
-            className="w-full h-24 rounded-xl bg-slate-900/50 border border-white/10 p-4 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-shadow"
+            className="w-full h-24 rounded-xl bg-white border border-stone-200 p-4 text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-shadow"
             placeholder="例: 子どもたちが描いたドラゴンのスケッチをもとに..."
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
@@ -206,7 +206,7 @@ export function FreestyleEditor() {
         <Button
           type="submit"
           size="lg"
-          className="w-full h-14 bg-emerald-500 hover:bg-emerald-400 border-0 shadow-lg shadow-emerald-500/20"
+          className="w-full h-14 bg-amber-500 hover:bg-amber-400 border-0 shadow-lg shadow-amber-500/20"
           disabled={isSubmitting}
         >
           {isSubmitting ? (

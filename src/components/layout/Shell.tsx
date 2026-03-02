@@ -23,12 +23,12 @@ interface ShellProps {
 
 export function Shell({ children, onSignOut, navMode, onNavModeChange }: ShellProps) {
   return (
-    <div className="flex h-dvh w-full overflow-hidden text-slate-100 selection:bg-emerald-500/30">
+    <div className="flex h-dvh w-full overflow-hidden text-stone-900 selection:bg-amber-500/30">
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         {/* Top Bar (Glass) */}
-        <header className="absolute top-0 left-0 right-0 h-20 flex items-center justify-between px-4 sm:px-8 z-30 bg-slate-950/50 backdrop-blur-xl border-b border-white/5 transition-all">
+        <header className="absolute top-0 left-0 right-0 h-20 flex items-center justify-between px-4 sm:px-8 z-30 bg-white/80 backdrop-blur-xl border-b border-amber-100 transition-all">
           <div className="pointer-events-auto">
-            <h1 className="text-2xl font-display font-bold bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent drop-shadow-sm tracking-tight">
+            <h1 className="text-2xl font-display font-bold bg-gradient-to-r from-stone-900 via-stone-700 to-stone-500 bg-clip-text text-transparent drop-shadow-sm tracking-tight">
               Hide NB Studio
             </h1>
           </div>
@@ -43,10 +43,10 @@ export function Shell({ children, onSignOut, navMode, onNavModeChange }: ShellPr
                   key={item.id}
                   onClick={() => onNavModeChange(item.id)}
                   className={cn(
-                    "relative flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50",
+                    "relative flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50",
                     active
-                      ? "text-white bg-white/10"
-                      : "text-slate-400 hover:text-white hover:bg-white/5"
+                      ? "text-amber-700 bg-amber-50"
+                      : "text-stone-500 hover:text-stone-800 hover:bg-stone-100"
                   )}
                 >
                   <Icon className="w-4 h-4" />
@@ -54,7 +54,7 @@ export function Shell({ children, onSignOut, navMode, onNavModeChange }: ShellPr
                   {active && (
                     <motion.div
                       layoutId="header-nav-indicator"
-                      className="absolute bottom-0 left-3 right-3 h-0.5 bg-emerald-400 rounded-full"
+                      className="absolute bottom-0 left-3 right-3 h-0.5 bg-amber-500 rounded-full"
                     />
                   )}
                 </button>
@@ -66,7 +66,7 @@ export function Shell({ children, onSignOut, navMode, onNavModeChange }: ShellPr
             variant="ghost"
             size="sm"
             onClick={onSignOut}
-            className="text-slate-400 hover:text-red-400 hover:bg-red-950/30 gap-2"
+            className="text-stone-400 hover:text-red-500 hover:bg-red-50 gap-2"
           >
             <LogOut className="w-4 h-4" />
             <span className="hidden sm:inline">Sign Out</span>

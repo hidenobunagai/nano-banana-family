@@ -24,7 +24,7 @@ export function Dock({ currentMode, onModeChange }: DockProps) {
       initial={{ y: 80, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ type: "spring", stiffness: 260, damping: 20 }}
-      className="fixed bottom-0 left-0 right-0 z-50 bg-slate-950/90 backdrop-blur-xl border-t border-white/10 lg:hidden"
+      className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-t border-amber-100 lg:hidden"
     >
       <div className="flex items-stretch justify-around h-16">
         {MENU_ITEMS.map((item) => (
@@ -56,14 +56,14 @@ function NavItem({
     <button
       onClick={onClick}
       className={cn(
-        "relative flex flex-col items-center justify-center flex-1 gap-1 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:ring-inset",
-        active ? "text-emerald-400" : "text-slate-500 hover:text-slate-300"
+        "relative flex flex-col items-center justify-center flex-1 gap-1 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:ring-inset",
+        active ? "text-amber-500" : "text-stone-400 hover:text-stone-700"
       )}
     >
       {active && (
         <motion.div
           layoutId="nav-indicator"
-          className="absolute top-0 left-4 right-4 h-0.5 bg-emerald-400 rounded-full"
+          className="absolute top-0 left-4 right-4 h-0.5 bg-amber-500 rounded-full"
         />
       )}
       <Icon className="w-5 h-5" />

@@ -68,10 +68,10 @@ export function FileInput({
       {(label || subLabel) && (
         <div className="flex flex-col">
           {label && (
-            <span className="font-semibold text-slate-200">{label}</span>
+            <span className="font-semibold text-stone-700">{label}</span>
           )}
           {subLabel && (
-            <span className="text-sm text-slate-400">{subLabel}</span>
+            <span className="text-sm text-stone-400">{subLabel}</span>
           )}
         </div>
       )}
@@ -89,16 +89,16 @@ export function FileInput({
             className={cn(
               "relative flex flex-col items-center justify-center w-full h-48 rounded-2xl border-2 border-dashed transition-all cursor-pointer group overflow-hidden",
               isDragging
-                ? "border-emerald-500/80 bg-emerald-500/10 scale-[1.02]"
-                : "border-slate-700 hover:border-slate-500 bg-slate-900/30 hover:bg-slate-800/40"
+                ? "border-amber-500/80 bg-amber-500/10 scale-[1.02]"
+                : "border-stone-200 hover:border-stone-300 bg-stone-50 hover:bg-stone-100"
             )}
           >
             {/* Animated Background Gradient on Hover */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/0 via-emerald-500/0 to-emerald-500/0 group-hover:from-emerald-500/5 group-hover:via-emerald-500/5 group-hover:to-transparent transition-all duration-500" />
+            <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/0 via-amber-500/0 to-amber-500/0 group-hover:from-amber-500/5 group-hover:via-amber-500/5 group-hover:to-transparent transition-all duration-500" />
 
-            <div className="flex flex-col items-center justify-center pt-5 pb-6 text-slate-400 group-hover:text-emerald-200 transition-colors z-10">
+            <div className="flex flex-col items-center justify-center pt-5 pb-6 text-stone-400 group-hover:text-amber-600 transition-colors z-10">
               {isOptimizing ? (
-                <Loader2 className="w-10 h-10 mb-3 animate-spin text-emerald-500" />
+                <Loader2 className="w-10 h-10 mb-3 animate-spin text-amber-500" />
               ) : (
                 <Upload
                   className={cn(
@@ -110,7 +110,7 @@ export function FileInput({
               <p className="text-sm font-medium">
                 {isDragging ? "Drop to upload" : "Click or drop image"}
               </p>
-              <p className="text-xs text-slate-500 mt-1">JPG, PNG, WebP</p>
+              <p className="text-xs text-stone-400 mt-1">JPG, PNG, WebP</p>
             </div>
             <input
               ref={inputRef}
@@ -127,7 +127,7 @@ export function FileInput({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             key="preview-image"
-            className="relative rounded-2xl overflow-hidden border border-white/20 group shadow-lg"
+            className="relative rounded-2xl overflow-hidden border border-stone-200 group shadow-lg"
           >
             <Image
               src={previewUrl}
@@ -140,7 +140,7 @@ export function FileInput({
             {/* Glass Overlay on Hover */}
             <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
               <label className="cursor-pointer">
-                <div className="px-6 py-3 bg-white/10 backdrop-blur-md rounded-full border border-white/20 text-white hover:bg-white/20 hover:scale-105 active:scale-95 transition-all font-medium text-sm flex items-center gap-2 shadow-xl">
+                <div className="px-6 py-3 bg-black/10 backdrop-blur-md rounded-full border border-black/10 text-stone-800 hover:bg-black/15 hover:scale-105 active:scale-95 transition-all font-medium text-sm flex items-center gap-2 shadow-xl">
                   <RefreshCw className="w-4 h-4" />
                   Change Image
                 </div>
