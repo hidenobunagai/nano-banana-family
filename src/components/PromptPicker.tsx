@@ -32,7 +32,7 @@ export function PromptPicker({
       const allPrompts = Object.values(groups).flat();
       return allPrompts.filter((prompt) => {
         const haystack =
-          `${prompt.label} ${prompt.prompt} ${prompt.id}`.toLowerCase();
+          `${prompt.label} ${prompt.prompt} ${prompt.id} ${prompt.category}`.toLowerCase();
         return haystack.includes(normalizedQuery);
       });
     }

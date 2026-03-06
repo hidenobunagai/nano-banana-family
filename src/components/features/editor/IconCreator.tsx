@@ -10,10 +10,13 @@ import { FileInput } from "@/components/ui/FileInput";
 import { Section } from "@/components/ui/Section";
 import { useProgressSimulation } from "@/components/useProgressSimulation";
 import { resizeImage } from "@/utils/imageOptimization";
+import { getRequestErrorMessage } from "@/utils/requestErrorMessage";
 import {
   Download,
   Globe,
   Loader2,
+  RefreshCw,
+  RotateCcw,
   Sparkles,
   User,
   X,
@@ -23,6 +26,9 @@ import {
   type ChangeEvent,
   type FormEvent,
   useCallback,
+  useEffect,
+  useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -41,12 +47,19 @@ const ICON_PROGRESS_STEPS: ProgressStep[] = [
 
 const MAX_ICON_UPLOADS = 3;
 
+interface UploadSlot {
+  id: string;
+  file: File | null;
+  previewUrl: string | null;
+}
+
 interface IconStyleOption {
   id: string;
   label: string;
   description: string;
   emoji: string;
   gradient: string;
+  preview: string;
 }
 
 const ICON_STYLE_OPTIONS: IconStyleOption[] = [
@@ -56,6 +69,7 @@ const ICON_STYLE_OPTIONS: IconStyleOption[] = [
     description: "情報から最適スタイルを自動選択",
     emoji: "✨",
     gradient: "from-violet-500 to-fuchsia-500",
+    preview: "学校・教室・家族連絡先におすすめ",
   },
   {
     id: "flat-minimal",
@@ -63,6 +77,7 @@ const ICON_STYLE_OPTIONS: IconStyleOption[] = [
     description: "シンプルな色面とシンボル",
     emoji: "◻️",
     gradient: "from-cyan-500 to-blue-500",
+    preview: "見やすさ重視・通知アイコン向け",
   },
   {
     id: "gradient-modern",
@@ -70,6 +85,7 @@ const ICON_STYLE_OPTIONS: IconStyleOption[] = [
     description: "鮮やかなグラデーション",
     emoji: "🌈",
     gradient: "from-orange-500 to-pink-500",
+    preview: "明るく親しみやすい雰囲気",
   },
   {
     id: "illustrated",
@@ -77,6 +93,7 @@ const ICON_STYLE_OPTIONS: IconStyleOption[] = [
     description: "手描き感のある温かいスタイル",
     emoji: "🎨",
     gradient: "from-emerald-500 to-teal-500",
+    preview: "子ども向け・やわらかい印象に最適",
   },
   {
     id: "photo-circle",
@@ -84,73 +101,160 @@ const ICON_STYLE_OPTIONS: IconStyleOption[] = [
     description: "写真ベースの丸型アイコン",
     emoji: "📷",
     gradient: "from-amber-500 to-yellow-500",
+    preview: "人物やロゴを活かしたいときに便利",
   },
 ];
+
+function createUploadSlot(): UploadSlot {
+  return { id: crypto.randomUUID(), file: null, previewUrl: null };
+}
 
 export function IconCreator() {
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
   const [selectedStyle, setSelectedStyle] = useState("auto");
   const [customPrompt, setCustomPrompt] = useState("");
-  const [uploads, setUploads] = useState<
-    { id: string; file: File | null; previewUrl: string | null }[]
-  >([]);
+  const [uploads, setUploads] = useState<UploadSlot[]>([]);
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [optimizingUploadIds, setOptimizingUploadIds] = useState<string[]>([]);
+  const previewUrlsRef = useRef<string[]>([]);
 
   const handleProgressComplete = useCallback(() => setIsSubmitting(false), []);
-  const {
-    progress,
-    currentStep,
-    complete: completeProgress,
-  } = useProgressSimulation({
-    isActive: isSubmitting,
-    onComplete: handleProgressComplete,
-    steps: ICON_PROGRESS_STEPS,
-  });
+  const { progress, currentStep, timeRemaining, complete: completeProgress } =
+    useProgressSimulation({
+      isActive: isSubmitting,
+      onComplete: handleProgressComplete,
+      steps: ICON_PROGRESS_STEPS,
+    });
 
-  const handleFileChange = async (
-    e: ChangeEvent<HTMLInputElement>,
-    id: string,
-  ) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      try {
-        const optimized = await resizeImage(file);
-        setUploads((prev) =>
-          prev.map((u) =>
-            u.id === id
-              ? {
-                  ...u,
-                  file: optimized,
-                  previewUrl: URL.createObjectURL(optimized),
-                }
-              : u,
-          ),
-        );
-      } catch (err) {
-        console.error(err);
+  useEffect(() => {
+    previewUrlsRef.current = uploads
+      .map((upload) => upload.previewUrl)
+      .filter((value): value is string => Boolean(value));
+  }, [uploads]);
+
+  useEffect(() => {
+    return () => {
+      previewUrlsRef.current.forEach((previewUrl) => {
+        URL.revokeObjectURL(previewUrl);
+      });
+    };
+  }, []);
+
+  const setUploadOptimizing = useCallback((id: string, isOptimizing: boolean) => {
+    setOptimizingUploadIds((prev) => {
+      if (isOptimizing) {
+        return prev.includes(id) ? prev : [...prev, id];
       }
+      return prev.filter((item) => item !== id);
+    });
+  }, []);
+
+  const activeUploads = useMemo(
+    () => uploads.filter((upload) => upload.file),
+    [uploads],
+  );
+  const isOptimizingAny = optimizingUploadIds.length > 0;
+  const canSubmit = name.trim().length > 0 && !isSubmitting && !isOptimizingAny;
+  const selectedStyleOption = useMemo(
+    () =>
+      ICON_STYLE_OPTIONS.find((styleOption) => styleOption.id === selectedStyle) ??
+      ICON_STYLE_OPTIONS[0],
+    [selectedStyle],
+  );
+
+  const resetEditor = useCallback(() => {
+    uploads.forEach((upload) => {
+      if (upload.previewUrl) {
+        URL.revokeObjectURL(upload.previewUrl);
+      }
+    });
+    setName("");
+    setUrl("");
+    setSelectedStyle("auto");
+    setCustomPrompt("");
+    setUploads([]);
+    setResultImage(null);
+    setErrorMessage(null);
+    setOptimizingUploadIds([]);
+  }, [uploads]);
+
+  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>, id: string) => {
+    const file = event.target.files?.[0];
+    const currentSlot = uploads.find((upload) => upload.id === id);
+
+    if (!currentSlot) {
+      return;
+    }
+
+    if (!file) {
+      if (currentSlot.previewUrl) {
+        URL.revokeObjectURL(currentSlot.previewUrl);
+      }
+      setUploads((prev) =>
+        prev.map((upload) =>
+          upload.id === id ? { ...upload, file: null, previewUrl: null } : upload,
+        ),
+      );
+      return;
+    }
+
+    setErrorMessage(null);
+    setResultImage(null);
+    setUploadOptimizing(id, true);
+
+    try {
+      const optimized = await resizeImage(file);
+      if (currentSlot.previewUrl) {
+        URL.revokeObjectURL(currentSlot.previewUrl);
+      }
+      setUploads((prev) =>
+        prev.map((upload) =>
+          upload.id === id
+            ? {
+                ...upload,
+                file: optimized,
+                previewUrl: URL.createObjectURL(optimized),
+              }
+            : upload,
+        ),
+      );
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "画像の準備に失敗しました。別の画像でもう一度お試しください。",
+      );
+    } finally {
+      setUploadOptimizing(id, false);
     }
   };
 
   const addUploadSlot = () => {
     if (uploads.length < MAX_ICON_UPLOADS) {
-      setUploads((prev) => [
-        ...prev,
-        { id: Math.random().toString(), file: null, previewUrl: null },
-      ]);
+      setUploads((prev) => [...prev, createUploadSlot()]);
     }
   };
 
   const removeUploadSlot = (id: string) => {
-    setUploads((prev) => prev.filter((u) => u.id !== id));
+    const slotToRemove = uploads.find((upload) => upload.id === id);
+    if (slotToRemove?.previewUrl) {
+      URL.revokeObjectURL(slotToRemove.previewUrl);
+    }
+
+    setUploads((prev) => prev.filter((upload) => upload.id !== id));
+    setOptimizingUploadIds((prev) => prev.filter((item) => item !== id));
+    setResultImage(null);
+    setErrorMessage(null);
   };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) return;
+  const submitEdit = useCallback(async () => {
+    if (!name.trim()) {
+      setErrorMessage("連絡先名を入力してください。");
+      return;
+    }
 
     setIsSubmitting(true);
     setErrorMessage(null);
@@ -169,27 +273,58 @@ export function IconCreator() {
         formData.append("customPrompt", customPrompt.trim());
       }
 
-      const activeFiles = uploads
-        .filter((u) => u.file)
-        .map((u) => u.file as File);
-      activeFiles.forEach((f) => formData.append("images", f));
+      activeUploads.forEach((upload) => {
+        if (upload.file) {
+          formData.append("images", upload.file);
+        }
+      });
 
       const res = await fetch("/api/icon-generate", {
         method: "POST",
         body: formData,
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "生成失敗");
-      const mime = data.mimeType || "image/png";
-      setResultImage(`data:${mime};base64,${data.imageBase64}`);
-    } catch (err) {
-      setErrorMessage(err instanceof Error ? err.message : "Error");
+      const data: unknown = await res.json();
+
+      if (!res.ok) {
+        throw new Error(
+          getRequestErrorMessage({
+            status: res.status,
+            payload: data,
+            fallback: "アイコンの生成に失敗しました。情報を少し減らしてもう一度お試しください。",
+          }),
+        );
+      }
+
+      if (
+        !data ||
+        typeof data !== "object" ||
+        !("imageBase64" in data) ||
+        typeof data.imageBase64 !== "string"
+      ) {
+        throw new Error("画像データを取得できませんでした。もう一度お試しください。");
+      }
+
+      const mimeType =
+        "mimeType" in data && typeof data.mimeType === "string"
+          ? data.mimeType
+          : "image/png";
+
+      setResultImage(`data:${mimeType};base64,${data.imageBase64}`);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "生成中にエラーが発生しました。しばらくしてからお試しください。",
+      );
     } finally {
       completeProgress();
     }
-  };
+  }, [activeUploads, completeProgress, customPrompt, name, selectedStyle, url]);
 
-  const canSubmit = name.trim().length > 0 && !isSubmitting;
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+    await submitEdit();
+  };
 
   return (
     <EditorLayout
@@ -201,16 +336,16 @@ export function IconCreator() {
               currentStep={currentStep}
               progress={progress}
               steps={ICON_PROGRESS_STEPS}
+              timeRemaining={timeRemaining}
             />
           ) : resultImage ? (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-              {/* Circular preview */}
               <div className="flex flex-col items-center gap-4">
                 <div className="relative">
                   <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-stone-200 shadow-2xl shadow-amber-500/10">
                     <Image
                       src={resultImage}
-                      alt="Generated icon"
+                      alt={`${name} の生成アイコン`}
                       width={512}
                       height={512}
                       className="w-full h-full object-cover"
@@ -221,16 +356,16 @@ export function IconCreator() {
                     <Sparkles className="w-5 h-5 text-white" />
                   </div>
                 </div>
-                <p className="text-stone-600 text-sm font-medium">
-                  {name}
-                </p>
+                <div className="text-center">
+                  <p className="text-stone-700 text-sm font-medium">{name}</p>
+                  <p className="text-xs text-stone-400 mt-1">{selectedStyleOption.preview}</p>
+                </div>
               </div>
 
-              {/* Square preview */}
               <div className="rounded-xl overflow-hidden border border-stone-200 shadow-xl">
                 <Image
                   src={resultImage}
-                  alt="Generated icon (square)"
+                  alt={`${name} の四角いプレビュー`}
                   width={512}
                   height={512}
                   className="w-full h-auto"
@@ -238,67 +373,101 @@ export function IconCreator() {
                 />
               </div>
 
-              <Button asChild className="w-full" size="lg">
-                <a href={resultImage} download={`icon-${Date.now()}.png`}>
-                  <Download className="w-5 h-5 mr-2" />
-                  ダウンロード
-                </a>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Button asChild className="w-full" size="lg">
+                  <a href={resultImage} download={`icon-${Date.now()}.png`}>
+                    <Download className="w-5 h-5 mr-2" />
+                    ダウンロード
+                  </a>
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="lg"
+                  className="w-full"
+                  onClick={() => void submitEdit()}
+                  disabled={!canSubmit}
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  同じ条件でもう一度
+                </Button>
+              </div>
+              <Button type="button" variant="ghost" className="w-full" onClick={resetEditor}>
+                <RotateCcw className="w-4 h-4 mr-2" />
+                最初からやり直す
               </Button>
             </div>
           ) : (
-            <div className="h-64 flex flex-col items-center justify-center text-stone-400 border-2 border-dashed border-stone-200 bg-stone-50 rounded-xl gap-3">
+            <div className="h-64 flex flex-col items-center justify-center text-stone-400 border-2 border-dashed border-stone-200 bg-stone-50 rounded-xl gap-3 px-6 text-center">
               <User className="w-12 h-12 text-stone-300" />
               <p className="text-sm">生成されたアイコンがここに表示されます</p>
+              <p className="text-xs text-stone-400">
+                名前とスタイルを選び、必要ならURLや参考画像も追加してください。
+              </p>
             </div>
           )}
         </Section>
       }
     >
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* 1. Contact Name */}
         <Section title="1. 連絡先名" delay={0}>
           <input
+            name="contactName"
+            autoComplete="off"
             type="text"
             className="w-full rounded-xl bg-white border border-stone-200 px-4 py-3 text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-shadow text-lg"
             placeholder="例: 桜小学校児童クラブ"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(event) => setName(event.target.value)}
           />
+          <p className="mt-2 text-xs text-stone-400">
+            連絡先の用途や雰囲気が伝わる名前にすると、モチーフを決めやすくなります。
+          </p>
         </Section>
 
-        {/* 2. Reference URL */}
         <Section title="2. 参考URL（任意）" delay={0.05}>
           <div className="relative">
             <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
             <input
+              name="referenceUrl"
+              autoComplete="off"
+              spellCheck={false}
               type="url"
               className="w-full rounded-xl bg-white border border-stone-200 pl-12 pr-4 py-3 text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-shadow"
               placeholder="https://example.com"
               value={url}
-              onChange={(e) => setUrl(e.target.value)}
+              onChange={(event) => setUrl(event.target.value)}
             />
           </div>
-          <p className="text-xs text-stone-400 mt-2">
-            URLのタイトル・説明・OGP画像を自動取得してアイコンに反映します
-          </p>
+          <div className="mt-2 rounded-2xl border border-stone-200 bg-white/80 px-4 py-3 text-xs text-stone-500" aria-live="polite">
+            {url.trim()
+              ? "生成時にタイトル・説明・OGP画像の取得を試み、アイコンの方向性に反映します。"
+              : "Webサイトの雰囲気も反映したいときだけ入力してください。URLなしでも生成できます。"}
+          </div>
         </Section>
 
-        {/* 3. Reference Images */}
         <Section title="3. 参考画像（任意）" delay={0.1}>
+          <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            <p className="font-medium">最大 {MAX_ICON_UPLOADS} 枚まで追加できます</p>
+            <p className="mt-1 text-amber-700/90">
+              ロゴ・人物写真・配色の参考画像などを入れると、仕上がりの方向性を合わせやすくなります。
+            </p>
+          </div>
           {uploads.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
-              {uploads.map((slot, idx) => (
-                <div key={slot.id} className="relative group">
+              {uploads.map((slot, index) => (
+                <div key={slot.id} className="relative">
                   <FileInput
-                    subLabel={`参考画像 ${idx + 1}`}
+                    subLabel={`参考画像 ${index + 1}`}
                     previewUrl={slot.previewUrl}
-                    isOptimizing={false}
-                    onChange={(e) => handleFileChange(e, slot.id)}
+                    isOptimizing={optimizingUploadIds.includes(slot.id)}
+                    onChange={(event) => handleFileChange(event, slot.id)}
                   />
                   <button
                     type="button"
                     onClick={() => removeUploadSlot(slot.id)}
-                    className="absolute top-8 right-2 bg-red-500/80 hover:bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    aria-label={`参考画像 ${index + 1} を削除`}
+                    className="absolute top-8 right-2 rounded-full bg-red-500/90 p-1.5 text-white shadow-md transition-colors hover:bg-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -310,111 +479,110 @@ export function IconCreator() {
             <button
               type="button"
               onClick={addUploadSlot}
-              className="w-full h-20 rounded-xl border-2 border-dashed border-stone-200 hover:border-amber-500/50 hover:bg-amber-50 transition-all flex items-center justify-center text-stone-400 hover:text-amber-600 group cursor-pointer"
+              className="w-full h-20 rounded-xl border-2 border-dashed border-stone-200 hover:border-amber-500/50 hover:bg-amber-50 transition-colors flex items-center justify-center text-stone-500 hover:text-amber-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
             >
-              <span className="text-2xl mr-2 group-hover:scale-110 transition-transform">
-                +
-              </span>
+              <span className="text-2xl mr-2">+</span>
               <span className="text-sm font-medium">
-                ロゴや写真を追加
+                ロゴや写真を追加（あと {MAX_ICON_UPLOADS - uploads.length} 枚）
               </span>
             </button>
           )}
         </Section>
 
-        {/* 4. Style Selection */}
         <Section title="4. スタイル" delay={0.15}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {ICON_STYLE_OPTIONS.map((styleOpt) => (
+            {ICON_STYLE_OPTIONS.map((styleOption) => (
               <button
-                key={styleOpt.id}
+                key={styleOption.id}
                 type="button"
-                onClick={() => setSelectedStyle(styleOpt.id)}
+                onClick={() => setSelectedStyle(styleOption.id)}
                 className={cn(
-                  "relative flex flex-col items-start gap-1 p-4 rounded-xl border-2 transition-all text-left cursor-pointer group",
-                  selectedStyle === styleOpt.id
+                  "relative flex flex-col items-start gap-2 rounded-xl border-2 p-4 text-left transition-colors",
+                  selectedStyle === styleOption.id
                     ? "border-amber-500 bg-amber-500/10 shadow-lg shadow-amber-500/10"
-                    : "border-stone-200 hover:border-stone-300 bg-stone-50 hover:bg-stone-100",
+                    : "border-stone-200 bg-stone-50 hover:border-stone-300 hover:bg-stone-100",
                 )}
               >
-                <div className="flex items-center gap-2 w-full">
+                <div className="flex items-center gap-3 w-full">
                   <div
                     className={cn(
-                      "w-8 h-8 rounded-lg bg-gradient-to-br flex items-center justify-center text-sm shadow-md",
-                      styleOpt.gradient,
+                      "flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br text-sm shadow-md",
+                      styleOption.gradient,
                     )}
                   >
-                    {styleOpt.emoji}
+                    {styleOption.emoji}
                   </div>
-                  <span
-                    className={cn(
-                      "font-semibold text-sm",
-                      selectedStyle === styleOpt.id
-                        ? "text-amber-600"
-                        : "text-slate-200",
-                    )}
-                  >
-                    {styleOpt.label}
-                  </span>
-                </div>
-                <p className="text-xs text-stone-400 mt-1">
-                  {styleOpt.description}
-                </p>
-
-                {selectedStyle === styleOpt.id && (
-                  <div className="absolute top-2 right-2 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center">
-                    <svg
-                      className="w-3 h-3 text-white"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={3}
-                      stroke="currentColor"
+                  <div className="min-w-0">
+                    <span
+                      className={cn(
+                        "block text-sm font-semibold",
+                        selectedStyle === styleOption.id ? "text-amber-700" : "text-stone-700",
+                      )}
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M4.5 12.75l6 6 9-13.5"
-                      />
-                    </svg>
+                      {styleOption.label}
+                    </span>
+                    <span className="block text-xs text-stone-400">{styleOption.preview}</span>
                   </div>
-                )}
+                </div>
+                <p className="text-xs leading-relaxed text-stone-500">{styleOption.description}</p>
               </button>
             ))}
           </div>
+          <div className="mt-4 rounded-2xl border border-stone-200 bg-white/80 px-4 py-3 text-sm text-stone-500">
+            <span className="font-medium text-stone-700">選択中のスタイル: {selectedStyleOption.label}</span>
+            <p className="mt-1">{selectedStyleOption.preview}</p>
+          </div>
         </Section>
 
-        {/* 5. Custom Prompt */}
         <Section title="5. 追加の指示（任意）" delay={0.2}>
           <textarea
-            className="w-full h-20 rounded-xl bg-white border border-stone-200 p-4 text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-shadow resize-none"
-            placeholder="例: 桜の花びらをモチーフにして、ピンク系の暖かい色合いで..."
+            name="customPrompt"
+            autoComplete="off"
+            spellCheck={false}
+            className="w-full h-24 rounded-xl bg-white border border-stone-200 p-4 text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-shadow resize-none"
+            placeholder="例: 桜の花びらをモチーフにして、ピンク系の暖かい色合いでやさしくまとめたい…"
             value={customPrompt}
-            onChange={(e) => setCustomPrompt(e.target.value)}
+            onChange={(event) => setCustomPrompt(event.target.value)}
           />
         </Section>
 
-        {/* Submit Button */}
-        <Button
-          type="submit"
-          size="lg"
-          className="w-full h-14 bg-amber-500 hover:bg-amber-400 border-0 shadow-lg shadow-amber-500/20"
-          disabled={!canSubmit}
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="w-5 h-5 mr-2 animate-spin" /> 生成中...
-            </>
-          ) : (
-            <>
-              <Sparkles className="w-5 h-5 mr-2" />
-              アイコンを生成
-            </>
-          )}
-        </Button>
+        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_200px]">
+          <Button
+            type="submit"
+            size="lg"
+            className="w-full h-14 bg-amber-500 hover:bg-amber-400 border-0 shadow-lg shadow-amber-500/20"
+            disabled={!canSubmit}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" /> 生成中…
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-5 h-5 mr-2" />
+                アイコンを生成
+              </>
+            )}
+          </Button>
+          <Button type="button" size="lg" variant="outline" onClick={resetEditor}>
+            入力をクリア
+          </Button>
+        </div>
 
         {errorMessage && (
-          <div className="text-red-400 text-center text-sm bg-red-500/10 p-2 rounded-lg border border-red-500/20">
-            {errorMessage}
+          <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm" aria-live="polite">
+            <p className="font-medium text-red-500">{errorMessage}</p>
+            <p className="mt-1 text-red-500/80">
+              URLや追加指示を短くすると改善することがあります。必要な情報だけ残して再試行してください。
+            </p>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <Button type="button" size="sm" onClick={() => void submitEdit()} disabled={!canSubmit}>
+                同じ条件で再試行
+              </Button>
+              <Button type="button" size="sm" variant="outline" onClick={resetEditor}>
+                最初からやり直す
+              </Button>
+            </div>
           </div>
         )}
       </form>

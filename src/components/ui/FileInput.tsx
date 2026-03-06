@@ -20,7 +20,7 @@ export function FileInput({
   previewUrl,
   isOptimizing,
   onChange,
-  accept = "image/*",
+  accept = "image/jpeg,image/png,image/webp",
 }: FileInputProps) {
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -108,9 +108,13 @@ export function FileInput({
                 />
               )}
               <p className="text-sm font-medium">
-                {isDragging ? "Drop to upload" : "Click or drop image"}
+                {isDragging ? "ここにドロップ" : "クリックまたはドラッグで追加"}
               </p>
-              <p className="text-xs text-stone-400 mt-1">JPG, PNG, WebP</p>
+              <p className="mt-1 text-xs text-stone-400">
+                {isOptimizing
+                  ? "画像を圧縮して送信しやすいサイズに整えています…"
+                  : "JPG / PNG / WebP に対応。送信前に自動で最適化します。"}
+              </p>
             </div>
             <input
               ref={inputRef}

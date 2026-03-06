@@ -13,6 +13,7 @@ export interface ProgressDisplayProps {
   progress: number; // 0-100
   steps: ProgressStep[];
   title?: string;
+  timeRemaining?: number;
 }
 
 export function ProgressDisplay({
@@ -21,23 +22,36 @@ export function ProgressDisplay({
   progress,
   steps,
   title,
+  timeRemaining,
 }: ProgressDisplayProps) {
   if (!isVisible) {
     return null;
   }
 
   const currentStepInfo = steps[currentStep];
+  const roundedTimeRemaining =
+    typeof timeRemaining === "number" ? Math.max(1, Math.ceil(timeRemaining)) : null;
 
   return (
-      <div className="bg-white border border-stone-200 rounded-xl p-6 shadow-sm space-y-6">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between text-sm">
+    <div
+      className="bg-white border border-stone-200 rounded-xl p-6 shadow-sm space-y-6"
+      aria-live="polite"
+    >
+      <div className="space-y-4">
+        <div className="flex items-center justify-between gap-4 text-sm">
           <h3 className="font-semibold text-amber-600">
             {title ?? "Gemini が画像を編集中..."}
           </h3>
-          <span className="font-mono text-stone-400">
+          <span className="font-mono text-stone-400 tabular-nums">
             {Math.round(progress)}%
           </span>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-stone-400">
+          <span>{currentStepInfo?.label ?? "処理を準備中…"}</span>
+          {roundedTimeRemaining && (
+            <span className="font-mono tabular-nums">残り約 {roundedTimeRemaining} 秒</span>
+          )}
         </div>
 
         {/* Progress Bar */}
