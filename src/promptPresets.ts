@@ -18,7 +18,7 @@ export const PROMPT_PRESETS: PromptOption[] = [
     label: "トップアングル・モノクロ肖像",
     category: "クリエイティブ",
     prompt:
-      "Top-angle, close-up black-and-white portrait of the exact person from the uploaded image captured with a 35mm lens aesthetic. Keep only the face, upper chest, and one shoulder in frame, facing forward with a proud, composed expression. Use crisp 10.7K 4HD quality, sculpting dramatic contrast with soft key light and deep black shadows that dissolve into the background. Emphasize precise skin texture, subtle monochrome tonality, and clean studio styling while avoiding any props or additional scenery.",
+      "Create an ultra-detailed top-angle black-and-white portrait of the exact person from the uploaded image, framed from the face to the upper chest with one shoulder visible. Keep a calm, confident expression, clean studio styling, and a 35mm portrait-photo feel. Shape the scene with soft key light, rich black shadows, precise skin texture, and nuanced monochrome contrast while avoiding props or distracting background elements.",
   },
   {
     id: "avatar-grid",
@@ -36,10 +36,10 @@ export const PROMPT_PRESETS: PromptOption[] = [
   },
   {
     id: "lego-pack",
-    label: "LEGOミニフィグ・パッケージ演出",
+    label: "ブロックトイ・パッケージ演出",
     category: "クリエイティブ",
     prompt:
-      "Reimagine the exact person from the uploaded image as a LEGO minifigure product hero shot rendered in glossy, high-resolution 3D. Present an isometric packaging box with bold branding, age rating, and illustrated character art on the panels. Inside the box window, showcase the customized minifigure plus essential accessories inspired by the person's signature items (makeup, bags, tools, etc.). Beside the packaging, display the actual assembled minifigure posed on a reflective surface. Keep colors saturated, lighting cinematic, and the overall composition sharp and realistic while maintaining the person's recognizable facial features on the minifigure head.",
+      "Reimagine the exact person from the uploaded image as a glossy brick-built toy minifigure in a premium collector-style product shot. Present an isometric package with playful branding, an age badge, and illustrated character art on the panels. Inside the window, showcase the customized figure with a few signature accessories inspired by the person. Beside the box, display the assembled toy on a reflective surface. Keep colors saturated, lighting cinematic, and the overall composition sharp and realistic while preserving the person's recognizable facial features in the stylized toy design.",
   },
   {
     id: "city-selfie",
@@ -53,28 +53,28 @@ export const PROMPT_PRESETS: PromptOption[] = [
     label: "16ビット・プラットフォーマー主人公化",
     category: "クリエイティブ",
     prompt:
-      "Recreate the exact person from the uploaded image as the pixel-perfect protagonist of a side-scrolling 16-bit platformer. Translate their outfit, silhouette, and signature props into vibrant 32x48-pixel sprite sheets with exaggerated key poses for idle, run, jump, and attack animations. Render them mid-action on a multi-layer parallax level that matches their personality—include foreground platforms, collectible items, and distant background scenery painted in saturated dusk colors. Apply authentic SNES/Genesis-era color palettes, tile-based textures, and limited yet expressive shading while preserving their exact facial likeness and iconic details. Frame the final image like a captured gameplay screenshot with retro UI elements such as hearts, score, and stage title.",
+      "Recreate the exact person from the uploaded image as the pixel-perfect protagonist of a side-scrolling 16-bit platform game. Translate their outfit, silhouette, and signature props into vibrant 32x48-pixel sprite poses for idle, run, jump, and attack animations. Render them mid-action on a multi-layer parallax stage that matches their personality, with platforms, collectible items, and distant dusk scenery. Use authentic 1990s console-game palettes, tile textures, and expressive limited shading while preserving their facial likeness and key details. Frame the final image like a captured gameplay screen with simple retro UI elements such as hearts, score, and a short stage label.",
   },
   {
     id: "bikkuriman-sticker",
-    label: "ビックリマンシール風ホロステッカー",
+    label: "レトロホログラム・デフォルメステッカー",
     category: "クリエイティブ",
     prompt:
-      "Transform the exact person from the uploaded image into a retro 1980s Japanese Bikkuriman-style holographic sticker illustration. Depict the character as a super-deformed hero with a large head, compact body, and exaggerated expression, holding a symbolic accessory that reflects their personality. Surround them with bold katakana nameplates, radiant gold halos, and energetic onomatopoeia bursts rendered in thick cel-shaded outlines. Place the figure against a prismatic foil background with rainbow gradients, glittering stars, and embossed borders. Keep the overall composition as a perfectly centered 48mm square sticker that fills the frame edge-to-edge with no white borders or blank space, crisp and vibrant, evoking collector-grade printing. The face must clearly resemble the uploaded person.",
+      "Transform the exact person from the uploaded image into a retro 1980s-inspired Japanese holographic sticker illustration. Depict the character as a super-deformed hero with a large head, compact body, and an exaggerated expression, holding a symbolic accessory that reflects their personality. Surround them with bold decorative lettering shapes, radiant halos, energetic bursts, thick cel-shaded outlines, and a prismatic foil background with rainbow gradients and glittering stars. Keep the composition as a perfectly centered square collector sticker that fills the frame edge-to-edge with crisp, vibrant printing. The face must still clearly resemble the uploaded person.",
   },
   {
     id: "pirate-wanted",
     label: "海賊手配書パーチメント仕上げ",
     category: "ファンタジー",
     prompt:
-      "Design an aged pirate wanted poster painted on distressed parchment. Strictly preserve the exact person's facial likeness from the uploaded image while giving them authentic pirate styling such as a weathered tricorne hat, braids, and accessories. Use warm brown monochrome inks with watercolor bleeding, torn edges, and creases. Feature a large, close-up portrait centered near the top. Add a prominent fictitious bounty amount in an invented currency, and beneath it a short description of alleged crimes written in an original runic-style script (avoid English or Chinese characters). Include ornamental flourishes and stamp marks that feel hand-printed.",
+      "Design an aged pirate wanted poster painted on distressed parchment. Strictly preserve the exact person's facial likeness from the uploaded image while giving them authentic pirate styling such as a weathered tricorne hat, braids, and accessories. Use warm brown monochrome inks with watercolor bleeding, torn edges, and creases. Feature a large close-up portrait near the top, plus a bold bounty amount, decorative symbols, stamp marks, and hand-printed flourishes. Keep any lettering minimal and poster-like rather than dense paragraphs so the image stays clean and readable.",
   },
   {
     id: "martial-arcade",
     label: "対戦格闘シネマティック・アクション",
     category: "ファンタジー",
     prompt:
-      "Stage a cinematic versus fighting game key art featuring the exact person from the first uploaded photo as Player 1 on the left and the exact person from the second uploaded photo as Player 2 on the right. Capture both at a dynamic three-quarter angle mid-action with motion trails, energy effects, and expressive poses. Use a collapsing ruin environment on a purple alien world at sunrise, with dust, debris, and volumetric light. Overlay polished HUD elements: the title 'MORDON V'S DEATHSEED', health bars with character thumbnails, combo meters, and sparks. Render as a single ultra-sharp frame with dramatic contrast and vivid color grading. Both faces must be 100% identical to their respective uploaded photos.",
+      "Stage a cinematic versus fighting-game key art featuring the exact person from the first uploaded photo as Player 1 on the left and the exact person from the second uploaded photo as Player 2 on the right. Capture both at a dynamic three-quarter angle mid-action with motion trails, energy effects, and expressive poses. Use a collapsing-ruin arena on a purple alien world at sunrise, with dust, debris, and volumetric light. Overlay polished HUD elements such as a short stylized title emblem, health bars, character portraits, combo meters, and sparks. Render as a single ultra-sharp frame with dramatic contrast and vivid color grading. Both faces must stay faithful to their respective uploaded photos.",
   },
   {
     id: "passport-blue",
@@ -95,14 +95,14 @@ export const PROMPT_PRESETS: PromptOption[] = [
     label: "ヒーローコミック・ストーリー化",
     category: "ファンタジー",
     prompt:
-      "Transform the uploaded image into a vibrant four-panel superhero comic strip. Develop a concise storyline with setup, rising action, climax, and resolution across the panels. Retain the exact person's facial likeness from the uploaded image as the protagonist, giving them a heroic costume and expressive poses. Include speech balloons, narration boxes, and sound effects with thoughtful typography. Apply bold halftone textures, dramatic lighting, and saturated comic-book coloring while keeping panel gutters clean and balanced.",
+      "Transform the uploaded image into a vibrant four-panel superhero comic strip. Develop a concise visual storyline with setup, rising action, climax, and resolution across the panels. Retain the exact person's facial likeness from the uploaded image as the protagonist, giving them a heroic costume and expressive poses. Use a few short caption boxes, simple sound-effect marks, bold halftone textures, dramatic lighting, and saturated comic-book coloring while keeping the panel layout clean and balanced.",
   },
   {
     id: "movie-poster",
     label: "映画ポスター・地下鉄構内仕上げ",
     category: "クリエイティブ",
     prompt:
-      "Design a photorealistic movie poster inspired by the tone of the source image. Strictly preserve the exact person's facial likeness from the uploaded image while allowing pose and expression adjustments for dramatic composition. Blend cinematic lighting, atmospheric effects, and supporting characters or set pieces that enhance the narrative. Present the finished poster mounted within a Japanese subway underground passage, with passersby, tiled walls, reflections, and ambient lighting creating realism. Include professional typography for the film title, credits block, and subtle marketing details integrated into the scene.",
+      "Design a photorealistic movie poster inspired by the tone of the source image. Strictly preserve the exact person's facial likeness from the uploaded image while allowing pose and expression adjustments for dramatic composition. Blend cinematic lighting, atmospheric effects, and a few supporting characters or set pieces that enhance the narrative. Present the finished poster mounted within a Japanese subway passage, with passersby, tiled walls, reflections, and ambient lighting creating realism. Include a strong main title and restrained poster text so the layout feels polished without relying on dense small lettering.",
   },
   {
     id: "beach-bottle",
@@ -123,20 +123,20 @@ export const PROMPT_PRESETS: PromptOption[] = [
     label: "90年代イヤーブック見開き",
     category: "クリエイティブ",
     prompt:
-      "Convert the original photo into a 1990s American high school yearbook double-page spread featuring two coordinated photos. Include a formal senior portrait on the left and a candid hallway snapshot on the right. Use teal and magenta gradient backdrops, geometric divider bars, doodle accents, and a playful neon hand-written signature with an upbeat senior quote. Style clothing, hair, and accessories to feel authentically 90s while strictly preserving the exact person's facial likeness from the uploaded image. Lay out the spread with print-ready typography and light halftone texture.",
+      "Convert the original photo into a 1990s yearbook-inspired double-page spread featuring two coordinated photos. Include a formal portrait on the left and a candid hallway snapshot on the right. Use teal and magenta gradient backdrops, geometric divider bars, doodle accents, and a playful hand-written signature motif. Style clothing, hair, and accessories to feel authentically 90s while strictly preserving the exact person's facial likeness from the uploaded image. Keep the typography simple and readable, with only a few short yearbook-style labels and light halftone texture.",
   },
   {
     id: "global-magazine-cover",
     label: "グローバル誌カバースター演出",
     category: "ビジネス",
     prompt:
-      "Design a glossy international fashion magazine cover starring the exact person from the uploaded image. Dress them in avant-garde couture with confident posing and dramatic studio lighting against a minimalist color-blocked background. Maintain precise facial likeness and premium retouching. Add multilingual cover lines, barcode, issue date, and a sophisticated masthead, arranging typography to balance negative space. Apply subtle texture, shadows, and highlights so the cover feels ready for newsstand printing.",
+      "Design a glossy international fashion magazine cover starring the exact person from the uploaded image. Dress them in avant-garde couture with confident posing and dramatic studio lighting against a minimalist color-blocked background. Maintain precise facial likeness and premium retouching. Add a sophisticated masthead, a few short cover lines, an issue date, and a barcode, arranging the typography to balance negative space. Apply subtle texture, shadows, and highlights so the cover feels ready for newsstand printing.",
   },
   {
     id: "disney-pixar-portrait",
-    label: "ディズニー・ピクサー3Dポートレート",
+    label: "アニメ映画風3Dポートレート",
     category: "クリエイティブ",
     prompt:
-      "3D in the style of Disney-Pixar, featuring the exact person from the uploaded reference image. CRITICAL: Keep the face of the person 100% accurate and identical to the reference image. The person is focused but smiling, with hair styled naturally and wearing a large neon green knitted sweater, white trousers, gray concrete background in the background, warm cinematic lighting, high detail, 8K, without text and numbers. The image is made with high detail, with subtle highlights of light on a glossy translucent body, which corresponds to the warm cinematic lighting of the stage, front view, portrait.",
+      "Create a polished stylized 3D animated-feature portrait of the exact person from the uploaded reference image. Keep the face highly faithful to the source while giving the overall rendering a warm, family-friendly cinematic look. Show the person front-facing with a gentle focused smile, naturally styled hair, a large neon-green knitted sweater, white trousers, and a soft gray concrete backdrop. Use warm cinematic lighting, high detail, subtle glossy highlights, and a clean portrait composition without text or numbers.",
   },
 ];
