@@ -105,7 +105,7 @@ export function PromptPicker({
       </div>
 
       {/* Grid */}
-      <div className="grid min-w-0 max-h-[500px] grid-cols-1 gap-3 overflow-y-auto pr-1 sm:pr-2 md:grid-cols-2 custom-scrollbar">
+      <div className="custom-scrollbar grid min-w-0 max-h-[500px] grid-cols-1 gap-3 overflow-y-auto pr-4 sm:pr-3 md:grid-cols-2">
         {displayedPrompts.length > 0 ? (
           displayedPrompts.map((prompt) => {
             const isSelected = prompt.id === selectedPromptId;

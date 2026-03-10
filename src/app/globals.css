@@ -22,28 +22,44 @@
   --foreground: #1C1917;
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #fef9ee;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #fde68a;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #fcd34d;
-}
-
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  .custom-scrollbar {
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: #fde68a #fef9ee;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #fef9ee;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #fde68a;
+    border-radius: 9999px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #fcd34d;
+  }
+
+  @media (pointer: coarse) {
+    .custom-scrollbar {
+      scrollbar-width: none;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+    }
   }
 
   /* Glassmorphism Utilities */
