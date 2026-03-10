@@ -47,14 +47,12 @@ export function PromptPicker({
   };
 
   return (
-    <fieldset className="space-y-4">
+    <fieldset className="min-w-0 space-y-4">
       {/* Header / Tabs */}
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <legend className="text-lg font-semibold text-stone-700 flex items-center gap-2">
-            {legend}
-          </legend>
-          <div className="relative w-64 max-w-full">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <legend className="min-w-0 text-lg font-semibold text-stone-700">{legend}</legend>
+          <div className="relative w-full sm:w-64 sm:max-w-full sm:flex-none">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-stone-400">
               <Search className="w-4 h-4" />
             </div>
@@ -79,7 +77,7 @@ export function PromptPicker({
 
         {!normalizedQuery && categories.length > 0 && (
           <div
-            className="flex flex-wrap gap-2 pb-2 border-b border-stone-200"
+            className="flex min-w-0 flex-wrap gap-2 border-b border-stone-200 pb-2"
             role="tablist"
           >
             {categories.map((category) => {
@@ -95,7 +93,7 @@ export function PromptPicker({
                     "px-4 py-1.5 rounded-full text-sm font-medium transition-all",
                     isActive
                       ? "bg-amber-500 text-white shadow-lg shadow-amber-500/20"
-                      : "bg-stone-100 text-stone-500 hover:bg-stone-200 hover:text-stone-700"
+                      : "bg-stone-100 text-stone-500 hover:bg-stone-200 hover:text-stone-700",
                   )}
                 >
                   {category}
@@ -107,7 +105,7 @@ export function PromptPicker({
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+      <div className="grid min-w-0 max-h-[500px] grid-cols-1 gap-3 overflow-y-auto pr-1 sm:pr-2 md:grid-cols-2 custom-scrollbar">
         {displayedPrompts.length > 0 ? (
           displayedPrompts.map((prompt) => {
             const isSelected = prompt.id === selectedPromptId;
@@ -115,12 +113,12 @@ export function PromptPicker({
               <label
                 key={prompt.id}
                 className={cn(
-                  "relative flex gap-3 p-3 rounded-xl border cursor-pointer transition-all hover:scale-[1.01]",
-                    isSelected
-                      ? "bg-amber-500/10 border-amber-500/50 ring-1 ring-amber-500/50"
-                      : "bg-stone-50 border-stone-200 hover:border-stone-300 hover:bg-stone-100"
-                  )}
-                >
+                  "relative flex items-start gap-3 overflow-hidden rounded-xl border p-3 transition-all hover:scale-[1.01]",
+                  isSelected
+                    ? "bg-amber-500/10 border-amber-500/50 ring-1 ring-amber-500/50"
+                    : "bg-stone-50 border-stone-200 hover:border-stone-300 hover:bg-stone-100",
+                )}
+              >
                 <input
                   type="radio"
                   name="prompt"
@@ -132,20 +130,16 @@ export function PromptPicker({
                 <div
                   className={cn(
                     "flex-shrink-0 w-5 h-5 rounded-full border flex items-center justify-center mt-0.5 transition-colors",
-                    isSelected
-                      ? "bg-amber-500 border-amber-500"
-                      : "border-stone-300 bg-white"
+                    isSelected ? "bg-amber-500 border-amber-500" : "border-stone-300 bg-white",
                   )}
                 >
-                  {isSelected && (
-                    <Check className="w-3.5 h-3.5 text-white" />
-                  )}
+                  {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <span
                     className={cn(
-                      "block font-medium mb-1",
-                      isSelected ? "text-amber-600" : "text-stone-700"
+                      "mb-1 block text-sm leading-snug sm:text-base",
+                      isSelected ? "text-amber-600" : "text-stone-700",
                     )}
                   >
                     {prompt.label}
