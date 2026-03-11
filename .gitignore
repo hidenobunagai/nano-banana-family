@@ -30,8 +30,10 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# dotenvx / env files
 .env*
+.env.keys
+!.env*.example
 
 # vercel
 .vercel
@@ -39,8 +41,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-!.env*.example
-
 # PWA artifacts
 public/sw.js
 public/workbox-*.js

@@ -44,7 +44,9 @@ bun install
 
 ### 2. Configure environment variables
 
-Values can be set in a local `.env.local` or configured in the Vercel dashboard. The app expects:
+Local development now uses `dotenvx` with the Next.js env-file convention. Vercel can continue using its dashboard-managed environment variables; no Vercel-side `dotenvx` setup is required for this repository.
+
+The app expects:
 
 | Variable                           | Description                                                        |
 | ---------------------------------- | ------------------------------------------------------------------ |
@@ -55,7 +57,27 @@ Values can be set in a local `.env.local` or configured in the Vercel dashboard.
 | `GEMINI_API_KEY`                   | Google Gemini API key                                              |
 | `GEMINI_IMAGE_MODEL`               | Optional model override (default `gemini-3.1-flash-image-preview`) |
 
-> Tip: When deploying on Vercel, add these variables under **Project Settings -> Environment Variables**. Any `.env.local` file is only for local development and should never contain production secrets committed to Git.
+Set up local secrets with `dotenvx`:
+
+```bash
+cp .env.local.example .env.local
+```
+
+Fill in the values in `.env.local`, then encrypt it:
+
+```bash
+bun run env:encrypt
+```
+
+This encrypts `.env.local` in place and stores the private key in `.env.keys`. Keep `.env.keys` local only.
+
+To inspect which env files `dotenvx` sees:
+
+```bash
+bun run env:ls
+```
+
+> Tip: When deploying on Vercel, keep using **Project Settings -> Environment Variables**. The bundled scripts ignore missing local env files, so Vercel can keep relying on dashboard-managed secrets.
 
 ### 3. Run locally
 

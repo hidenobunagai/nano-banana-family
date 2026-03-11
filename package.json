@@ -3,17 +3,19 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --webpack",
-    "build": "next build --webpack",
-    "start": "next start",
+    "dev": "dotenvx run --convention=nextjs --ignore=MISSING_ENV_FILE -- next dev --webpack",
+    "build": "dotenvx run --convention=nextjs --ignore=MISSING_ENV_FILE -- next build --webpack",
+    "start": "dotenvx run --convention=nextjs --ignore=MISSING_ENV_FILE -- next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit",
-    "test": "cross-env VITE_CJS_IGNORE_WARNING=1 vitest run --passWithNoTests",
-    "test:watch": "cross-env VITE_CJS_IGNORE_WARNING=1 vitest",
-    "test:ci": "cross-env VITE_CJS_IGNORE_WARNING=1 vitest run --passWithNoTests",
-    "test:coverage": "cross-env VITE_CJS_IGNORE_WARNING=1 vitest run --coverage --passWithNoTests",
+    "typecheck": "dotenvx run --convention=nextjs --ignore=MISSING_ENV_FILE -- tsc --noEmit",
+    "test": "dotenvx run --convention=nextjs --ignore=MISSING_ENV_FILE -- cross-env VITE_CJS_IGNORE_WARNING=1 vitest run --passWithNoTests",
+    "test:watch": "dotenvx run --convention=nextjs --ignore=MISSING_ENV_FILE -- cross-env VITE_CJS_IGNORE_WARNING=1 vitest",
+    "test:ci": "dotenvx run --convention=nextjs --ignore=MISSING_ENV_FILE -- cross-env VITE_CJS_IGNORE_WARNING=1 vitest run --passWithNoTests",
+    "test:coverage": "dotenvx run --convention=nextjs --ignore=MISSING_ENV_FILE -- cross-env VITE_CJS_IGNORE_WARNING=1 vitest run --coverage --passWithNoTests",
     "format": "prettier --write . --ignore-path .gitignore",
-    "format:check": "prettier --check . --ignore-path .gitignore"
+    "format:check": "prettier --check . --ignore-path .gitignore",
+    "env:encrypt": "dotenvx encrypt -f .env.local",
+    "env:ls": "dotenvx ls"
   },
   "dependencies": {
     "@google/genai": "^1.19.0",
@@ -31,20 +33,21 @@
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
+    "@dotenvx/dotenvx": "^1.54.1",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/node": "^20",
     "@types/react": "^19.2.3",
     "@types/react-dom": "^19.2.3",
+    "@vitest/coverage-v8": "^2.1.8",
     "autoprefixer": "^10.4.23",
     "cross-env": "^7.0.3",
     "eslint": "^9",
     "eslint-config-next": "^16.0.10",
-    "@vitest/coverage-v8": "^2.1.8",
+    "jsdom": "^26.0.0",
     "postcss": "^8.5.6",
     "prettier": "^3.3.3",
     "tailwindcss": "^4.1.18",
     "typescript": "^5",
-    "vitest": "^2.1.8",
-    "jsdom": "^26.0.0"
+    "vitest": "^2.1.8"
   }
 }
