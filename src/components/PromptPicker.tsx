@@ -3,7 +3,7 @@
 import { cn } from "@/components/ui/Button";
 import { PromptOption } from "@/promptPresets";
 import { Check, Search, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 
 type PromptGroups = Record<string, PromptOption[]>;
 
@@ -21,6 +21,7 @@ export function PromptPicker({
   legend = "プロンプトを選ぶ",
 }: PromptPickerProps) {
   const [query, setQuery] = useState("");
+  const legendId = useId();
 
   const categories = useMemo(() => Object.keys(groups), [groups]);
   const [activeTab, setActiveTab] = useState<string>(() => categories[0] || "");
@@ -47,11 +48,13 @@ export function PromptPicker({
   };
 
   return (
-    <fieldset className="min-w-0 space-y-4">
+    <div aria-labelledby={legendId} className="min-w-0 space-y-4" role="group">
       {/* Header / Tabs */}
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <legend className="min-w-0 text-lg font-semibold text-stone-700">{legend}</legend>
+          <p id={legendId} className="min-w-0 text-lg font-semibold text-stone-700">
+            {legend}
+          </p>
           <div className="relative w-full sm:w-64 sm:max-w-full sm:flex-none">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-stone-400">
               <Search className="w-4 h-4" />
@@ -157,6 +160,6 @@ export function PromptPicker({
           </div>
         )}
       </div>
-    </fieldset>
+    </div>
   );
 }
