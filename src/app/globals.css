@@ -53,6 +53,7 @@
 
   @media (pointer: coarse) {
     .custom-scrollbar {
+      scrollbar-gutter: auto;
       scrollbar-width: none;
     }
 
