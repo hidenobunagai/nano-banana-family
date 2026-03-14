@@ -6,7 +6,7 @@ import "./globals.css";
 
 import { Analytics } from "@vercel/analytics/next";
 
-const GTM_ID = "GTM-TXC6JRPP";
+const GTM_ID = "GTM-NP6VPKT6";
 
 // UI/UX Pro Max: Modern Typography
 const outfit = Outfit({
