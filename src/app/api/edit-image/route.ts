@@ -9,6 +9,7 @@ import {
   MAX_FILE_SIZE_MB,
   resolveMimeType,
 } from "@/utils/server/imageValidation";
+import { logger } from "@/utils/server/logger";
 import { checkRateLimit } from "@/utils/server/rateLimit";
 
 export const runtime = "nodejs";
@@ -177,7 +178,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ imageBase64: base64Data, mimeType: resultMime });
   } catch (error) {
-    console.error("Gemini edit error", error);
+    logger.error("Gemini edit error", error, { route: "edit-image", userId: session.user?.email ?? "unknown" });
     const errorMessage =
       error instanceof Error ? error.message : "画像編集中に予期しないエラーが発生しました。";
     return NextResponse.json({ error: errorMessage }, { status: 500 });

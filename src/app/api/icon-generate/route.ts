@@ -10,6 +10,7 @@ import {
   MAX_FILE_SIZE_MB,
   resolveMimeType,
 } from "@/utils/server/imageValidation";
+import { logger } from "@/utils/server/logger";
 import { checkRateLimit } from "@/utils/server/rateLimit";
 import { fetchUrlMetadata } from "@/utils/server/urlMetadata";
 
@@ -180,7 +181,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ imageBase64: base64Data, mimeType: resultMime });
   } catch (error) {
-    console.error("Gemini icon generation error", error);
+    logger.error("Gemini icon generation error", error, { route: "icon-generate", userId: session.user?.email ?? "unknown" });
     const errorMessage =
       error instanceof Error ? error.message : "アイコン生成中に予期しないエラーが発生しました。";
     return NextResponse.json({ error: errorMessage }, { status: 500 });
