@@ -42,6 +42,7 @@ export function SimpleEditor() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [downloadFileName, setDownloadFileName] = useState<string | null>(null);
   const previewUrlsRef = useRef<string[]>([]);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const handleProgressComplete = useCallback(() => {
     setIsSubmitting(false);
@@ -61,6 +62,7 @@ export function SimpleEditor() {
 
   useEffect(() => {
     return () => {
+      abortControllerRef.current?.abort();
       previewUrlsRef.current.forEach((previewUrl) => {
         URL.revokeObjectURL(previewUrl);
       });
@@ -193,6 +195,10 @@ export function SimpleEditor() {
     setErrorMessage(null);
     setResultImage(null);
 
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     try {
       const formData = new FormData();
       formData.append("prompt", selectedPrompt);
@@ -206,6 +212,7 @@ export function SimpleEditor() {
       const res = await fetch("/api/edit-image", {
         method: "POST",
         body: formData,
+        signal: controller.signal,
       });
       const data: unknown = await res.json();
 
@@ -235,6 +242,7 @@ export function SimpleEditor() {
 
       setResultImage(`data:${mimeType};base64,${data.imageBase64}`);
     } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") return;
       setErrorMessage(
         error instanceof Error
           ? error.message

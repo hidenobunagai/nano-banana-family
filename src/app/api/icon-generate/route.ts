@@ -4,11 +4,13 @@ import { NextResponse } from "next/server";
 
 import { authOptions } from "@/auth";
 import { buildIconPrompt, type IconStyleId } from "@/utils/server/iconPromptBuilder";
+import { MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
 import {
   MAX_FILE_SIZE_BYTES,
   MAX_FILE_SIZE_MB,
   resolveMimeType,
 } from "@/utils/server/imageValidation";
+import { checkRateLimit } from "@/utils/server/rateLimit";
 import { fetchUrlMetadata } from "@/utils/server/urlMetadata";
 
 export const runtime = "nodejs";
@@ -22,6 +24,17 @@ export async function POST(request: Request) {
 
   if (!session) {
     return NextResponse.json({ error: "認証が必要です。" }, { status: 401 });
+  }
+
+  const rateLimit = checkRateLimit(session.user?.email ?? "anonymous");
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: `リクエストが多すぎます。${rateLimit.retryAfter ?? 60}秒後にもう一度お試しください。` },
+      {
+        status: 429,
+        headers: { "Retry-After": String(rateLimit.retryAfter ?? 60) },
+      },
+    );
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
@@ -41,6 +54,16 @@ export async function POST(request: Request) {
 
   if (typeof name !== "string" || name.trim().length === 0) {
     return NextResponse.json({ error: "連絡先名を入力してください。" }, { status: 400 });
+  }
+
+  if (
+    typeof customPrompt === "string" &&
+    customPrompt.trim().length > MAX_PROMPT_LENGTH
+  ) {
+    return NextResponse.json(
+      { error: `追加の指示は${MAX_PROMPT_LENGTH}文字以内で入力してください。` },
+      { status: 400 },
+    );
   }
 
   if (files.length > MAX_IMAGE_COUNT) {

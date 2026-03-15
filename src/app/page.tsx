@@ -3,7 +3,8 @@
 import { FreestyleEditor } from "@/components/features/editor/FreestyleEditor";
 import { IconCreator } from "@/components/features/editor/IconCreator";
 import { SimpleEditor } from "@/components/features/editor/SimpleEditor";
-import { Dock, type NavMode } from "@/components/layout/Dock";
+import { Dock } from "@/components/layout/Dock";
+import type { NavMode } from "@/types/nav";
 import { Shell } from "@/components/layout/Shell";
 import { Button } from "@/components/ui/Button";
 import { motion } from "framer-motion";

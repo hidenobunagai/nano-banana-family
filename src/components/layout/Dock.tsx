@@ -1,11 +1,11 @@
 "use client";
 
 import { cn } from "@/components/ui/Button";
+import type { NavMode } from "@/types/nav";
 import { motion } from "framer-motion";
 import { Palette, UserCircle, Wand2 } from "lucide-react";
 
-// Re-using the Mode type here for now to avoid circular deps if Sidebar is deleted
-export type NavMode = "simple" | "flipbook" | "freestyle" | "prompt" | "icon";
+export type { NavMode };
 
 interface DockProps {
   currentMode: NavMode;

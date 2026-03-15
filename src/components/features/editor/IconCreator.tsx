@@ -9,7 +9,8 @@ import { Button, cn } from "@/components/ui/Button";
 import { FileInput } from "@/components/ui/FileInput";
 import { Section } from "@/components/ui/Section";
 import { useProgressSimulation } from "@/components/useProgressSimulation";
-import { resizeImage } from "@/utils/imageOptimization";
+import { useUploadSlots } from "@/hooks/useUploadSlots";
+import { MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
 import { getRequestErrorMessage } from "@/utils/requestErrorMessage";
 import {
   Download,
@@ -23,10 +24,8 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import {
-  type ChangeEvent,
   type FormEvent,
   useCallback,
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -46,12 +45,6 @@ const ICON_PROGRESS_STEPS: ProgressStep[] = [
 ];
 
 const MAX_ICON_UPLOADS = 3;
-
-interface UploadSlot {
-  id: string;
-  file: File | null;
-  previewUrl: string | null;
-}
 
 interface IconStyleOption {
   id: string;
@@ -105,21 +98,25 @@ const ICON_STYLE_OPTIONS: IconStyleOption[] = [
   },
 ];
 
-function createUploadSlot(): UploadSlot {
-  return { id: crypto.randomUUID(), file: null, previewUrl: null };
-}
-
 export function IconCreator() {
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
   const [selectedStyle, setSelectedStyle] = useState("auto");
   const [customPrompt, setCustomPrompt] = useState("");
-  const [uploads, setUploads] = useState<UploadSlot[]>([]);
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [optimizingUploadIds, setOptimizingUploadIds] = useState<string[]>([]);
-  const previewUrlsRef = useRef<string[]>([]);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const { uploads, activeUploads, isOptimizingAny, optimizingIds, addUploadSlot, removeUploadSlot, handleFileChange, resetUploads } =
+    useUploadSlots({
+      maxSlots: MAX_ICON_UPLOADS,
+      onBeforeChange: () => {
+        setErrorMessage(null);
+        setResultImage(null);
+      },
+      onFileError: setErrorMessage,
+    });
 
   const handleProgressComplete = useCallback(() => setIsSubmitting(false), []);
   const { progress, currentStep, timeRemaining, complete: completeProgress } =
@@ -129,35 +126,9 @@ export function IconCreator() {
       steps: ICON_PROGRESS_STEPS,
     });
 
-  useEffect(() => {
-    previewUrlsRef.current = uploads
-      .map((upload) => upload.previewUrl)
-      .filter((value): value is string => Boolean(value));
-  }, [uploads]);
-
-  useEffect(() => {
-    return () => {
-      previewUrlsRef.current.forEach((previewUrl) => {
-        URL.revokeObjectURL(previewUrl);
-      });
-    };
-  }, []);
-
-  const setUploadOptimizing = useCallback((id: string, isOptimizing: boolean) => {
-    setOptimizingUploadIds((prev) => {
-      if (isOptimizing) {
-        return prev.includes(id) ? prev : [...prev, id];
-      }
-      return prev.filter((item) => item !== id);
-    });
-  }, []);
-
-  const activeUploads = useMemo(
-    () => uploads.filter((upload) => upload.file),
-    [uploads],
-  );
-  const isOptimizingAny = optimizingUploadIds.length > 0;
-  const canSubmit = name.trim().length > 0 && !isSubmitting && !isOptimizingAny;
+  const isCustomPromptTooLong = customPrompt.length > MAX_PROMPT_LENGTH;
+  const canSubmit =
+    name.trim().length > 0 && !isCustomPromptTooLong && !isSubmitting && !isOptimizingAny;
   const selectedStyleOption = useMemo(
     () =>
       ICON_STYLE_OPTIONS.find((styleOption) => styleOption.id === selectedStyle) ??
@@ -166,89 +137,23 @@ export function IconCreator() {
   );
 
   const resetEditor = useCallback(() => {
-    uploads.forEach((upload) => {
-      if (upload.previewUrl) {
-        URL.revokeObjectURL(upload.previewUrl);
-      }
-    });
     setName("");
     setUrl("");
     setSelectedStyle("auto");
     setCustomPrompt("");
-    setUploads([]);
+    resetUploads();
     setResultImage(null);
     setErrorMessage(null);
-    setOptimizingUploadIds([]);
-  }, [uploads]);
+  }, [resetUploads]);
 
-  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>, id: string) => {
-    const file = event.target.files?.[0];
-    const currentSlot = uploads.find((upload) => upload.id === id);
-
-    if (!currentSlot) {
-      return;
-    }
-
-    if (!file) {
-      if (currentSlot.previewUrl) {
-        URL.revokeObjectURL(currentSlot.previewUrl);
-      }
-      setUploads((prev) =>
-        prev.map((upload) =>
-          upload.id === id ? { ...upload, file: null, previewUrl: null } : upload,
-        ),
-      );
-      return;
-    }
-
-    setErrorMessage(null);
-    setResultImage(null);
-    setUploadOptimizing(id, true);
-
-    try {
-      const optimized = await resizeImage(file);
-      if (currentSlot.previewUrl) {
-        URL.revokeObjectURL(currentSlot.previewUrl);
-      }
-      setUploads((prev) =>
-        prev.map((upload) =>
-          upload.id === id
-            ? {
-                ...upload,
-                file: optimized,
-                previewUrl: URL.createObjectURL(optimized),
-              }
-            : upload,
-        ),
-      );
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "画像の準備に失敗しました。別の画像でもう一度お試しください。",
-      );
-    } finally {
-      setUploadOptimizing(id, false);
-    }
-  };
-
-  const addUploadSlot = () => {
-    if (uploads.length < MAX_ICON_UPLOADS) {
-      setUploads((prev) => [...prev, createUploadSlot()]);
-    }
-  };
-
-  const removeUploadSlot = (id: string) => {
-    const slotToRemove = uploads.find((upload) => upload.id === id);
-    if (slotToRemove?.previewUrl) {
-      URL.revokeObjectURL(slotToRemove.previewUrl);
-    }
-
-    setUploads((prev) => prev.filter((upload) => upload.id !== id));
-    setOptimizingUploadIds((prev) => prev.filter((item) => item !== id));
-    setResultImage(null);
-    setErrorMessage(null);
-  };
+  const handleRemoveUploadSlot = useCallback(
+    (id: string) => {
+      removeUploadSlot(id);
+      setResultImage(null);
+      setErrorMessage(null);
+    },
+    [removeUploadSlot],
+  );
 
   const submitEdit = useCallback(async () => {
     if (!name.trim()) {
@@ -259,6 +164,10 @@ export function IconCreator() {
     setIsSubmitting(true);
     setErrorMessage(null);
     setResultImage(null);
+
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     try {
       const formData = new FormData();
@@ -282,6 +191,7 @@ export function IconCreator() {
       const res = await fetch("/api/icon-generate", {
         method: "POST",
         body: formData,
+        signal: controller.signal,
       });
       const data: unknown = await res.json();
 
@@ -311,6 +221,7 @@ export function IconCreator() {
 
       setResultImage(`data:${mimeType};base64,${data.imageBase64}`);
     } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") return;
       setErrorMessage(
         error instanceof Error
           ? error.message
@@ -460,12 +371,12 @@ export function IconCreator() {
                   <FileInput
                     subLabel={`参考画像 ${index + 1}`}
                     previewUrl={slot.previewUrl}
-                    isOptimizing={optimizingUploadIds.includes(slot.id)}
+                    isOptimizing={optimizingIds.includes(slot.id)}
                     onChange={(event) => handleFileChange(event, slot.id)}
                   />
                   <button
                     type="button"
-                    onClick={() => removeUploadSlot(slot.id)}
+                    onClick={() => handleRemoveUploadSlot(slot.id)}
                     aria-label={`参考画像 ${index + 1} を削除`}
                     className="absolute top-8 right-2 rounded-full bg-red-500/90 p-1.5 text-white shadow-md transition-colors hover:bg-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
                   >
@@ -539,11 +450,15 @@ export function IconCreator() {
             name="customPrompt"
             autoComplete="off"
             spellCheck={false}
+            maxLength={MAX_PROMPT_LENGTH}
             className="w-full h-24 rounded-xl bg-white border border-stone-200 p-4 text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-shadow resize-none"
             placeholder="例: 桜の花びらをモチーフにして、ピンク系の暖かい色合いでやさしくまとめたい…"
             value={customPrompt}
             onChange={(event) => setCustomPrompt(event.target.value)}
           />
+          <p className={`mt-1 text-xs text-right ${isCustomPromptTooLong ? "text-red-500" : "text-stone-400"}`}>
+            {customPrompt.length} / {MAX_PROMPT_LENGTH}
+          </p>
         </Section>
 
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_200px]">

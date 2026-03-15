@@ -9,16 +9,15 @@ import { Button } from "@/components/ui/Button";
 import { FileInput } from "@/components/ui/FileInput";
 import { Section } from "@/components/ui/Section";
 import { useProgressSimulation } from "@/components/useProgressSimulation";
-import { resizeImage } from "@/utils/imageOptimization";
+import { useUploadSlots } from "@/hooks/useUploadSlots";
+import { MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
 import { getRequestErrorMessage } from "@/utils/requestErrorMessage";
 import { Download, Loader2, RefreshCw, RotateCcw, X } from "lucide-react";
 import Image from "next/image";
 import {
-  type ChangeEvent,
   type FormEvent,
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -38,24 +37,29 @@ const FREESTYLE_PROGRESS_STEPS: ProgressStep[] = [
 
 const MAX_FREESTYLE_UPLOADS = 5;
 
-interface UploadSlot {
-  id: string;
-  file: File | null;
-  previewUrl: string | null;
-}
-
-function createUploadSlot(): UploadSlot {
-  return { id: crypto.randomUUID(), file: null, previewUrl: null };
-}
-
 export function FreestyleEditor() {
   const [prompt, setPrompt] = useState("");
-  const [uploads, setUploads] = useState<UploadSlot[]>(() => [createUploadSlot()]);
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [optimizingUploadIds, setOptimizingUploadIds] = useState<string[]>([]);
-  const previewUrlsRef = useRef<string[]>([]);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []);
+
+  const { uploads, activeUploads, isOptimizingAny, optimizingIds, addUploadSlot, removeUploadSlot, handleFileChange, resetUploads } =
+    useUploadSlots({
+      maxSlots: MAX_FREESTYLE_UPLOADS,
+      initialSlots: 1,
+      onBeforeChange: () => {
+        setErrorMessage(null);
+        setResultImage(null);
+      },
+      onFileError: setErrorMessage,
+    });
 
   const handleProgressComplete = useCallback(() => setIsSubmitting(false), []);
   const { progress, currentStep, timeRemaining, complete: completeProgress } =
@@ -65,123 +69,31 @@ export function FreestyleEditor() {
       steps: FREESTYLE_PROGRESS_STEPS,
     });
 
-  useEffect(() => {
-    previewUrlsRef.current = uploads
-      .map((upload) => upload.previewUrl)
-      .filter((value): value is string => Boolean(value));
-  }, [uploads]);
-
-  useEffect(() => {
-    return () => {
-      previewUrlsRef.current.forEach((previewUrl) => {
-        URL.revokeObjectURL(previewUrl);
-      });
-    };
-  }, []);
-
-  const setUploadOptimizing = useCallback((id: string, isOptimizing: boolean) => {
-    setOptimizingUploadIds((prev) => {
-      if (isOptimizing) {
-        return prev.includes(id) ? prev : [...prev, id];
-      }
-      return prev.filter((item) => item !== id);
-    });
-  }, []);
-
-  const activeUploads = useMemo(
-    () => uploads.filter((upload) => upload.file),
-    [uploads],
-  );
   const hasActiveFiles = activeUploads.length > 0;
-  const isOptimizingAny = optimizingUploadIds.length > 0;
+  const isPromptTooLong = prompt.length > MAX_PROMPT_LENGTH;
   const canSubmit =
-    prompt.trim().length > 0 && hasActiveFiles && !isSubmitting && !isOptimizingAny;
+    prompt.trim().length > 0 &&
+    !isPromptTooLong &&
+    hasActiveFiles &&
+    !isSubmitting &&
+    !isOptimizingAny;
 
   const resetEditor = useCallback(() => {
-    uploads.forEach((upload) => {
-      if (upload.previewUrl) {
-        URL.revokeObjectURL(upload.previewUrl);
-      }
-    });
-    setUploads([createUploadSlot()]);
+    resetUploads();
     setPrompt("");
     setResultImage(null);
     setErrorMessage(null);
-    setOptimizingUploadIds([]);
-  }, [uploads]);
+  }, [resetUploads]);
 
-  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>, id: string) => {
-    const file = event.target.files?.[0];
-    const currentSlot = uploads.find((upload) => upload.id === id);
-
-    if (!currentSlot) {
-      return;
-    }
-
-    if (!file) {
-      if (currentSlot.previewUrl) {
-        URL.revokeObjectURL(currentSlot.previewUrl);
-      }
-      setUploads((prev) =>
-        prev.map((upload) =>
-          upload.id === id ? { ...upload, file: null, previewUrl: null } : upload,
-        ),
-      );
-      return;
-    }
-
-    setErrorMessage(null);
-    setResultImage(null);
-    setUploadOptimizing(id, true);
-
-    try {
-      const optimized = await resizeImage(file);
-      if (currentSlot.previewUrl) {
-        URL.revokeObjectURL(currentSlot.previewUrl);
-      }
-      setUploads((prev) =>
-        prev.map((upload) =>
-          upload.id === id
-            ? {
-                ...upload,
-                file: optimized,
-                previewUrl: URL.createObjectURL(optimized),
-              }
-            : upload,
-        ),
-      );
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "画像の準備に失敗しました。別の画像でもう一度お試しください。",
-      );
-    } finally {
-      setUploadOptimizing(id, false);
-    }
-  };
-
-  const addUploadSlot = () => {
-    if (uploads.length < MAX_FREESTYLE_UPLOADS) {
-      setUploads((prev) => [...prev, createUploadSlot()]);
-    }
-  };
-
-  const removeUploadSlot = (id: string) => {
-    if (uploads.length <= 1) {
-      return;
-    }
-
-    const slotToRemove = uploads.find((upload) => upload.id === id);
-    if (slotToRemove?.previewUrl) {
-      URL.revokeObjectURL(slotToRemove.previewUrl);
-    }
-
-    setUploads((prev) => prev.filter((upload) => upload.id !== id));
-    setOptimizingUploadIds((prev) => prev.filter((item) => item !== id));
-    setResultImage(null);
-    setErrorMessage(null);
-  };
+  const handleRemoveUploadSlot = useCallback(
+    (id: string) => {
+      if (uploads.length <= 1) return;
+      removeUploadSlot(id);
+      setResultImage(null);
+      setErrorMessage(null);
+    },
+    [uploads.length, removeUploadSlot],
+  );
 
   const submitEdit = useCallback(async () => {
     if (!prompt.trim()) {
@@ -198,6 +110,10 @@ export function FreestyleEditor() {
     setErrorMessage(null);
     setResultImage(null);
 
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     try {
       const formData = new FormData();
       formData.append("prompt", prompt.trim());
@@ -210,6 +126,7 @@ export function FreestyleEditor() {
       const res = await fetch("/api/freestyle-edit", {
         method: "POST",
         body: formData,
+        signal: controller.signal,
       });
       const data: unknown = await res.json();
 
@@ -239,6 +156,7 @@ export function FreestyleEditor() {
 
       setResultImage(`data:${mimeType};base64,${data.imageBase64}`);
     } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") return;
       setErrorMessage(
         error instanceof Error
           ? error.message
@@ -325,13 +243,13 @@ export function FreestyleEditor() {
                 <FileInput
                   subLabel={`参考画像 ${index + 1}`}
                   previewUrl={slot.previewUrl}
-                  isOptimizing={optimizingUploadIds.includes(slot.id)}
+                  isOptimizing={optimizingIds.includes(slot.id)}
                   onChange={(event) => handleFileChange(event, slot.id)}
                 />
                 {uploads.length > 1 && (
                   <button
                     type="button"
-                    onClick={() => removeUploadSlot(slot.id)}
+                    onClick={() => handleRemoveUploadSlot(slot.id)}
                     aria-label={`参考画像 ${index + 1} を削除`}
                     className="absolute top-8 right-2 rounded-full bg-red-500/90 p-1.5 text-white shadow-md transition-colors hover:bg-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
                   >
@@ -362,11 +280,15 @@ export function FreestyleEditor() {
             name="freestylePrompt"
             autoComplete="off"
             spellCheck={false}
+            maxLength={MAX_PROMPT_LENGTH}
             className="w-full h-28 rounded-xl bg-white border border-stone-200 p-4 text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-shadow"
             placeholder="例: 子どもたちが描いたドラゴンのスケッチをもとに、水彩画のようなやさしい雰囲気で仕上げたい…"
             value={prompt}
             onChange={(event) => setPrompt(event.target.value)}
           />
+          <p className={`mt-1 text-xs text-right ${isPromptTooLong ? "text-red-500" : "text-stone-400"}`}>
+            {prompt.length} / {MAX_PROMPT_LENGTH}
+          </p>
         </Section>
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_200px]">
           <Button

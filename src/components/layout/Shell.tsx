@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { Palette, UserCircle, Wand2 } from "lucide-react";
 import { LogOut } from "lucide-react";
 import * as React from "react";
-import type { NavMode } from "./Dock";
+import type { NavMode } from "@/types/nav";
 
 const HEADER_NAV_ITEMS = [
   { id: "simple", label: "Editor", icon: Wand2 },

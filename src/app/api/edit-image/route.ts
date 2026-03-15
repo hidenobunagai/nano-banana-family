@@ -3,11 +3,13 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
 import { authOptions } from "@/auth";
+import { MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
 import {
   MAX_FILE_SIZE_BYTES,
   MAX_FILE_SIZE_MB,
   resolveMimeType,
 } from "@/utils/server/imageValidation";
+import { checkRateLimit } from "@/utils/server/rateLimit";
 
 export const runtime = "nodejs";
 
@@ -18,6 +20,17 @@ export async function POST(request: Request) {
 
   if (!session) {
     return NextResponse.json({ error: "認証が必要です。" }, { status: 401 });
+  }
+
+  const rateLimit = checkRateLimit(session.user?.email ?? "anonymous");
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: `リクエストが多すぎます。${rateLimit.retryAfter ?? 60}秒後にもう一度お試しください。` },
+      {
+        status: 429,
+        headers: { "Retry-After": String(rateLimit.retryAfter ?? 60) },
+      },
+    );
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
@@ -41,6 +54,13 @@ export async function POST(request: Request) {
 
   if (typeof prompt !== "string" || prompt.trim().length === 0) {
     return NextResponse.json({ error: "プロンプトを選択してください。" }, { status: 400 });
+  }
+
+  if (prompt.length > MAX_PROMPT_LENGTH) {
+    return NextResponse.json(
+      { error: `プロンプトは${MAX_PROMPT_LENGTH}文字以内で入力してください。` },
+      { status: 400 },
+    );
   }
 
   if (!(file instanceof File)) {
