@@ -1,44 +1,45 @@
 import { GoogleGenAI, Part } from "@google/genai";
-import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
-import { authOptions } from "@/auth";
 import { MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
 import {
   MAX_FILE_SIZE_BYTES,
   MAX_FILE_SIZE_MB,
   resolveMimeType,
 } from "@/utils/server/imageValidation";
+import {
+  authenticateRequest,
+  checkUserRateLimit,
+  validateApiKey,
+  validateImageFile,
+  handleApiError,
+} from "@/utils/server/api-helpers";
 import { logger } from "@/utils/server/logger";
-import { checkRateLimit } from "@/utils/server/rateLimit";
 
 export const runtime = "nodejs";
 
 const DEFAULT_MODEL = process.env.GEMINI_IMAGE_MODEL ?? "gemini-3.1-flash-image-preview";
 
 export async function POST(request: Request) {
-  const session = await getServerSession(authOptions);
+  // Authentication
+  const authResult = await authenticateRequest();
+  if ("response" in authResult) {
+    return authResult.response;
+  }
+  const { session } = authResult;
 
-  if (!session) {
-    return NextResponse.json({ error: "認証が必要です。" }, { status: 401 });
+  // Rate limiting
+  const rateLimitResult = checkUserRateLimit(session.user?.email ?? "anonymous");
+  if ("response" in rateLimitResult) {
+    return rateLimitResult.response;
   }
 
-  const rateLimit = checkRateLimit(session.user?.email ?? "anonymous");
-  if (!rateLimit.allowed) {
-    return NextResponse.json(
-      { error: `リクエストが多すぎます。${rateLimit.retryAfter ?? 60}秒後にもう一度お試しください。` },
-      {
-        status: 429,
-        headers: { "Retry-After": String(rateLimit.retryAfter ?? 60) },
-      },
-    );
+  // API key validation
+  const apiKeyResult = validateApiKey();
+  if ("response" in apiKeyResult) {
+    return apiKeyResult.response;
   }
-
-  const apiKey = process.env.GEMINI_API_KEY;
-
-  if (!apiKey) {
-    return NextResponse.json({ error: "Gemini API キーが設定されていません。" }, { status: 500 });
-  }
+  const apiKey = apiKeyResult.key;
 
   const formData = await request.formData();
   const prompt = formData.get("prompt");
@@ -68,55 +69,38 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "画像ファイルが添付されていません。" }, { status: 400 });
   }
 
-  if (file.size === 0) {
-    return NextResponse.json({ error: "空の画像ファイルは処理できません。" }, { status: 400 });
-  }
-
-  if (file.size > MAX_FILE_SIZE_BYTES) {
+  // Validate primary image
+  const primaryValidation = validateImageFile(
+    file,
+    resolveMimeType,
+    MAX_FILE_SIZE_BYTES,
+    MAX_FILE_SIZE_MB
+  );
+  if (!primaryValidation.valid) {
     return NextResponse.json(
-      {
-        error: `画像サイズが大きすぎます。${MAX_FILE_SIZE_MB}MB 以下の画像をご利用ください。`,
-      },
-      { status: 413 },
+      { error: primaryValidation.error },
+      { status: primaryValidation.status }
     );
   }
+  const resolvedMimeType = resolveMimeType(file)!;
 
-  if (secondaryFile && secondaryFile.size === 0) {
-    return NextResponse.json(
-      { error: "2枚目の画像ファイルが空でした。別のファイルをお試しください。" },
-      { status: 400 },
+  // Validate secondary image if present
+  let secondaryMimeType: string | null = null;
+  if (secondaryFile) {
+    const secondaryValidation = validateImageFile(
+      secondaryFile,
+      resolveMimeType,
+      MAX_FILE_SIZE_BYTES,
+      MAX_FILE_SIZE_MB,
+      "2枚目の画像"
     );
-  }
-
-  if (secondaryFile && secondaryFile.size > MAX_FILE_SIZE_BYTES) {
-    return NextResponse.json(
-      {
-        error: `2枚目の画像サイズが大きすぎます。${MAX_FILE_SIZE_MB}MB 以下の画像をご利用ください。`,
-      },
-      { status: 413 },
-    );
-  }
-
-  const resolvedMimeType = resolveMimeType(file);
-
-  const secondaryMimeType = secondaryFile ? resolveMimeType(secondaryFile) : null;
-
-  if (!resolvedMimeType) {
-    return NextResponse.json(
-      {
-        error: "サポートされていない画像形式です。JPG、PNG、WebP形式の画像をご利用ください。",
-      },
-      { status: 415 },
-    );
-  }
-
-  if (secondaryFile && !secondaryMimeType) {
-    return NextResponse.json(
-      {
-        error: "2枚目の画像形式がサポート対象外です。JPG、PNG、WebP形式の画像をご利用ください。",
-      },
-      { status: 415 },
-    );
+    if (!secondaryValidation.valid) {
+      return NextResponse.json(
+        { error: secondaryValidation.error },
+        { status: secondaryValidation.status }
+      );
+    }
+    secondaryMimeType = resolveMimeType(secondaryFile)!;
   }
   const primaryBuffer = Buffer.from(await file.arrayBuffer());
   const secondaryBuffer = secondaryFile ? Buffer.from(await secondaryFile.arrayBuffer()) : null;
@@ -178,9 +162,12 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ imageBase64: base64Data, mimeType: resultMime });
   } catch (error) {
-    logger.error("Gemini edit error", error, { route: "edit-image", userId: session.user?.email ?? "unknown" });
-    const errorMessage =
-      error instanceof Error ? error.message : "画像編集中に予期しないエラーが発生しました。";
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    return handleApiError(
+      error,
+      logger,
+      "edit-image",
+      session.user?.email ?? "unknown",
+      "画像編集中に予期しないエラーが発生しました。"
+    );
   }
 }

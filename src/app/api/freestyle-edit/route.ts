@@ -1,16 +1,20 @@
 import { GoogleGenAI, Part } from "@google/genai";
-import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
-import { authOptions } from "@/auth";
 import { MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
 import {
   MAX_FILE_SIZE_BYTES,
   MAX_FILE_SIZE_MB,
   resolveMimeType,
 } from "@/utils/server/imageValidation";
+import {
+  authenticateRequest,
+  checkUserRateLimit,
+  validateApiKey,
+  validateImageFile,
+  handleApiError,
+} from "@/utils/server/api-helpers";
 import { logger } from "@/utils/server/logger";
-import { checkRateLimit } from "@/utils/server/rateLimit";
 
 export const runtime = "nodejs";
 
@@ -18,28 +22,25 @@ const DEFAULT_MODEL = process.env.GEMINI_IMAGE_MODEL ?? "gemini-3.1-flash-image-
 const MAX_IMAGE_COUNT = 5;
 
 export async function POST(request: Request) {
-  const session = await getServerSession(authOptions);
+  // Authentication
+  const authResult = await authenticateRequest();
+  if ("response" in authResult) {
+    return authResult.response;
+  }
+  const { session } = authResult;
 
-  if (!session) {
-    return NextResponse.json({ error: "認証が必要です。" }, { status: 401 });
+  // Rate limiting
+  const rateLimitResult = checkUserRateLimit(session.user?.email ?? "anonymous");
+  if ("response" in rateLimitResult) {
+    return rateLimitResult.response;
   }
 
-  const rateLimit = checkRateLimit(session.user?.email ?? "anonymous");
-  if (!rateLimit.allowed) {
-    return NextResponse.json(
-      { error: `リクエストが多すぎます。${rateLimit.retryAfter ?? 60}秒後にもう一度お試しください。` },
-      {
-        status: 429,
-        headers: { "Retry-After": String(rateLimit.retryAfter ?? 60) },
-      },
-    );
+  // API key validation
+  const apiKeyResult = validateApiKey();
+  if ("response" in apiKeyResult) {
+    return apiKeyResult.response;
   }
-
-  const apiKey = process.env.GEMINI_API_KEY;
-
-  if (!apiKey) {
-    return NextResponse.json({ error: "Gemini API キーが設定されていません。" }, { status: 500 });
-  }
+  const apiKey = apiKeyResult.key;
 
   const formData = await request.formData();
   const prompt = formData.get("prompt");
@@ -83,40 +84,29 @@ export async function POST(request: Request) {
 
     for (let index = 0; index < files.length; index += 1) {
       const file = files[index];
+      const label = `画像${index + 1}`;
 
-      if (file.size === 0) {
+      const validation = validateImageFile(
+        file,
+        resolveMimeType,
+        MAX_FILE_SIZE_BYTES,
+        MAX_FILE_SIZE_MB,
+        label
+      );
+      if (!validation.valid) {
         return NextResponse.json(
-          { error: `画像${index + 1}が空のファイルでした。別の画像をお試しください。` },
-          { status: 400 },
-        );
-      }
-
-      if (file.size > MAX_FILE_SIZE_BYTES) {
-        return NextResponse.json(
-          {
-            error: `画像${index + 1}のサイズが大きすぎます。${MAX_FILE_SIZE_MB}MB 以下の画像をご利用ください。`,
-          },
-          { status: 413 },
-        );
-      }
-
-      const resolvedMimeType = resolveMimeType(file);
-
-      if (!resolvedMimeType) {
-        return NextResponse.json(
-          {
-            error: `画像${index + 1}の形式がサポート対象外です。JPG、PNG、WebP形式の画像をご利用ください。`,
-          },
-          { status: 415 },
+          { error: validation.error },
+          { status: validation.status }
         );
       }
 
       const buffer = Buffer.from(await file.arrayBuffer());
+      const mimeType = resolveMimeType(file)!;
 
       parts.push({
         inlineData: {
           data: buffer.toString("base64"),
-          mimeType: resolvedMimeType,
+          mimeType,
         },
       });
     }
@@ -154,9 +144,12 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ imageBase64: base64Data, mimeType: resultMime });
   } catch (error) {
-    logger.error("Gemini freestyle edit error", error, { route: "freestyle-edit", userId: session.user?.email ?? "unknown" });
-    const errorMessage =
-      error instanceof Error ? error.message : "画像生成中に予期しないエラーが発生しました。";
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    return handleApiError(
+      error,
+      logger,
+      "freestyle-edit",
+      session.user?.email ?? "unknown",
+      "画像生成中に予期しないエラーが発生しました。"
+    );
   }
 }
