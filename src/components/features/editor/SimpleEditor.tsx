@@ -10,18 +10,16 @@ import {
   PROGRESS_STEPS,
   useProgressSimulation,
 } from "@/components/useProgressSimulation";
+import { useUploadSlots } from "@/hooks/useUploadSlots";
 import { PROMPT_PRESETS, type PromptOption } from "@/promptPresets";
-import { resizeImage } from "@/utils/imageOptimization";
 import { getRequestErrorMessage } from "@/utils/requestErrorMessage";
 import { Download, Loader2, RefreshCw, RotateCcw } from "lucide-react";
 import Image from "next/image";
 import {
-  type ChangeEvent,
   type FormEvent,
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 
@@ -31,18 +29,32 @@ export function SimpleEditor() {
   const [selectedPromptId, setSelectedPromptId] = useState<string>(
     PROMPT_PRESETS[0]?.id ?? "",
   );
-  const [primaryFile, setPrimaryFile] = useState<File | null>(null);
-  const [secondaryFile, setSecondaryFile] = useState<File | null>(null);
-  const [primaryPreviewUrl, setPrimaryPreviewUrl] = useState<string | null>(null);
-  const [secondaryPreviewUrl, setSecondaryPreviewUrl] = useState<string | null>(null);
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isOptimizingPrimary, setIsOptimizingPrimary] = useState(false);
-  const [isOptimizingSecondary, setIsOptimizingSecondary] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [downloadFileName, setDownloadFileName] = useState<string | null>(null);
-  const previewUrlsRef = useRef<string[]>([]);
-  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const requiresDualUpload = selectedPromptId === MARTIAL_ARCADE_PROMPT_ID;
+  const maxSlots = requiresDualUpload ? 2 : 1;
+
+  const {
+    uploads,
+    activeUploads,
+    isOptimizingAny,
+    optimizingIds,
+    addUploadSlot,
+    removeUploadSlot,
+    handleFileChange,
+    resetUploads,
+  } = useUploadSlots({
+    maxSlots,
+    initialSlots: 1,
+    onBeforeChange: () => {
+      setErrorMessage(null);
+      setResultImage(null);
+    },
+    onFileError: setErrorMessage,
+  });
 
   const handleProgressComplete = useCallback(() => {
     setIsSubmitting(false);
@@ -53,21 +65,6 @@ export function SimpleEditor() {
       isActive: isSubmitting,
       onComplete: handleProgressComplete,
     });
-
-  useEffect(() => {
-    previewUrlsRef.current = [primaryPreviewUrl, secondaryPreviewUrl].filter(
-      (value): value is string => Boolean(value),
-    );
-  }, [primaryPreviewUrl, secondaryPreviewUrl]);
-
-  useEffect(() => {
-    return () => {
-      abortControllerRef.current?.abort();
-      previewUrlsRef.current.forEach((previewUrl) => {
-        URL.revokeObjectURL(previewUrl);
-      });
-    };
-  }, []);
 
   useEffect(() => {
     setDownloadFileName(resultImage ? `hide-nb-edit-${Date.now()}.png` : null);
@@ -91,90 +88,18 @@ export function SimpleEditor() {
     return groups;
   }, []);
 
-  const requiresDualUpload = selectedPromptId === MARTIAL_ARCADE_PROMPT_ID;
-
-  useEffect(() => {
-    if (!requiresDualUpload) {
-      setSecondaryFile(null);
-      setSecondaryPreviewUrl((prev) => {
-        if (prev) {
-          URL.revokeObjectURL(prev);
-        }
-        return null;
-      });
-      setIsOptimizingSecondary(false);
-    }
-  }, [requiresDualUpload]);
-
-  const isOptimizingAny = isOptimizingPrimary || isOptimizingSecondary;
-  const hasRequiredFiles =
-    Boolean(primaryFile) && (!requiresDualUpload || Boolean(secondaryFile));
+  const hasRequiredFiles = requiresDualUpload
+    ? activeUploads.length >= 2
+    : activeUploads.length >= 1;
   const canSubmit = hasRequiredFiles && !isSubmitting && !isOptimizingAny;
 
   const resetEditor = useCallback(() => {
-    if (primaryPreviewUrl) {
-      URL.revokeObjectURL(primaryPreviewUrl);
-    }
-    if (secondaryPreviewUrl) {
-      URL.revokeObjectURL(secondaryPreviewUrl);
-    }
-
-    setPrimaryFile(null);
-    setSecondaryFile(null);
-    setPrimaryPreviewUrl(null);
-    setSecondaryPreviewUrl(null);
+    resetUploads();
     setResultImage(null);
     setErrorMessage(null);
     setDownloadFileName(null);
-    setIsOptimizingPrimary(false);
-    setIsOptimizingSecondary(false);
-  }, [primaryPreviewUrl, secondaryPreviewUrl]);
+  }, [resetUploads]);
 
-  const handleFileChange = async (
-    event: ChangeEvent<HTMLInputElement>,
-    slot: "primary" | "secondary",
-  ) => {
-    const file = event.target.files?.[0];
-    const currentPreview = slot === "primary" ? primaryPreviewUrl : secondaryPreviewUrl;
-    const setFile = slot === "primary" ? setPrimaryFile : setSecondaryFile;
-    const setPreview =
-      slot === "primary" ? setPrimaryPreviewUrl : setSecondaryPreviewUrl;
-    const setOptimizing =
-      slot === "primary" ? setIsOptimizingPrimary : setIsOptimizingSecondary;
-
-    if (!file) {
-      setFile(null);
-      if (currentPreview) {
-        URL.revokeObjectURL(currentPreview);
-      }
-      setPreview(null);
-      return;
-    }
-
-    if (currentPreview) {
-      URL.revokeObjectURL(currentPreview);
-    }
-
-    setErrorMessage(null);
-    setResultImage(null);
-    setOptimizing(true);
-
-    try {
-      const optimized = await resizeImage(file);
-      setFile(optimized);
-      setPreview(URL.createObjectURL(optimized));
-    } catch (error) {
-      setFile(file);
-      setPreview(URL.createObjectURL(file));
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "画像の最適化に失敗しました。別の画像でもう一度お試しください。",
-      );
-    } finally {
-      setOptimizing(false);
-    }
-  };
 
   const submitEdit = useCallback(async () => {
     if (!selectedPrompt) {
@@ -195,24 +120,23 @@ export function SimpleEditor() {
     setErrorMessage(null);
     setResultImage(null);
 
-    abortControllerRef.current?.abort();
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
-
     try {
       const formData = new FormData();
       formData.append("prompt", selectedPrompt);
-      if (primaryFile) {
-        formData.append("image", primaryFile);
-      }
-      if (requiresDualUpload && secondaryFile) {
-        formData.append("image_secondary", secondaryFile);
-      }
+      activeUploads.forEach((upload) => {
+        if (upload.file) {
+          formData.append(
+            requiresDualUpload && activeUploads.indexOf(upload) === 1
+              ? "image_secondary"
+              : "image",
+            upload.file
+          );
+        }
+      });
 
       const res = await fetch("/api/edit-image", {
         method: "POST",
         body: formData,
-        signal: controller.signal,
       });
       const data: unknown = await res.json();
 
@@ -252,11 +176,10 @@ export function SimpleEditor() {
       completeProgress();
     }
   }, [
+    activeUploads,
     completeProgress,
     hasRequiredFiles,
-    primaryFile,
     requiresDualUpload,
-    secondaryFile,
     selectedPrompt,
   ]);
 
@@ -344,21 +267,47 @@ export function SimpleEditor() {
             </p>
           </div>
           <div className={cn("grid gap-6", requiresDualUpload && "md:grid-cols-2")}>
-            <FileInput
-              subLabel={requiresDualUpload ? "プレイヤー1 (左)" : undefined}
-              previewUrl={primaryPreviewUrl}
-              isOptimizing={isOptimizingPrimary}
-              onChange={(event) => handleFileChange(event, "primary")}
-            />
-            {requiresDualUpload && (
+          {uploads.map((slot, index) => (
+            <div key={slot.id} className="relative">
               <FileInput
-                subLabel="プレイヤー2 (右)"
-                previewUrl={secondaryPreviewUrl}
-                isOptimizing={isOptimizingSecondary}
-                onChange={(event) => handleFileChange(event, "secondary")}
+                subLabel={
+                  requiresDualUpload
+                    ? index === 0
+                      ? "プレイヤー1 (左)"
+                      : "プレイヤー2 (右)"
+                    : undefined
+                }
+                previewUrl={slot.previewUrl}
+                isOptimizing={optimizingIds.includes(slot.id)}
+                onChange={(event) => handleFileChange(event, slot.id)}
               />
-            )}
-          </div>
+              {requiresDualUpload && uploads.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeUploadSlot(slot.id)}
+                  aria-label={`画像 ${index + 1} を削除`}
+                  className="absolute top-8 right-2 rounded-full bg-red-500/90 p-1.5 text-white shadow-md transition-colors hover:bg-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          ))}
+          {requiresDualUpload && uploads.length < 2 && (
+            <button
+              type="button"
+              onClick={addUploadSlot}
+              className="h-48 rounded-xl border-2 border-dashed border-stone-200 bg-stone-50 text-stone-500 transition-colors hover:border-amber-500/50 hover:bg-amber-50 hover:text-amber-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+            >
+              <span className="block text-3xl">+</span>
+              <span className="mt-2 block text-sm font-medium">
+                2枚目の画像を追加
+              </span>
+            </button>
+          )}
+        </div>
         </Section>
 
         <Section title="2. プロンプトを選ぶ" delay={0.1}>
