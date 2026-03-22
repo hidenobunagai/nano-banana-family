@@ -85,6 +85,13 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-yellow-300/15 rounded-full blur-[120px]" />
         </div>
 
+        {/* Skip to content link for accessibility */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-amber-500 focus:text-white focus:rounded-lg focus:shadow-lg"
+        >
+          メインコンテンツへスキップ
+        </a>
         <AuthProvider>{children}</AuthProvider>
         <Analytics />
       </body>
