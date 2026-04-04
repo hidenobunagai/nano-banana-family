@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { logger } from "./logger";
 
 /**
  * Zod schemas for API request/response validation
@@ -16,10 +17,7 @@ export const ErrorResponseSchema = z.object({
 });
 
 // Union type for API responses
-export const ApiResponseSchema = z.union([
-  ImageGenerationResponseSchema,
-  ErrorResponseSchema,
-]);
+export const ApiResponseSchema = z.union([ImageGenerationResponseSchema, ErrorResponseSchema]);
 
 // Edit image form data schema
 export const EditImageFormSchema = z.object({
@@ -43,9 +41,7 @@ export const IconGenerateFormSchema = z.object({
   url: z.string().url().optional().or(z.literal("")),
   style: z.string().optional(),
   customPrompt: z.string().max(2000).optional(),
-  images: z
-    .array(z.instanceof(File))
-    .max(3, "画像は最大3枚までアップロードできます"),
+  images: z.array(z.instanceof(File)).max(3, "画像は最大3枚までアップロードできます"),
 });
 
 /**
@@ -53,7 +49,7 @@ export const IconGenerateFormSchema = z.object({
  */
 export function validateFormData<T>(
   schema: z.ZodSchema<T>,
-  data: unknown
+  data: unknown,
 ): { success: true; data: T } | { success: false; error: string } {
   const result = schema.safeParse(data);
 
@@ -61,9 +57,7 @@ export function validateFormData<T>(
     return { success: true, data: result.data };
   }
 
-  const errorMessage = result.error.issues
-    .map((issue: z.ZodIssue) => issue.message)
-    .join(", ");
+  const errorMessage = result.error.issues.map((issue: z.ZodIssue) => issue.message).join(", ");
   return { success: false, error: errorMessage };
 }
 
@@ -81,16 +75,12 @@ export function validateEnv(): z.infer<typeof EnvSchema> {
   const result = EnvSchema.safeParse(process.env);
 
   if (!result.success) {
-    console.error("❌ Invalid environment variables:");
-    const fieldErrors: Record<string, string[]> = {};
-    for (const issue of result.error.issues) {
-      const path = issue.path.join(".");
-      if (!fieldErrors[path]) {
-        fieldErrors[path] = [];
-      }
-      fieldErrors[path].push(issue.message);
-    }
-    console.error(fieldErrors);
+    logger.error("Invalid environment variables", {
+      errors: result.error.issues.map((issue) => ({
+        field: issue.path.join("."),
+        message: issue.message,
+      })),
+    });
     throw new Error("Invalid environment variables");
   }
 

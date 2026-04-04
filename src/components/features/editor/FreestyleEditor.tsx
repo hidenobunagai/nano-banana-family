@@ -1,26 +1,17 @@
 "use client";
 
 import { EditorLayout } from "@/components/layout/EditorLayout";
-import {
-  ProgressDisplay,
-  type ProgressStep,
-} from "@/components/ProgressDisplay";
+import { ProgressDisplay, type ProgressStep } from "@/components/ProgressDisplay";
 import { Button } from "@/components/ui/Button";
 import { FileInput } from "@/components/ui/FileInput";
 import { Section } from "@/components/ui/Section";
-import { useProgressSimulation } from "@/components/useProgressSimulation";
+import { useProgressSimulation } from "@/hooks/useProgressSimulation";
 import { useUploadSlots } from "@/hooks/useUploadSlots";
 import { MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
 import { getRequestErrorMessage } from "@/utils/requestErrorMessage";
 import { Download, Loader2, RefreshCw, RotateCcw, X } from "lucide-react";
 import Image from "next/image";
-import {
-  type FormEvent,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 
 const FREESTYLE_PROGRESS_STEPS: ProgressStep[] = [
   { id: "gather", label: "参考画像を読み込み中...", estimatedDuration: 1600 },
@@ -50,24 +41,36 @@ export function FreestyleEditor() {
     };
   }, []);
 
-  const { uploads, activeUploads, isOptimizingAny, optimizingIds, addUploadSlot, removeUploadSlot, handleFileChange, resetUploads } =
-    useUploadSlots({
-      maxSlots: MAX_FREESTYLE_UPLOADS,
-      initialSlots: 1,
-      onBeforeChange: () => {
-        setErrorMessage(null);
-        setResultImage(null);
-      },
-      onFileError: setErrorMessage,
-    });
+  const {
+    uploads,
+    activeUploads,
+    isOptimizingAny,
+    optimizingIds,
+    addUploadSlot,
+    removeUploadSlot,
+    handleFileChange,
+    resetUploads,
+  } = useUploadSlots({
+    maxSlots: MAX_FREESTYLE_UPLOADS,
+    initialSlots: 1,
+    onBeforeChange: () => {
+      setErrorMessage(null);
+      setResultImage(null);
+    },
+    onFileError: setErrorMessage,
+  });
 
   const handleProgressComplete = useCallback(() => setIsSubmitting(false), []);
-  const { progress, currentStep, timeRemaining, complete: completeProgress } =
-    useProgressSimulation({
-      isActive: isSubmitting,
-      onComplete: handleProgressComplete,
-      steps: FREESTYLE_PROGRESS_STEPS,
-    });
+  const {
+    progress,
+    currentStep,
+    timeRemaining,
+    complete: completeProgress,
+  } = useProgressSimulation({
+    isActive: isSubmitting,
+    onComplete: handleProgressComplete,
+    steps: FREESTYLE_PROGRESS_STEPS,
+  });
 
   const hasActiveFiles = activeUploads.length > 0;
   const isPromptTooLong = prompt.length > MAX_PROMPT_LENGTH;
@@ -150,9 +153,7 @@ export function FreestyleEditor() {
       }
 
       const mimeType =
-        "mimeType" in data && typeof data.mimeType === "string"
-          ? data.mimeType
-          : "image/png";
+        "mimeType" in data && typeof data.mimeType === "string" ? data.mimeType : "image/png";
 
       setResultImage(`data:${mimeType};base64,${data.imageBase64}`);
     } catch (error) {
@@ -274,7 +275,8 @@ export function FreestyleEditor() {
         </Section>
         <Section title="2. どんな仕上がりにしたいか自由に記入">
           <div className="mb-4 rounded-2xl border border-stone-200 bg-white/80 px-4 py-3 text-sm text-stone-500">
-            例: 「やわらかい水彩風にしたい」「兄弟が冒険している映画ポスターのように」など、雰囲気・色・構図を書くと結果が安定します。
+            例:
+            「やわらかい水彩風にしたい」「兄弟が冒険している映画ポスターのように」など、雰囲気・色・構図を書くと結果が安定します。
           </div>
           <textarea
             name="freestylePrompt"
@@ -286,7 +288,9 @@ export function FreestyleEditor() {
             value={prompt}
             onChange={(event) => setPrompt(event.target.value)}
           />
-          <p className={`mt-1 text-xs text-right ${isPromptTooLong ? "text-red-500" : "text-stone-400"}`}>
+          <p
+            className={`mt-1 text-xs text-right ${isPromptTooLong ? "text-red-500" : "text-stone-400"}`}
+          >
             {prompt.length} / {MAX_PROMPT_LENGTH}
           </p>
         </Section>
@@ -310,13 +314,21 @@ export function FreestyleEditor() {
           </Button>
         </div>
         {errorMessage && (
-          <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm" aria-live="polite">
+          <div
+            className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm"
+            aria-live="polite"
+          >
             <p className="font-medium text-red-500">{errorMessage}</p>
             <p className="mt-1 text-red-500/80">
               指示文を短くしたり、参考画像を減らしたりすると安定することがあります。
             </p>
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              <Button type="button" size="sm" onClick={() => void submitEdit()} disabled={!canSubmit}>
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => void submitEdit()}
+                disabled={!canSubmit}
+              >
                 同じ内容で再試行
               </Button>
               <Button type="button" size="sm" variant="outline" onClick={resetEditor}>

@@ -21,7 +21,7 @@ Family-only image editing studio built with Next.js and Google Gemini. It authen
 ## Architecture Overview
 
 - `src/app` contains App Router routes, layouts, and page UI.
-- `src/app/api` holds route handlers for image editing, prompt generation, and flipbook creation.
+- `src/app/api` holds route handlers for image editing, icon generation, and authentication.
 - `src/components/layout` houses layout primitives, `src/components/features` holds feature-level UI, and `src/components/ui` keeps reusable controls.
 - `src/utils` includes shared helpers, with `src/utils/server` reserved for server-only logic.
 - `src/auth.ts` configures NextAuth, and `src/promptPresets.ts` defines the default prompt library.
@@ -30,8 +30,7 @@ Family-only image editing studio built with Next.js and Google Gemini. It authen
 
 - `POST /api/edit-image` edits an uploaded image with a preset prompt (supports an optional second image).
 - `POST /api/freestyle-edit` edits up to five uploaded images based on a freeform prompt.
-- `POST /api/prompt-generate` generates a single image from a text prompt.
-- `POST /api/create-flipbook` creates a four-frame flipbook from a reference image and story idea.
+- `POST /api/icon-generate` generates contact icons from uploaded images and metadata.
 - `GET|POST /api/auth/*` handles NextAuth Google sign-in.
 
 ## Getting Started
@@ -60,7 +59,7 @@ The app expects:
 Set up local secrets with `dotenvx`:
 
 ```bash
-cp .env.local.example .env.local
+cp .env.example .env.local
 ```
 
 Fill in the values in `.env.local`, then encrypt it:

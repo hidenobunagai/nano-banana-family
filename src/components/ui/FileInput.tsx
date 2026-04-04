@@ -38,28 +38,11 @@ export function FileInput({
     e.preventDefault();
     setIsDragging(false);
 
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      // Create a synthetic event to reuse existing onChange handler
-      // Note: This is a simplification. Ideally, we refactor the parent to accept File directly.
-      // But for now, let's keep it simple or we might need to change parent logic deeply.
-      // Actually, we can just trigger the input change manually if we want to stick to the event interface,
-      // but React's input file is read-only.
-      // Let's just expose the input ref and try to set files if possible or just trigger a callback if we refactored.
-      // Since we didn't refactor the `onChange` signature in parent, we just guide user to click for now or
-      // we can try to set the input files via DataTransfer if the browser allows (modern ones do).
-
-      if (inputRef.current) {
-        const dataTransfer = new DataTransfer();
-        dataTransfer.items.add(e.dataTransfer.files[0]);
-        inputRef.current.files = dataTransfer.files;
-
-        // Dispatch change event
-        const event = new Event("change", { bubbles: true });
-        inputRef.current.dispatchEvent(event);
-
-        // Call the prop manually as a fallback/primary method
-        onChange({ target: inputRef.current } as ChangeEvent<HTMLInputElement>);
-      }
+    if (e.dataTransfer.files && e.dataTransfer.files[0] && inputRef.current) {
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(e.dataTransfer.files[0]);
+      inputRef.current.files = dataTransfer.files;
+      onChange({ target: inputRef.current } as ChangeEvent<HTMLInputElement>);
     }
   };
 
@@ -67,12 +50,8 @@ export function FileInput({
     <div className="space-y-3">
       {(label || subLabel) && (
         <div className="flex flex-col">
-          {label && (
-            <span className="font-semibold text-stone-700">{label}</span>
-          )}
-          {subLabel && (
-            <span className="text-sm text-stone-400">{subLabel}</span>
-          )}
+          {label && <span className="font-semibold text-stone-700">{label}</span>}
+          {subLabel && <span className="text-sm text-stone-400">{subLabel}</span>}
         </div>
       )}
 
@@ -90,10 +69,9 @@ export function FileInput({
               "relative flex flex-col items-center justify-center w-full h-48 rounded-2xl border-2 border-dashed transition-all cursor-pointer group overflow-hidden",
               isDragging
                 ? "border-amber-500/80 bg-amber-500/10 scale-[1.02]"
-                : "border-stone-200 hover:border-stone-300 bg-stone-50 hover:bg-stone-100"
+                : "border-stone-200 hover:border-stone-300 bg-stone-100 hover:bg-stone-100",
             )}
           >
-            {/* Animated Background Gradient on Hover */}
             <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/0 via-amber-500/0 to-amber-500/0 group-hover:from-amber-500/5 group-hover:via-amber-500/5 group-hover:to-transparent transition-all duration-500" />
 
             <div className="flex flex-col items-center justify-center pt-5 pb-6 text-stone-400 group-hover:text-amber-600 transition-colors z-10">
@@ -103,7 +81,7 @@ export function FileInput({
                 <Upload
                   className={cn(
                     "w-10 h-10 mb-3 transition-transform duration-300",
-                    isDragging ? "scale-110" : "group-hover:scale-110"
+                    isDragging ? "scale-110" : "group-hover:scale-110",
                   )}
                 />
               )}
@@ -141,19 +119,13 @@ export function FileInput({
               className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
               unoptimized
             />
-            {/* Glass Overlay on Hover */}
             <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
               <label className="cursor-pointer">
                 <div className="px-6 py-3 bg-black/10 backdrop-blur-md rounded-full border border-black/10 text-stone-800 hover:bg-black/15 hover:scale-105 active:scale-95 transition-all font-medium text-sm flex items-center gap-2 shadow-xl">
                   <RefreshCw className="w-4 h-4" />
                   Change Image
                 </div>
-                <input
-                  type="file"
-                  className="hidden"
-                  accept={accept}
-                  onChange={onChange}
-                />
+                <input type="file" className="hidden" accept={accept} onChange={onChange} />
               </label>
             </div>
           </motion.div>

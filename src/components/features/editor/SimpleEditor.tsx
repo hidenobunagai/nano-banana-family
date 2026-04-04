@@ -6,29 +6,18 @@ import { PromptPicker } from "@/components/PromptPicker";
 import { Button, cn } from "@/components/ui/Button";
 import { FileInput } from "@/components/ui/FileInput";
 import { Section } from "@/components/ui/Section";
-import {
-  PROGRESS_STEPS,
-  useProgressSimulation,
-} from "@/components/useProgressSimulation";
+import { PROGRESS_STEPS, useProgressSimulation } from "@/hooks/useProgressSimulation";
 import { useUploadSlots } from "@/hooks/useUploadSlots";
 import { PROMPT_PRESETS, type PromptOption } from "@/promptPresets";
 import { getRequestErrorMessage } from "@/utils/requestErrorMessage";
 import { Download, Loader2, RefreshCw, RotateCcw } from "lucide-react";
 import Image from "next/image";
-import {
-  type FormEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 
 const MARTIAL_ARCADE_PROMPT_ID = "martial-arcade";
 
 export function SimpleEditor() {
-  const [selectedPromptId, setSelectedPromptId] = useState<string>(
-    PROMPT_PRESETS[0]?.id ?? "",
-  );
+  const [selectedPromptId, setSelectedPromptId] = useState<string>(PROMPT_PRESETS[0]?.id ?? "");
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -60,11 +49,15 @@ export function SimpleEditor() {
     setIsSubmitting(false);
   }, []);
 
-  const { progress, currentStep, timeRemaining, complete: completeProgress } =
-    useProgressSimulation({
-      isActive: isSubmitting,
-      onComplete: handleProgressComplete,
-    });
+  const {
+    progress,
+    currentStep,
+    timeRemaining,
+    complete: completeProgress,
+  } = useProgressSimulation({
+    isActive: isSubmitting,
+    onComplete: handleProgressComplete,
+  });
 
   useEffect(() => {
     setDownloadFileName(resultImage ? `hide-nb-edit-${Date.now()}.png` : null);
@@ -100,7 +93,6 @@ export function SimpleEditor() {
     setDownloadFileName(null);
   }, [resetUploads]);
 
-
   const submitEdit = useCallback(async () => {
     if (!selectedPrompt) {
       setErrorMessage("プロンプトを選択してください。");
@@ -126,10 +118,8 @@ export function SimpleEditor() {
       activeUploads.forEach((upload) => {
         if (upload.file) {
           formData.append(
-            requiresDualUpload && activeUploads.indexOf(upload) === 1
-              ? "image_secondary"
-              : "image",
-            upload.file
+            requiresDualUpload && activeUploads.indexOf(upload) === 1 ? "image_secondary" : "image",
+            upload.file,
           );
         }
       });
@@ -160,9 +150,7 @@ export function SimpleEditor() {
       }
 
       const mimeType =
-        "mimeType" in data && typeof data.mimeType === "string"
-          ? data.mimeType
-          : "image/png";
+        "mimeType" in data && typeof data.mimeType === "string" ? data.mimeType : "image/png";
 
       setResultImage(`data:${mimeType};base64,${data.imageBase64}`);
     } catch (error) {
@@ -175,13 +163,7 @@ export function SimpleEditor() {
     } finally {
       completeProgress();
     }
-  }, [
-    activeUploads,
-    completeProgress,
-    hasRequiredFiles,
-    requiresDualUpload,
-    selectedPrompt,
-  ]);
+  }, [activeUploads, completeProgress, hasRequiredFiles, requiresDualUpload, selectedPrompt]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -267,47 +249,50 @@ export function SimpleEditor() {
             </p>
           </div>
           <div className={cn("grid gap-6", requiresDualUpload && "md:grid-cols-2")}>
-          {uploads.map((slot, index) => (
-            <div key={slot.id} className="relative">
-              <FileInput
-                subLabel={
-                  requiresDualUpload
-                    ? index === 0
-                      ? "プレイヤー1 (左)"
-                      : "プレイヤー2 (右)"
-                    : undefined
-                }
-                previewUrl={slot.previewUrl}
-                isOptimizing={optimizingIds.includes(slot.id)}
-                onChange={(event) => handleFileChange(event, slot.id)}
-              />
-              {requiresDualUpload && uploads.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => removeUploadSlot(slot.id)}
-                  aria-label={`画像 ${index + 1} を削除`}
-                  className="absolute top-8 right-2 rounded-full bg-red-500/90 p-1.5 text-white shadow-md transition-colors hover:bg-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              )}
-            </div>
-          ))}
-          {requiresDualUpload && uploads.length < 2 && (
-            <button
-              type="button"
-              onClick={addUploadSlot}
-              className="h-48 rounded-xl border-2 border-dashed border-stone-200 bg-stone-50 text-stone-500 transition-colors hover:border-amber-500/50 hover:bg-amber-50 hover:text-amber-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
-            >
-              <span className="block text-3xl">+</span>
-              <span className="mt-2 block text-sm font-medium">
-                2枚目の画像を追加
-              </span>
-            </button>
-          )}
-        </div>
+            {uploads.map((slot, index) => (
+              <div key={slot.id} className="relative">
+                <FileInput
+                  subLabel={
+                    requiresDualUpload
+                      ? index === 0
+                        ? "プレイヤー1 (左)"
+                        : "プレイヤー2 (右)"
+                      : undefined
+                  }
+                  previewUrl={slot.previewUrl}
+                  isOptimizing={optimizingIds.includes(slot.id)}
+                  onChange={(event) => handleFileChange(event, slot.id)}
+                />
+                {requiresDualUpload && uploads.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeUploadSlot(slot.id)}
+                    aria-label={`画像 ${index + 1} を削除`}
+                    className="absolute top-8 right-2 rounded-full bg-red-500/90 p-1.5 text-white shadow-md transition-colors hover:bg-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            ))}
+            {requiresDualUpload && uploads.length < 2 && (
+              <button
+                type="button"
+                onClick={addUploadSlot}
+                className="h-48 rounded-xl border-2 border-dashed border-stone-200 bg-stone-50 text-stone-500 transition-colors hover:border-amber-500/50 hover:bg-amber-50 hover:text-amber-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+              >
+                <span className="block text-3xl">+</span>
+                <span className="mt-2 block text-sm font-medium">2枚目の画像を追加</span>
+              </button>
+            )}
+          </div>
         </Section>
 
         <Section title="2. プロンプトを選ぶ" delay={0.1}>
@@ -348,13 +333,21 @@ export function SimpleEditor() {
             </Button>
           </div>
           {errorMessage && (
-            <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm animate-in fade-in" aria-live="polite">
+            <div
+              className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm animate-in fade-in"
+              aria-live="polite"
+            >
               <p className="font-medium text-red-500">{errorMessage}</p>
               <p className="mt-1 text-red-500/80">
                 内容を確認して、同じ設定でもう一度試すか、画像を入れ替えてください。
               </p>
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                <Button type="button" size="sm" onClick={() => void submitEdit()} disabled={!canSubmit}>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => void submitEdit()}
+                  disabled={!canSubmit}
+                >
                   同じ設定で再試行
                 </Button>
                 <Button type="button" size="sm" variant="outline" onClick={resetEditor}>

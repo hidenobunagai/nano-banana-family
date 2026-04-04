@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { ProgressStep } from "./ProgressDisplay";
+import { useCallback, useEffect, useRef, useReducer } from "react";
+import { ProgressStep } from "@/components/ProgressDisplay";
 
 export const PROGRESS_STEPS: ProgressStep[] = [
   {
@@ -48,27 +48,45 @@ export interface UseProgressSimulationReturn {
   complete: () => void;
 }
 
+interface ProgressState {
+  progress: number;
+  currentStep: number;
+  timeRemaining: number;
+}
+
+type ProgressAction =
+  | { type: "TICK"; payload: { progress: number; currentStep: number; timeRemaining: number } }
+  | { type: "RESET" };
+
+function progressReducer(state: ProgressState, action: ProgressAction): ProgressState {
+  switch (action.type) {
+    case "TICK":
+      return action.payload;
+    case "RESET":
+      return { progress: 0, currentStep: 0, timeRemaining: 0 };
+    default:
+      return state;
+  }
+}
+
 export function useProgressSimulation({
   isActive,
   onComplete,
   steps = PROGRESS_STEPS,
 }: UseProgressSimulationProps): UseProgressSimulationReturn {
-  const [progress, setProgress] = useState(0);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [timeRemaining, setTimeRemaining] = useState(0);
+  const [state, dispatch] = useReducer(progressReducer, {
+    progress: 0,
+    currentStep: 0,
+    timeRemaining: 0,
+  });
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(0);
   const completionRequestedRef = useRef(false);
 
-  const totalDuration = steps.reduce(
-    (sum, step) => sum + step.estimatedDuration,
-    0
-  );
+  const totalDuration = steps.reduce((sum, step) => sum + step.estimatedDuration, 0);
 
   const reset = useCallback(() => {
-    setProgress(0);
-    setCurrentStep(0);
-    setTimeRemaining(0);
+    dispatch({ type: "RESET" });
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
@@ -83,28 +101,24 @@ export function useProgressSimulation({
         intervalRef.current = null;
       }
       const resetTimeout = setTimeout(() => {
-        reset();
+        dispatch({ type: "RESET" });
       }, 0);
       return () => clearTimeout(resetTimeout);
     }
 
     const finalPhaseStepCount = Math.min(2, steps.length);
     const finalPhaseStartIndex = Math.max(steps.length - finalPhaseStepCount, 0);
-    const finalPhaseDuration = steps.slice(finalPhaseStartIndex).reduce(
-      (sum, step) => sum + step.estimatedDuration,
-      0,
-    );
+    const finalPhaseDuration = steps
+      .slice(finalPhaseStartIndex)
+      .reduce((sum, step) => sum + step.estimatedDuration, 0);
     const minimumElapsed = Math.max(0, totalDuration - finalPhaseDuration);
 
     if (completionRequestedRef.current) {
       startTimeRef.current = Date.now() - minimumElapsed;
-      setTimeRemaining(finalPhaseDuration / 1000);
     } else {
       startTimeRef.current = Date.now();
-      setTimeRemaining(totalDuration / 1000);
     }
 
-    // Update progress every 100ms for smooth animation
     intervalRef.current = setInterval(() => {
       const now = Date.now();
       const elapsed = now - startTimeRef.current;
@@ -114,15 +128,11 @@ export function useProgressSimulation({
       const progressPercent =
         totalDuration > 0 ? Math.min(100, (effectiveElapsed / totalDuration) * 100) : 0;
 
-      setProgress(progressPercent);
-
       const baseRemaining = Math.max(0, minimumElapsed - effectiveElapsed);
       const remainingDuration = completionRequested
         ? Math.max(0, totalDuration - effectiveElapsed)
         : baseRemaining + finalPhaseDuration;
-      setTimeRemaining(remainingDuration / 1000);
 
-      // Calculate current step based on elapsed time
       let cumulativeDuration = 0;
       let stepIndex = steps.length - 1;
 
@@ -142,9 +152,15 @@ export function useProgressSimulation({
         stepIndex = Math.min(i + 1, steps.length - 1);
       }
 
-      setCurrentStep(stepIndex);
+      dispatch({
+        type: "TICK",
+        payload: {
+          progress: progressPercent,
+          currentStep: stepIndex,
+          timeRemaining: remainingDuration / 1000,
+        },
+      });
 
-      // Complete when we reach 100%
       if (completionRequested && progressPercent >= 100) {
         if (intervalRef.current) {
           clearInterval(intervalRef.current);
@@ -159,7 +175,7 @@ export function useProgressSimulation({
         clearInterval(intervalRef.current);
       }
     };
-  }, [isActive, totalDuration, onComplete, reset, steps]);
+  }, [isActive, totalDuration, onComplete, steps]);
 
   const complete = useCallback(() => {
     const finalPhaseStepCount = Math.min(2, steps.length);
@@ -169,10 +185,9 @@ export function useProgressSimulation({
     }
 
     const finalPhaseStartIndex = Math.max(steps.length - finalPhaseStepCount, 0);
-    const finalPhaseDuration = steps.slice(finalPhaseStartIndex).reduce(
-      (sum, step) => sum + step.estimatedDuration,
-      0,
-    );
+    const finalPhaseDuration = steps
+      .slice(finalPhaseStartIndex)
+      .reduce((sum, step) => sum + step.estimatedDuration, 0);
 
     const minimumElapsed = Math.max(0, totalDuration - finalPhaseDuration);
     const now = Date.now();
@@ -183,9 +198,14 @@ export function useProgressSimulation({
     const progressPercent =
       totalDuration > 0 ? Math.min(99, (minimumElapsed / totalDuration) * 100) : 100;
 
-    setProgress(progressPercent);
-    setCurrentStep(finalPhaseStartIndex);
-    setTimeRemaining(finalPhaseDuration / 1000);
+    dispatch({
+      type: "TICK",
+      payload: {
+        progress: progressPercent,
+        currentStep: finalPhaseStartIndex,
+        timeRemaining: finalPhaseDuration / 1000,
+      },
+    });
 
     if (finalPhaseDuration === 0) {
       onComplete?.();
@@ -193,9 +213,9 @@ export function useProgressSimulation({
   }, [onComplete, steps, totalDuration]);
 
   return {
-    progress,
-    currentStep,
-    timeRemaining,
+    progress: state.progress,
+    currentStep: state.currentStep,
+    timeRemaining: state.timeRemaining,
     reset,
     complete,
   };

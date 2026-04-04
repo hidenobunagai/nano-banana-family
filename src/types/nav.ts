@@ -1,1 +1,1 @@
-export type NavMode = "simple" | "flipbook" | "freestyle" | "prompt" | "icon";
+export type NavMode = "simple" | "freestyle" | "icon";

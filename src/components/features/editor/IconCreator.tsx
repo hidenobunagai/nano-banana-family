@@ -1,35 +1,17 @@
 "use client";
 
 import { EditorLayout } from "@/components/layout/EditorLayout";
-import {
-  ProgressDisplay,
-  type ProgressStep,
-} from "@/components/ProgressDisplay";
+import { ProgressDisplay, type ProgressStep } from "@/components/ProgressDisplay";
 import { Button, cn } from "@/components/ui/Button";
 import { FileInput } from "@/components/ui/FileInput";
 import { Section } from "@/components/ui/Section";
-import { useProgressSimulation } from "@/components/useProgressSimulation";
+import { useProgressSimulation } from "@/hooks/useProgressSimulation";
 import { useUploadSlots } from "@/hooks/useUploadSlots";
 import { MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
 import { getRequestErrorMessage } from "@/utils/requestErrorMessage";
-import {
-  Download,
-  Globe,
-  Loader2,
-  RefreshCw,
-  RotateCcw,
-  Sparkles,
-  User,
-  X,
-} from "lucide-react";
+import { Download, Globe, Loader2, RefreshCw, RotateCcw, Sparkles, User, X } from "lucide-react";
 import Image from "next/image";
-import {
-  type FormEvent,
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { type FormEvent, useCallback, useMemo, useRef, useState } from "react";
 
 const ICON_PROGRESS_STEPS: ProgressStep[] = [
   { id: "analyze", label: "連絡先情報を分析中...", estimatedDuration: 1200 },
@@ -108,23 +90,35 @@ export function IconCreator() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const { uploads, activeUploads, isOptimizingAny, optimizingIds, addUploadSlot, removeUploadSlot, handleFileChange, resetUploads } =
-    useUploadSlots({
-      maxSlots: MAX_ICON_UPLOADS,
-      onBeforeChange: () => {
-        setErrorMessage(null);
-        setResultImage(null);
-      },
-      onFileError: setErrorMessage,
-    });
+  const {
+    uploads,
+    activeUploads,
+    isOptimizingAny,
+    optimizingIds,
+    addUploadSlot,
+    removeUploadSlot,
+    handleFileChange,
+    resetUploads,
+  } = useUploadSlots({
+    maxSlots: MAX_ICON_UPLOADS,
+    onBeforeChange: () => {
+      setErrorMessage(null);
+      setResultImage(null);
+    },
+    onFileError: setErrorMessage,
+  });
 
   const handleProgressComplete = useCallback(() => setIsSubmitting(false), []);
-  const { progress, currentStep, timeRemaining, complete: completeProgress } =
-    useProgressSimulation({
-      isActive: isSubmitting,
-      onComplete: handleProgressComplete,
-      steps: ICON_PROGRESS_STEPS,
-    });
+  const {
+    progress,
+    currentStep,
+    timeRemaining,
+    complete: completeProgress,
+  } = useProgressSimulation({
+    isActive: isSubmitting,
+    onComplete: handleProgressComplete,
+    steps: ICON_PROGRESS_STEPS,
+  });
 
   const isCustomPromptTooLong = customPrompt.length > MAX_PROMPT_LENGTH;
   const canSubmit =
@@ -215,9 +209,7 @@ export function IconCreator() {
       }
 
       const mimeType =
-        "mimeType" in data && typeof data.mimeType === "string"
-          ? data.mimeType
-          : "image/png";
+        "mimeType" in data && typeof data.mimeType === "string" ? data.mimeType : "image/png";
 
       setResultImage(`data:${mimeType};base64,${data.imageBase64}`);
     } catch (error) {
@@ -350,7 +342,10 @@ export function IconCreator() {
               onChange={(event) => setUrl(event.target.value)}
             />
           </div>
-          <div className="mt-2 rounded-2xl border border-stone-200 bg-white/80 px-4 py-3 text-xs text-stone-500" aria-live="polite">
+          <div
+            className="mt-2 rounded-2xl border border-stone-200 bg-white/80 px-4 py-3 text-xs text-stone-500"
+            aria-live="polite"
+          >
             {url.trim()
               ? "生成時にタイトル・説明・OGP画像の取得を試み、アイコンの方向性に反映します。"
               : "Webサイトの雰囲気も反映したいときだけ入力してください。URLなしでも生成できます。"}
@@ -440,7 +435,9 @@ export function IconCreator() {
             ))}
           </div>
           <div className="mt-4 rounded-2xl border border-stone-200 bg-white/80 px-4 py-3 text-sm text-stone-500">
-            <span className="font-medium text-stone-700">選択中のスタイル: {selectedStyleOption.label}</span>
+            <span className="font-medium text-stone-700">
+              選択中のスタイル: {selectedStyleOption.label}
+            </span>
             <p className="mt-1">{selectedStyleOption.preview}</p>
           </div>
         </Section>
@@ -456,7 +453,9 @@ export function IconCreator() {
             value={customPrompt}
             onChange={(event) => setCustomPrompt(event.target.value)}
           />
-          <p className={`mt-1 text-xs text-right ${isCustomPromptTooLong ? "text-red-500" : "text-stone-400"}`}>
+          <p
+            className={`mt-1 text-xs text-right ${isCustomPromptTooLong ? "text-red-500" : "text-stone-400"}`}
+          >
             {customPrompt.length} / {MAX_PROMPT_LENGTH}
           </p>
         </Section>
@@ -485,13 +484,21 @@ export function IconCreator() {
         </div>
 
         {errorMessage && (
-          <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm" aria-live="polite">
+          <div
+            className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm"
+            aria-live="polite"
+          >
             <p className="font-medium text-red-500">{errorMessage}</p>
             <p className="mt-1 text-red-500/80">
               URLや追加指示を短くすると改善することがあります。必要な情報だけ残して再試行してください。
             </p>
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              <Button type="button" size="sm" onClick={() => void submitEdit()} disabled={!canSubmit}>
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => void submitEdit()}
+                disabled={!canSubmit}
+              >
                 同じ条件で再試行
               </Button>
               <Button type="button" size="sm" variant="outline" onClick={resetEditor}>

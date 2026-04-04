@@ -137,7 +137,7 @@ const withPWA = withPWAInit({
           url.origin === self.origin &&
           (url.pathname === "/api/edit-image" ||
             url.pathname === "/api/freestyle-edit" ||
-            url.pathname === "/api/create-flipbook")
+            url.pathname === "/api/icon-generate")
         );
       },
       handler: "NetworkOnly",
@@ -148,7 +148,11 @@ const withPWA = withPWAInit({
     {
       urlPattern: ({ url }: { url: URL }) => {
         // Handle other API routes (excluding auth and image generation)
-        return url.origin === self.origin && url.pathname.startsWith("/api/") && !url.pathname.startsWith("/api/auth/");
+        return (
+          url.origin === self.origin &&
+          url.pathname.startsWith("/api/") &&
+          !url.pathname.startsWith("/api/auth/")
+        );
       },
       handler: "NetworkFirst",
       options: {
@@ -190,7 +194,6 @@ const withPWA = withPWAInit({
 });
 
 const nextConfig: NextConfig = {
-  /* config options here */
   headers: async () => {
     return [
       {

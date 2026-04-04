@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       AUTH_SECRET: ci-build-secret
+      GEMINI_API_KEY: ci-dummy-key
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,7 +23,14 @@ jobs:
         run: bun run lint
       - name: Typecheck
         run: bun run typecheck
-      - name: Test
-        run: bun run test:ci
+      - name: Test with coverage
+        run: bun run test:coverage
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7
       - name: Build
         run: bun run build
