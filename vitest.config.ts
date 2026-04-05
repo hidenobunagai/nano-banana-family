@@ -1,5 +1,5 @@
-import { defineConfig } from "vitest/config";
 import path from "path";
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
@@ -12,7 +12,7 @@ export default defineConfig({
         lines: 8,
         functions: 60,
         branches: 80,
-        statements: 8
+        statements: 8,
       },
       include: ["src/**/*.{ts,tsx}"],
       exclude: ["src/**/*.d.ts", "src/app/**", "src/**/*.test.{ts,tsx}", "node_modules/**"],
