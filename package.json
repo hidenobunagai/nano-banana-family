@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "dotenvx run --convention=nextjs --ignore=MISSING_ENV_FILE -- next dev --webpack",
+    "dev": "dotenvx run --convention=nextjs --ignore=MISSING_ENV_FILE -- next dev --webpack -p 3001",
     "build": "dotenvx run --convention=nextjs --ignore=MISSING_ENV_FILE -- next build --webpack",
     "start": "dotenvx run --convention=nextjs --ignore=MISSING_ENV_FILE -- next start",
     "lint": "eslint",
