@@ -1,12 +1,10 @@
 "use client";
 
-import { Button } from "@/components/ui/Button";
-import { cn } from "@/components/ui/Button";
-import { motion } from "framer-motion";
-import { Palette, UserCircle } from "lucide-react";
-import { LogOut } from "lucide-react";
-import * as React from "react";
+import { Button, cn } from "@/components/ui/Button";
 import type { NavMode } from "@/types/nav";
+import { motion } from "framer-motion";
+import { LogOut, Palette, UserCircle } from "lucide-react";
+import * as React from "react";
 
 const HEADER_NAV_ITEMS = [
   { id: "freestyle", label: "Freestyle", icon: Palette },

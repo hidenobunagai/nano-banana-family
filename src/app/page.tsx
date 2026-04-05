@@ -3,9 +3,9 @@
 import { FreestyleEditor } from "@/components/features/editor/FreestyleEditor";
 import { IconCreator } from "@/components/features/editor/IconCreator";
 import { Dock } from "@/components/layout/Dock";
-import type { NavMode } from "@/types/nav";
 import { Shell } from "@/components/layout/Shell";
 import { Button } from "@/components/ui/Button";
+import type { NavMode } from "@/types/nav";
 import { motion } from "framer-motion";
 import { Loader2, Palette, UserCircle } from "lucide-react";
 import { signIn, signOut, useSession } from "next-auth/react";
