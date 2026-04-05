@@ -3,13 +3,12 @@
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/components/ui/Button";
 import { motion } from "framer-motion";
-import { Palette, UserCircle, Wand2 } from "lucide-react";
+import { Palette, UserCircle } from "lucide-react";
 import { LogOut } from "lucide-react";
 import * as React from "react";
 import type { NavMode } from "@/types/nav";
 
 const HEADER_NAV_ITEMS = [
-  { id: "simple", label: "Editor", icon: Wand2 },
   { id: "freestyle", label: "Freestyle", icon: Palette },
   { id: "icon", label: "Icon", icon: UserCircle },
 ] as const;
@@ -46,7 +45,7 @@ export function Shell({ children, onSignOut, navMode, onNavModeChange }: ShellPr
                     "relative flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50",
                     active
                       ? "text-amber-700 bg-amber-50"
-                      : "text-stone-500 hover:text-stone-800 hover:bg-stone-100"
+                      : "text-stone-500 hover:text-stone-800 hover:bg-stone-100",
                   )}
                 >
                   <Icon className="w-4 h-4" />

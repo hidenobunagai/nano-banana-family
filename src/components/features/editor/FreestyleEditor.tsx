@@ -2,6 +2,7 @@
 
 import { EditorLayout } from "@/components/layout/EditorLayout";
 import { ProgressDisplay, type ProgressStep } from "@/components/ProgressDisplay";
+import { PromptReferencePicker } from "@/components/PromptReferencePicker";
 import { Button } from "@/components/ui/Button";
 import { FileInput } from "@/components/ui/FileInput";
 import { Section } from "@/components/ui/Section";
@@ -9,7 +10,7 @@ import { useProgressSimulation } from "@/hooks/useProgressSimulation";
 import { useUploadSlots } from "@/hooks/useUploadSlots";
 import { MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
 import { getRequestErrorMessage } from "@/utils/requestErrorMessage";
-import { Download, Loader2, RefreshCw, RotateCcw, X } from "lucide-react";
+import { BookOpen, Download, Loader2, RefreshCw, RotateCcw, X } from "lucide-react";
 import Image from "next/image";
 import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 
@@ -33,7 +34,9 @@ export function FreestyleEditor() {
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showReferencePicker, setShowReferencePicker] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     return () => {
@@ -97,6 +100,16 @@ export function FreestyleEditor() {
     },
     [uploads.length, removeUploadSlot],
   );
+
+  const handleReferenceSelect = useCallback((referencePrompt: string) => {
+    setPrompt((prev) => {
+      if (prev.trim()) {
+        return `${prev}\n\n${referencePrompt}`;
+      }
+      return referencePrompt;
+    });
+    textareaRef.current?.focus();
+  }, []);
 
   const submitEdit = useCallback(async () => {
     if (!prompt.trim()) {
@@ -273,27 +286,43 @@ export function FreestyleEditor() {
             )}
           </div>
         </Section>
-        <Section title="2. どんな仕上がりにしたいか自由に記入">
+
+        <Section title="2. 仕上がりのイメージを記入">
           <div className="mb-4 rounded-2xl border border-stone-200 bg-white/80 px-4 py-3 text-sm text-stone-500">
-            例:
-            「やわらかい水彩風にしたい」「兄弟が冒険している映画ポスターのように」など、雰囲気・色・構図を書くと結果が安定します。
+            <p>
+              例:「やわらかい水彩風にしたい」「兄弟が冒険している映画ポスターのように」など、雰囲気・色・構図を書くと結果が安定します。
+            </p>
+            <p className="mt-1">
+              下のボタンから140種類以上の参考プロンプトを選んでドラフトに入力できます。
+            </p>
           </div>
+
           <textarea
+            ref={textareaRef}
             name="freestylePrompt"
             autoComplete="off"
             spellCheck={false}
             maxLength={MAX_PROMPT_LENGTH}
-            className="w-full h-28 rounded-xl bg-white border border-stone-200 p-4 text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-shadow"
-            placeholder="例: 子どもたちが描いたドラゴンのスケッチをもとに、水彩画のようなやさしい雰囲気で仕上げたい…"
+            className="w-full h-32 rounded-xl bg-white border border-stone-200 p-4 text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-shadow resize-y"
+            placeholder="仕上がりのイメージを自由に記入してください…"
             value={prompt}
             onChange={(event) => setPrompt(event.target.value)}
           />
-          <p
-            className={`mt-1 text-xs text-right ${isPromptTooLong ? "text-red-500" : "text-stone-400"}`}
-          >
-            {prompt.length} / {MAX_PROMPT_LENGTH}
-          </p>
+          <div className="flex items-center justify-between mt-2">
+            <button
+              type="button"
+              onClick={() => setShowReferencePicker(true)}
+              className="inline-flex items-center gap-1.5 text-sm text-amber-600 hover:text-amber-700 font-medium transition-colors"
+            >
+              <BookOpen className="w-4 h-4" />
+              参考プロンプトから選ぶ
+            </button>
+            <p className={`text-xs ${isPromptTooLong ? "text-red-500" : "text-stone-400"}`}>
+              {prompt.length} / {MAX_PROMPT_LENGTH}
+            </p>
+          </div>
         </Section>
+
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_200px]">
           <Button
             type="submit"
@@ -338,6 +367,13 @@ export function FreestyleEditor() {
           </div>
         )}
       </form>
+
+      {showReferencePicker && (
+        <PromptReferencePicker
+          onSelect={handleReferenceSelect}
+          onClose={() => setShowReferencePicker(false)}
+        />
+      )}
     </EditorLayout>
   );
 }

@@ -1,1 +1,1 @@
-export type NavMode = "simple" | "freestyle" | "icon";
+export type NavMode = "freestyle" | "icon";

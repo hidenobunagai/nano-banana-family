@@ -25,9 +25,7 @@ export type ImageGenerationResponse = ImageGenerationSuccessResponse | ErrorResp
 /**
  * Type guard to check if response is an error
  */
-export function isErrorResponse(
-  response: ImageGenerationResponse
-): response is ErrorResponse {
+export function isErrorResponse(response: ImageGenerationResponse): response is ErrorResponse {
   return "error" in response;
 }
 
@@ -35,18 +33,9 @@ export function isErrorResponse(
  * Type guard to check if response is a success
  */
 export function isSuccessResponse(
-  response: ImageGenerationResponse
+  response: ImageGenerationResponse,
 ): response is ImageGenerationSuccessResponse {
   return "imageBase64" in response;
-}
-
-/**
- * Form data structure for edit-image API
- */
-export interface EditImageFormData {
-  prompt: string;
-  image: File;
-  image_secondary?: File;
 }
 
 /**

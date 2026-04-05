@@ -91,13 +91,10 @@ export async function POST(request: Request) {
         resolveMimeType,
         MAX_FILE_SIZE_BYTES,
         MAX_FILE_SIZE_MB,
-        label
+        label,
       );
       if (!validation.valid) {
-        return NextResponse.json(
-          { error: validation.error },
-          { status: validation.status }
-        );
+        return NextResponse.json({ error: validation.error }, { status: validation.status });
       }
 
       const buffer = Buffer.from(await file.arrayBuffer());
@@ -113,12 +110,12 @@ export async function POST(request: Request) {
 
     parts.push({
       text: [
-        "You are a helpful creative image editor for the Hide NB Studio family app.",
-        "CRITICAL INSTRUCTION: You MUST preserve the exact facial features, identity, and likeness of the person in the uploaded reference image(s). The generated person MUST look 100% identical to the reference.",
-        "Use the uploaded images purely as visual references.",
-        "Blend the key elements from each reference in order, keeping the first uploads as the strongest guidance.",
-        "Follow the user's instructions precisely and return exactly one polished image.",
-        "User instructions:",
+        "あなたはHide NB Studioファミリーアプリのクリエイティブな画像編集アシスタントです。",
+        "重要な指示: アップロードされた参照画像の人物の顔の特徴、アイデンティティ、類似性を正確に保持してください。生成される人物は参照画像と100%同一である必要があります。",
+        "アップロードされた画像は純粋に視覚的な参照として使用します。",
+        "各参照の主要な要素を順番にブレンドし、最初のアップロードを最も強いガイダンスとして保持してください。",
+        "ユーザーの指示に正確に従い、完成した画像を1枚返してください。",
+        "ユーザーの指示:",
         trimmedPrompt,
       ].join("\n"),
     });
@@ -149,7 +146,7 @@ export async function POST(request: Request) {
       logger,
       "freestyle-edit",
       session.user?.email ?? "unknown",
-      "画像生成中に予期しないエラーが発生しました。"
+      "画像生成中に予期しないエラーが発生しました。",
     );
   }
 }

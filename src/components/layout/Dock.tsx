@@ -3,7 +3,7 @@
 import { cn } from "@/components/ui/Button";
 import type { NavMode } from "@/types/nav";
 import { motion } from "framer-motion";
-import { Palette, UserCircle, Wand2 } from "lucide-react";
+import { Palette, UserCircle } from "lucide-react";
 
 export type { NavMode };
 
@@ -13,7 +13,6 @@ interface DockProps {
 }
 
 const MENU_ITEMS = [
-  { id: "simple", label: "Editor", icon: Wand2 },
   { id: "freestyle", label: "Freestyle", icon: Palette },
   { id: "icon", label: "Icon", icon: UserCircle },
 ] as const;
@@ -57,7 +56,7 @@ function NavItem({
       onClick={onClick}
       className={cn(
         "relative flex flex-col items-center justify-center flex-1 gap-1 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:ring-inset",
-        active ? "text-amber-500" : "text-stone-400 hover:text-stone-700"
+        active ? "text-amber-500" : "text-stone-400 hover:text-stone-700",
       )}
     >
       {active && (

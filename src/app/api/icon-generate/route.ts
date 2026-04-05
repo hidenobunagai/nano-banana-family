@@ -58,10 +58,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "連絡先名を入力してください。" }, { status: 400 });
   }
 
-  if (
-    typeof customPrompt === "string" &&
-    customPrompt.trim().length > MAX_PROMPT_LENGTH
-  ) {
+  if (typeof customPrompt === "string" && customPrompt.trim().length > MAX_PROMPT_LENGTH) {
     return NextResponse.json(
       { error: `追加の指示は${MAX_PROMPT_LENGTH}文字以内で入力してください。` },
       { status: 400 },
@@ -108,13 +105,10 @@ export async function POST(request: Request) {
         resolveMimeType,
         MAX_FILE_SIZE_BYTES,
         MAX_FILE_SIZE_MB,
-        label
+        label,
       );
       if (!validation.valid) {
-        return NextResponse.json(
-          { error: validation.error },
-          { status: validation.status }
-        );
+        return NextResponse.json({ error: validation.error }, { status: validation.status });
       }
 
       const buffer = Buffer.from(await file.arrayBuffer());
@@ -174,7 +168,7 @@ export async function POST(request: Request) {
       logger,
       "icon-generate",
       session.user?.email ?? "unknown",
-      "アイコン生成中に予期しないエラーが発生しました。"
+      "アイコン生成中に予期しないエラーが発生しました。",
     );
   }
 }

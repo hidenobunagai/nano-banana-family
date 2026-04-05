@@ -2,29 +2,24 @@
 
 import { FreestyleEditor } from "@/components/features/editor/FreestyleEditor";
 import { IconCreator } from "@/components/features/editor/IconCreator";
-import { SimpleEditor } from "@/components/features/editor/SimpleEditor";
 import { Dock } from "@/components/layout/Dock";
 import type { NavMode } from "@/types/nav";
 import { Shell } from "@/components/layout/Shell";
 import { Button } from "@/components/ui/Button";
 import { motion } from "framer-motion";
-import { ImagePlus, Loader2, Sparkles, Wand2 } from "lucide-react";
+import { Loader2, Palette, UserCircle } from "lucide-react";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { useState } from "react";
 
 const SIGNED_OUT_FEATURES = [
   {
-    icon: Wand2,
-    title: "かんたん編集",
-    description: "用意されたプリセットを選ぶだけで、写真をすばやく変換できます。",
-  },
-  {
-    icon: Sparkles,
+    icon: Palette,
     title: "自由なAI生成",
-    description: "最大5枚の参考画像と自由文から、雰囲気を合わせた生成ができます。",
+    description:
+      "参考画像と自由文から、雰囲気を合わせた生成ができます。参考プロンプトも140種類以上から選べます。",
   },
   {
-    icon: ImagePlus,
+    icon: UserCircle,
     title: "アイコン作成",
     description: "名前やURL、参考画像から家族向けのアイコン案をまとめて作れます。",
   },
@@ -32,7 +27,7 @@ const SIGNED_OUT_FEATURES = [
 
 export default function Home() {
   const { status } = useSession();
-  const [mode, setMode] = useState<NavMode>("simple");
+  const [mode, setMode] = useState<NavMode>("freestyle");
 
   const handleSignOut = () => void signOut();
 
@@ -50,7 +45,6 @@ export default function Home() {
   if (status !== "authenticated") {
     return (
       <main className="min-h-dvh flex items-center justify-center p-6 bg-[#FFFEF7] relative overflow-hidden">
-        {/* Background Effects */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-amber-400/10 rounded-full blur-[120px] pointer-events-none animate-float" />
         <div className="absolute bottom-0 right-0 w-[600px] h-[400px] bg-yellow-300/10 rounded-full blur-[100px] pointer-events-none" />
 
@@ -72,11 +66,11 @@ export default function Home() {
                 <p className="text-base leading-relaxed text-stone-500 sm:text-lg">
                   家族だけで使える、やさしいAI画像スタジオです。
                   <br />
-                  サインインすると、写真編集・自由生成・アイコン作成をすぐに始められます。
+                  サインインすると、自由生成・アイコン作成をすぐに始められます。
                 </p>
               </div>
 
-              <div className="grid gap-3 text-left sm:grid-cols-3 lg:grid-cols-1">
+              <div className="grid gap-3 text-left sm:grid-cols-2 lg:grid-cols-1">
                 {SIGNED_OUT_FEATURES.map(({ icon: Icon, title, description }) => (
                   <div
                     key={title}
@@ -86,9 +80,7 @@ export default function Home() {
                       <Icon className="h-5 w-5" />
                     </div>
                     <h2 className="font-semibold text-stone-800">{title}</h2>
-                    <p className="mt-1 text-sm leading-relaxed text-stone-500">
-                      {description}
-                    </p>
+                    <p className="mt-1 text-sm leading-relaxed text-stone-500">{description}</p>
                   </div>
                 ))}
               </div>
@@ -133,19 +125,10 @@ export default function Home() {
         transition={{ duration: 0.3 }}
         className="w-full pb-24"
       >
-        {mode === "simple" ? (
-          <SimpleEditor />
-        ) : mode === "icon" ? (
-          <IconCreator />
-        ) : (
-          <FreestyleEditor />
-        )}
+        {mode === "freestyle" ? <FreestyleEditor /> : <IconCreator />}
       </motion.div>
-      
-      <Dock 
-        currentMode={mode} 
-        onModeChange={setMode} 
-      />
+
+      <Dock currentMode={mode} onModeChange={setMode} />
     </Shell>
   );
 }
