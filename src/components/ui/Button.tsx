@@ -9,22 +9,24 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center rounded-full text-sm font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95",
+  "inline-flex items-center justify-center rounded-[24px] text-oln-16 font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563eb] focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]",
   {
     variants: {
       variant: {
         default:
-          "bg-blue-600 text-white shadow-lg shadow-blue-600/25 hover:bg-blue-500 hover:shadow-blue-600/40 hover:-translate-y-0.5 border border-blue-200/50",
-        ghost: "hover:bg-stone-100 text-stone-400 hover:text-stone-800",
+          "bg-[#2563eb] text-white border border-[#2563eb] shadow-[0_1px_3px_rgba(0,0,0,0.08)] hover:bg-[#1d4ed8] hover:border-[#1d4ed8]",
+        secondary:
+          "bg-white text-[#111827] border border-[#d1d5db] shadow-[0_1px_3px_rgba(0,0,0,0.08)] hover:bg-[#f3f4f6] hover:border-[#9ca3af]",
+        ghost: "bg-transparent text-[#4b5563] hover:bg-[#f3f4f6] hover:text-[#111827]",
         outline:
-          "border border-stone-200 bg-stone-50 hover:bg-stone-100 hover:border-stone-300 text-stone-700 backdrop-blur-sm",
-        glass:
-          "bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100 shadow-lg hover:shadow-gray-400/10 hover:border-gray-300",
+          "bg-white text-[#374151] border border-[#d1d5db] hover:bg-[#f3f4f6] hover:border-[#9ca3af]",
+        danger:
+          "bg-[#991b1b] text-white border border-[#991b1b] shadow-[0_1px_3px_rgba(0,0,0,0.08)] hover:bg-[#7f1d1d] hover:border-[#7f1d1d]",
       },
       size: {
         default: "h-11 px-6 py-2",
-        sm: "h-9 px-4 rounded-full text-xs",
-        lg: "h-14 px-8 text-base tracking-wide",
+        sm: "h-9 px-4 rounded-[20px] text-oln-14",
+        lg: "h-14 px-8 text-oln-17",
         icon: "h-10 w-10",
       },
     },

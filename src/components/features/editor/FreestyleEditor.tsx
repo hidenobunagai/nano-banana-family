@@ -205,7 +205,7 @@ export function FreestyleEditor() {
                 alt="自由生成の結果画像"
                 width={900}
                 height={600}
-                className="rounded-xl w-full border border-stone-200 shadow-xl"
+                className="rounded-[24px] w-full border border-[#e5e7eb] shadow-[0_10px_15px_rgba(0,0,0,0.1)]"
                 unoptimized
               />
               <div className="grid gap-3 sm:grid-cols-2">
@@ -217,7 +217,7 @@ export function FreestyleEditor() {
                 </Button>
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="secondary"
                   size="lg"
                   className="w-full"
                   onClick={() => void submitEdit()}
@@ -233,9 +233,9 @@ export function FreestyleEditor() {
               </Button>
             </div>
           ) : (
-            <div className="h-64 flex flex-col items-center justify-center gap-2 text-stone-400 border-2 border-dashed border-stone-200 bg-stone-50 rounded-xl px-6 text-center">
-              <p className="font-medium text-stone-500">結果エリア</p>
-              <p className="text-sm">
+            <div className="h-64 flex flex-col items-center justify-center gap-2 text-[#9ca3af] border-2 border-dashed border-[#e5e7eb] bg-[#f9fafb] rounded-[24px] px-6 text-center">
+              <p className="font-medium text-[#6b7280]">結果エリア</p>
+              <p className="text-dns-14">
                 参考画像と仕上がりイメージを入力すると、ここに生成結果が表示されます。
               </p>
             </div>
@@ -245,9 +245,9 @@ export function FreestyleEditor() {
     >
       <form onSubmit={handleSubmit} className="space-y-8">
         <Section title="1. 参考にしたい画像をアップロード">
-          <div className="mb-4 rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
-            <p className="font-medium">最大 {MAX_FREESTYLE_UPLOADS} 枚まで追加できます</p>
-            <p className="mt-1 text-gray-600">
+          <div className="mb-4 rounded-[24px] border border-[#e5e7eb] bg-[#f9fafb] px-4 py-3 text-dns-15 text-[#374151]">
+            <p className="font-bold">最大 {MAX_FREESTYLE_UPLOADS} 枚まで追加できます</p>
+            <p className="mt-1 text-[#4b5563]">
               複数の参考画像を入れるほど雰囲気を合わせやすくなります。選んだ画像は送信前に自動で最適化されます。
             </p>
           </div>
@@ -265,7 +265,7 @@ export function FreestyleEditor() {
                     type="button"
                     onClick={() => handleRemoveUploadSlot(slot.id)}
                     aria-label={`参考画像 ${index + 1} を削除`}
-                    className="absolute top-8 right-2 rounded-full bg-red-500/90 p-1.5 text-white shadow-md transition-colors hover:bg-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
+                    className="absolute top-8 right-2 rounded-[9999px] bg-[#991b1b]/90 p-1.5 text-white shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-colors hover:bg-[#7f1d1d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#991b1b]"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -275,15 +275,15 @@ export function FreestyleEditor() {
             {uploads.length < MAX_FREESTYLE_UPLOADS && (
               <div className="space-y-3">
                 <div className="flex flex-col">
-                  <span className="text-sm text-stone-400">&nbsp;</span>
+                  <span className="text-dns-14 text-[#9ca3af]">&nbsp;</span>
                 </div>
                 <button
                   type="button"
                   onClick={addUploadSlot}
-                  className="h-48 rounded-xl border-2 border-dashed border-gray-200 bg-white text-gray-500 transition-colors hover:border-blue-400 hover:bg-blue-50/50 hover:text-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 flex flex-col items-center justify-center"
+                  className="h-48 rounded-[24px] border-2 border-dashed border-[#e5e7eb] bg-white text-[#6b7280] transition-colors hover:border-[#60a5fa] hover:bg-[#eff6ff] hover:text-[#2563eb] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563eb] flex flex-col items-center justify-center"
                 >
                   <span className="block text-3xl">+</span>
-                  <span className="mt-2 block text-sm font-medium">
+                  <span className="mt-2 block text-oln-14 font-medium">
                     参考画像を追加（あと {MAX_FREESTYLE_UPLOADS - uploads.length} 枚）
                   </span>
                 </button>
@@ -293,7 +293,7 @@ export function FreestyleEditor() {
         </Section>
 
         <Section title="2. 仕上がりのイメージを記入">
-          <div className="mb-4 rounded-2xl border border-stone-200 bg-white/80 px-4 py-3 text-sm text-stone-500">
+          <div className="mb-4 rounded-[24px] border border-[#e5e7eb] bg-white/80 px-4 py-3 text-dns-15 text-[#6b7280]">
             <p>
               例:「やわらかい水彩風にしたい」「兄弟が冒険している映画ポスターのように」など、雰囲気・色・構図を書くと結果が安定します。
             </p>
@@ -308,7 +308,7 @@ export function FreestyleEditor() {
             autoComplete="off"
             spellCheck={false}
             maxLength={MAX_PROMPT_LENGTH}
-            className="w-full h-32 rounded-xl bg-white border border-gray-200 p-4 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-shadow resize-y"
+            className="w-full h-32 rounded-[20px] bg-white border border-[#e5e7eb] p-4 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#2563eb]/50 focus:border-[#2563eb] transition-shadow resize-y text-std-16"
             placeholder="仕上がりのイメージを自由に記入してください…"
             value={prompt}
             onChange={(event) => setPrompt(event.target.value)}
@@ -317,12 +317,12 @@ export function FreestyleEditor() {
             <button
               type="button"
               onClick={() => setShowReferencePicker(true)}
-              className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+              className="inline-flex items-center gap-1.5 text-oln-14 text-[#2563eb] hover:text-[#1d4ed8] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563eb]"
             >
               <BookOpen className="w-4 h-4" />
               参考プロンプトから選ぶ
             </button>
-            <p className={`text-xs ${isPromptTooLong ? "text-red-500" : "text-stone-400"}`}>
+            <p className={`text-dns-14 ${isPromptTooLong ? "text-[#991b1b]" : "text-[#9ca3af]"}`}>
               {prompt.length} / {MAX_PROMPT_LENGTH}
             </p>
           </div>
@@ -332,7 +332,7 @@ export function FreestyleEditor() {
           <Button
             type="submit"
             size="lg"
-            className="w-full h-14 bg-blue-600 hover:bg-blue-500 border-0 shadow-lg shadow-blue-600/20"
+            className="w-full h-14 bg-[#2563eb] hover:bg-[#1d4ed8] border-0 shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
             disabled={!canSubmit}
           >
             {isSubmitting ? (
@@ -343,17 +343,17 @@ export function FreestyleEditor() {
               "Gemini に生成を依頼"
             )}
           </Button>
-          <Button type="button" size="lg" variant="outline" onClick={resetEditor}>
+          <Button type="button" size="lg" variant="secondary" onClick={resetEditor}>
             入力をクリア
           </Button>
         </div>
         {errorMessage && (
           <div
-            className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm"
+            className="rounded-[24px] border border-[#fecaca] bg-[#fef2f2] p-4 text-dns-15"
             aria-live="polite"
           >
-            <p className="font-medium text-red-500">{errorMessage}</p>
-            <p className="mt-1 text-red-500/80">
+            <p className="font-bold text-[#991b1b]">{errorMessage}</p>
+            <p className="mt-1 text-[#991b1b]/80">
               指示文を短くしたり、参考画像を減らしたりすると安定することがあります。
             </p>
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -365,7 +365,7 @@ export function FreestyleEditor() {
               >
                 同じ内容で再試行
               </Button>
-              <Button type="button" size="sm" variant="outline" onClick={resetEditor}>
+              <Button type="button" size="sm" variant="secondary" onClick={resetEditor}>
                 最初からやり直す
               </Button>
             </div>

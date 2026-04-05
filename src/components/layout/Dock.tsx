@@ -23,7 +23,7 @@ export function Dock({ currentMode, onModeChange }: DockProps) {
       initial={{ y: 80, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ type: "spring", stiffness: 260, damping: 20 }}
-      className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-gray-200 lg:hidden"
+      className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-[#e5e7eb] lg:hidden"
     >
       <div className="flex items-stretch justify-around h-20">
         {MENU_ITEMS.map((item) => (
@@ -55,18 +55,18 @@ function NavItem({
     <button
       onClick={onClick}
       className={cn(
-        "relative flex flex-col items-center justify-center flex-1 gap-1.5 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-inset",
-        active ? "text-blue-600" : "text-gray-500 hover:text-gray-900",
+        "relative flex flex-col items-center justify-center flex-1 gap-1.5 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563eb] focus-visible:ring-inset",
+        active ? "text-[#2563eb]" : "text-[#6b7280] hover:text-[#111827]",
       )}
     >
       {active && (
         <motion.div
           layoutId="nav-indicator"
-          className="absolute top-0 left-4 right-4 h-1 bg-blue-500 rounded-full"
+          className="absolute top-0 left-4 right-4 h-1 bg-[#2563eb] rounded-full"
         />
       )}
       <Icon className="w-6 h-6" />
-      <span className="text-sm font-semibold">{label}</span>
+      <span className="text-oln-14 font-medium">{label}</span>
     </button>
   );
 }

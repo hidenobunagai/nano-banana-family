@@ -20,17 +20,13 @@ interface ShellProps {
 
 export function Shell({ children, onSignOut, navMode, onNavModeChange }: ShellProps) {
   return (
-    <div className="flex h-dvh w-full overflow-hidden text-gray-900 selection:bg-blue-500/20">
+    <div className="flex h-dvh w-full overflow-hidden text-[#111827] selection:bg-[#2563eb]/20">
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-        {/* Top Bar (Glass) */}
-        <header className="absolute top-0 left-0 right-0 h-20 flex items-center justify-between px-4 sm:px-8 z-30 bg-white/90 backdrop-blur-xl border-b border-gray-200 transition-all">
+        <header className="absolute top-0 left-0 right-0 h-20 flex items-center justify-between px-4 sm:px-8 z-30 bg-white/90 backdrop-blur-xl border-b border-[#e5e7eb] transition-all">
           <div className="pointer-events-auto">
-            <h1 className="text-2xl font-display font-bold bg-gradient-to-r from-stone-900 via-stone-700 to-stone-500 bg-clip-text text-transparent drop-shadow-sm tracking-tight">
-              Hide NB Studio
-            </h1>
+            <h1 className="text-std-24 font-bold text-[#111827] tracking-tight">Hide NB Studio</h1>
           </div>
 
-          {/* Desktop center nav (hidden on mobile) */}
           <nav className="absolute left-1/2 -translate-x-1/2 hidden lg:flex items-center gap-1">
             {HEADER_NAV_ITEMS.map((item) => {
               const Icon = item.icon;
@@ -40,10 +36,10 @@ export function Shell({ children, onSignOut, navMode, onNavModeChange }: ShellPr
                   key={item.id}
                   onClick={() => onNavModeChange(item.id)}
                   className={cn(
-                    "relative flex items-center gap-2 px-4 py-2.5 rounded-lg text-base font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50",
+                    "relative flex items-center gap-2 px-4 py-2.5 rounded-[20px] text-oln-16 font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563eb]",
                     active
-                      ? "text-gray-900 bg-gray-100"
-                      : "text-gray-500 hover:text-gray-900 hover:bg-gray-50",
+                      ? "text-[#111827] bg-[#f3f4f6]"
+                      : "text-[#6b7280] hover:text-[#111827] hover:bg-[#f9fafb]",
                   )}
                 >
                   <Icon className="w-5 h-5" />
@@ -51,7 +47,7 @@ export function Shell({ children, onSignOut, navMode, onNavModeChange }: ShellPr
                   {active && (
                     <motion.div
                       layoutId="header-nav-indicator"
-                      className="absolute bottom-0 left-3 right-3 h-0.5 bg-blue-500 rounded-full"
+                      className="absolute bottom-0 left-3 right-3 h-0.5 bg-[#2563eb] rounded-full"
                     />
                   )}
                 </button>
@@ -63,14 +59,13 @@ export function Shell({ children, onSignOut, navMode, onNavModeChange }: ShellPr
             variant="ghost"
             size="sm"
             onClick={onSignOut}
-            className="text-stone-600 hover:text-red-600 hover:bg-red-50 gap-2"
+            className="text-[#4b5563] hover:text-[#991b1b] hover:bg-[#fef2f2] gap-2"
           >
             <LogOut className="w-5 h-5" />
             <span className="hidden sm:inline">サインアウト</span>
           </Button>
         </header>
 
-        {/* Content Area */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 sm:px-6 lg:px-12 pt-24 pb-20 lg:pb-8 scroll-smooth relative">
           <div className="max-w-[1400px] mx-auto w-full animate-in fade-in slide-in-from-bottom-8 duration-700">
             {children}

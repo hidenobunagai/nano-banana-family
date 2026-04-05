@@ -56,43 +56,35 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-        onClick={onClose}
-        aria-hidden="true"
-      />
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
 
-      {/* Modal */}
       <div
         role="dialog"
         aria-labelledby={legendId}
-        className="relative z-10 w-full max-w-2xl max-h-[85vh] flex flex-col bg-white rounded-2xl shadow-2xl overflow-hidden"
+        className="relative z-10 w-full max-w-2xl max-h-[85vh] flex flex-col bg-white rounded-[24px] shadow-[0_25px_50px_rgba(0,0,0,0.15)] overflow-hidden"
       >
-        {/* Header */}
-        <div className="flex-shrink-0 px-6 pt-6 pb-4 border-b border-gray-100">
+        <div className="flex-shrink-0 px-6 pt-6 pb-4 border-b border-[#e5e7eb]">
           <div className="flex items-center justify-between mb-4">
-            <h2 id={legendId} className="text-xl font-bold text-gray-800">
+            <h2 id={legendId} className="text-std-24 font-bold text-[#111827]">
               参考プロンプトから選ぶ
             </h2>
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors"
+              className="p-2 rounded-[9999px] hover:bg-[#f3f4f6] text-[#9ca3af] hover:text-[#374151] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563eb]"
               aria-label="閉じる"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          {/* Search */}
           <div className="relative w-full">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#9ca3af]">
               <Search className="w-4 h-4" />
             </div>
             <input
               type="search"
-              className="w-full pl-9 pr-9 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white transition-all"
+              className="w-full pl-9 pr-9 py-2.5 bg-[#f9fafb] border border-[#e5e7eb] rounded-[20px] text-dns-14 text-[#374151] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#2563eb]/50 focus:bg-white focus:border-[#2563eb] transition-all"
               placeholder="キーワードで検索..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -102,14 +94,13 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
               <button
                 type="button"
                 onClick={resetSearch}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-700"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#9ca3af] hover:text-[#374151] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563eb]"
               >
                 <X className="w-4 h-4" />
               </button>
             )}
           </div>
 
-          {/* Category Tabs */}
           {!normalizedQuery && categories.length > 0 && (
             <div className="flex min-w-0 flex-wrap gap-2 mt-4 pb-2" role="tablist">
               {categories.map((category) => {
@@ -122,17 +113,17 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
                     aria-selected={isActive}
                     onClick={() => setActiveTab(category)}
                     className={cn(
-                      "px-3 py-1.5 rounded-full text-xs font-medium transition-all",
+                      "px-3 py-1.5 rounded-[9999px] text-oln-14 font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563eb]",
                       isActive
-                        ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
-                        : "bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700",
+                        ? "bg-[#2563eb] text-white shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
+                        : "bg-[#f3f4f6] text-[#6b7280] hover:bg-[#e5e7eb] hover:text-[#374151]",
                     )}
                   >
                     {category}
                     <span
                       className={cn(
                         "ml-1.5 text-[10px]",
-                        isActive ? "text-blue-100" : "text-gray-400",
+                        isActive ? "text-[#dbeafe]" : "text-[#9ca3af]",
                       )}
                     >
                       {groups[category].length}
@@ -144,7 +135,6 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
           )}
         </div>
 
-        {/* Scrollable List */}
         <div className="flex-1 overflow-y-auto custom-scrollbar px-6 py-4">
           {displayedPrompts.length > 0 ? (
             <div className="space-y-2">
@@ -153,28 +143,28 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
                   key={ref.id}
                   type="button"
                   onClick={() => handleSelect(ref)}
-                  className="w-full text-left flex items-start gap-3 p-3 rounded-xl border border-gray-100 bg-gray-50 hover:bg-blue-50 hover:border-blue-200 transition-all group"
+                  className="w-full text-left flex items-start gap-3 p-3 rounded-[20px] border border-[#e5e7eb] bg-[#f9fafb] hover:bg-[#eff6ff] hover:border-[#bfdbfe] transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563eb]"
                 >
-                  <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-white border border-gray-200 flex items-center justify-center text-xs font-bold text-gray-400 group-hover:text-blue-500 group-hover:border-blue-300 transition-colors">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-[8px] bg-white border border-[#e5e7eb] flex items-center justify-center text-xs font-bold text-[#9ca3af] group-hover:text-[#2563eb] group-hover:border-[#93c5fd] transition-colors">
                     <Check className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
-                      <span className="text-sm font-semibold text-gray-700 group-hover:text-blue-700 transition-colors">
+                      <span className="text-oln-16 font-bold text-[#374151] group-hover:text-[#1d4ed8] transition-colors">
                         {ref.title}
                       </span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-200 text-gray-500 group-hover:bg-blue-200 group-hover:text-blue-700 transition-colors">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-[9999px] bg-[#e5e7eb] text-[#6b7280] group-hover:bg-[#bfdbfe] group-hover:text-[#1d4ed8] transition-colors">
                         {ref.category}
                       </span>
                     </div>
-                    <p className="text-xs text-stone-400 line-clamp-2 leading-relaxed">
+                    <p className="text-dns-14 text-[#9ca3af] line-clamp-2 leading-relaxed">
                       {getPromptPreview(ref)}
                     </p>
                     <div className="flex flex-wrap gap-1 mt-1.5">
                       {ref.tags.slice(0, 3).map((tag) => (
                         <span
                           key={tag}
-                          className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-400 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors"
+                          className="text-[10px] px-1.5 py-0.5 rounded-[8px] bg-[#f3f4f6] text-[#9ca3af] group-hover:bg-[#dbeafe] group-hover:text-[#2563eb] transition-colors"
                         >
                           #{tag}
                         </span>
@@ -185,20 +175,18 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
               ))}
             </div>
           ) : (
-            <div className="py-12 text-center text-gray-400">
-              <p className="text-sm">一致するプロンプトが見つかりませんでした。</p>
+            <div className="py-12 text-center text-[#9ca3af]">
+              <p className="text-dns-14">一致するプロンプトが見つかりませんでした。</p>
             </div>
           )}
         </div>
 
-        {/* Footer */}
-        <div className="flex-shrink-0 px-6 py-3 border-t border-gray-100 bg-gray-50 text-xs text-gray-400 text-center">
+        <div className="flex-shrink-0 px-6 py-3 border-t border-[#e5e7eb] bg-[#f9fafb] text-dns-14 text-[#9ca3af] text-center">
           プロンプト出典:{" "}
           <a
             href="https://github.com/PicoTrex/Awesome-Nano-Banana-images"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 hover:underline"
           >
             Awesome-Nano-Banana-images
           </a>

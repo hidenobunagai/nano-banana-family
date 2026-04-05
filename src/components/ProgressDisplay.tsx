@@ -4,13 +4,13 @@ import { Check, Circle, Loader2 } from "lucide-react";
 export interface ProgressStep {
   id: string;
   label: string;
-  estimatedDuration: number; // in milliseconds
+  estimatedDuration: number;
 }
 
 export interface ProgressDisplayProps {
   isVisible: boolean;
   currentStep: number;
-  progress: number; // 0-100
+  progress: number;
   steps: ProgressStep[];
   title?: string;
   timeRemaining?: number;
@@ -34,32 +34,31 @@ export function ProgressDisplay({
 
   return (
     <div
-      className="bg-white border border-stone-200 rounded-xl p-6 shadow-sm space-y-6"
+      className="bg-white border border-[#e5e7eb] rounded-[24px] p-6 shadow-[0_1px_3px_rgba(0,0,0,0.08)] space-y-6"
       aria-live="polite"
     >
       <div className="space-y-4">
-        <div className="flex items-center justify-between gap-4 text-sm">
-          <h3 className="font-semibold text-blue-600">{title ?? "Gemini が画像を編集中..."}</h3>
-          <span className="font-mono text-stone-400 tabular-nums">{Math.round(progress)}%</span>
+        <div className="flex items-center justify-between gap-4 text-dns-14">
+          <h3 className="font-bold text-[#2563eb]">{title ?? "Gemini が画像を編集中..."}</h3>
+          <span className="font-mono text-[#9ca3af] tabular-nums">{Math.round(progress)}%</span>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-stone-400">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-dns-14 text-[#9ca3af]">
           <span>{currentStepInfo?.label ?? "処理を準備中…"}</span>
           {roundedTimeRemaining && (
             <span className="font-mono tabular-nums">残り約 {roundedTimeRemaining} 秒</span>
           )}
         </div>
 
-        {/* Progress Bar */}
-        <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+        <div className="h-2 bg-[#e5e7eb] rounded-[9999px] overflow-hidden">
           <div
-            className="h-full bg-blue-600 transition-all duration-300 ease-out shadow-[0_0_10px_rgba(37,99,235,0.35)]"
+            className="h-full bg-[#2563eb] transition-all duration-300 ease-out"
             style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
           />
         </div>
       </div>
 
-      <div className="space-y-3 relative before:absolute before:inset-y-0 before:left-3 before:w-px before:bg-stone-200 before:z-0">
+      <div className="space-y-3 relative before:absolute before:inset-y-0 before:left-3 before:w-px before:bg-[#e5e7eb] before:z-0">
         {steps.map((step, index) => {
           const isCompleted = index < currentStep;
           const isActive = index === currentStep;
@@ -75,12 +74,12 @@ export function ProgressDisplay({
             >
               <div
                 className={cn(
-                  "w-6 h-6 rounded-full flex items-center justify-center border transition-all duration-300 bg-white",
+                  "w-6 h-6 rounded-[9999px] flex items-center justify-center border transition-all duration-300 bg-white",
                   isCompleted
-                    ? "border-blue-500 text-blue-500"
+                    ? "border-[#2563eb] text-[#2563eb]"
                     : isActive
-                      ? "border-blue-400 text-blue-500 ring-2 ring-blue-500/20"
-                      : "border-gray-300 text-gray-300",
+                      ? "border-[#60a5fa] text-[#2563eb] ring-2 ring-[#2563eb]/20"
+                      : "border-[#d1d5db] text-[#d1d5db]",
                 )}
               >
                 {isCompleted ? (
@@ -93,8 +92,8 @@ export function ProgressDisplay({
               </div>
               <span
                 className={cn(
-                  "text-sm font-medium transition-colors",
-                  isActive ? "text-gray-800" : "text-gray-400",
+                  "text-oln-14 font-medium transition-colors",
+                  isActive ? "text-[#1f2937]" : "text-[#9ca3af]",
                 )}
               >
                 {step.label}

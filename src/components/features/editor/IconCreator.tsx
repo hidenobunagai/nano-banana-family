@@ -32,9 +32,8 @@ interface IconStyleOption {
   id: string;
   label: string;
   description: string;
-  emoji: string;
-  gradient: string;
   preview: string;
+  colorClass: string;
 }
 
 const ICON_STYLE_OPTIONS: IconStyleOption[] = [
@@ -42,41 +41,36 @@ const ICON_STYLE_OPTIONS: IconStyleOption[] = [
     id: "auto",
     label: "おまかせ",
     description: "情報から最適スタイルを自動選択",
-    emoji: "✨",
-    gradient: "from-violet-500 to-fuchsia-500",
     preview: "学校・教室・家族連絡先におすすめ",
+    colorClass: "bg-[#7c3aed]",
   },
   {
     id: "flat-minimal",
     label: "フラット・ミニマル",
     description: "シンプルな色面とシンボル",
-    emoji: "◻️",
-    gradient: "from-cyan-500 to-blue-500",
     preview: "見やすさ重視・通知アイコン向け",
+    colorClass: "bg-[#2563eb]",
   },
   {
     id: "gradient-modern",
     label: "グラデーション",
     description: "鮮やかなグラデーション",
-    emoji: "🌈",
-    gradient: "from-orange-500 to-pink-500",
     preview: "明るく親しみやすい雰囲気",
+    colorClass: "bg-[#ea580c]",
   },
   {
     id: "illustrated",
     label: "イラスト風",
     description: "手描き感のある温かいスタイル",
-    emoji: "🎨",
-    gradient: "from-emerald-500 to-teal-500",
     preview: "子ども向け・やわらかい印象に最適",
+    colorClass: "bg-[#059669]",
   },
   {
     id: "photo-circle",
     label: "写真加工",
     description: "写真ベースの丸型アイコン",
-    emoji: "📷",
-    gradient: "from-blue-500 to-indigo-500",
     preview: "人物やロゴを活かしたいときに便利",
+    colorClass: "bg-[#4f46e5]",
   },
 ];
 
@@ -245,7 +239,7 @@ export function IconCreator() {
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
               <div className="flex flex-col items-center gap-4">
                 <div className="relative">
-                  <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-gray-200 shadow-2xl shadow-gray-400/10">
+                  <div className="w-48 h-48 rounded-[9999px] overflow-hidden border-4 border-[#e5e7eb] shadow-[0_10px_15px_rgba(0,0,0,0.1)]">
                     <Image
                       src={resultImage}
                       alt={`${name} の生成アイコン`}
@@ -255,17 +249,17 @@ export function IconCreator() {
                       unoptimized
                     />
                   </div>
-                  <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center shadow-lg">
+                  <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-[#2563eb] rounded-[9999px] flex items-center justify-center shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
                     <Sparkles className="w-5 h-5 text-white" />
                   </div>
                 </div>
                 <div className="text-center">
-                  <p className="text-stone-700 text-sm font-medium">{name}</p>
-                  <p className="text-xs text-stone-400 mt-1">{selectedStyleOption.preview}</p>
+                  <p className="text-std-16 font-medium text-[#374151]">{name}</p>
+                  <p className="text-dns-14 text-[#9ca3af] mt-1">{selectedStyleOption.preview}</p>
                 </div>
               </div>
 
-              <div className="rounded-xl overflow-hidden border border-stone-200 shadow-xl">
+              <div className="rounded-[24px] overflow-hidden border border-[#e5e7eb] shadow-[0_10px_15px_rgba(0,0,0,0.1)]">
                 <Image
                   src={resultImage}
                   alt={`${name} の四角いプレビュー`}
@@ -285,7 +279,7 @@ export function IconCreator() {
                 </Button>
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="secondary"
                   size="lg"
                   className="w-full"
                   onClick={() => void submitEdit()}
@@ -301,10 +295,10 @@ export function IconCreator() {
               </Button>
             </div>
           ) : (
-            <div className="h-64 flex flex-col items-center justify-center text-stone-400 border-2 border-dashed border-stone-200 bg-stone-50 rounded-xl gap-3 px-6 text-center">
-              <User className="w-12 h-12 text-stone-300" />
-              <p className="text-sm">生成されたアイコンがここに表示されます</p>
-              <p className="text-xs text-stone-400">
+            <div className="h-64 flex flex-col items-center justify-center text-[#9ca3af] border-2 border-dashed border-[#e5e7eb] bg-[#f9fafb] rounded-[24px] gap-3 px-6 text-center">
+              <User className="w-12 h-12 text-[#d1d5db]" />
+              <p className="text-dns-14">生成されたアイコンがここに表示されます</p>
+              <p className="text-dns-14 text-[#9ca3af]">
                 名前とスタイルを選び、必要ならURLや参考画像も追加してください。
               </p>
             </div>
@@ -318,32 +312,32 @@ export function IconCreator() {
             name="contactName"
             autoComplete="off"
             type="text"
-            className="w-full rounded-xl bg-white border border-gray-200 px-4 py-3 text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-shadow text-lg"
+            className="w-full rounded-[20px] bg-white border border-[#e5e7eb] px-4 py-3 text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#2563eb]/50 focus:border-[#2563eb] transition-shadow text-std-20"
             placeholder="例: 桜小学校児童クラブ"
             value={name}
             onChange={(event) => setName(event.target.value)}
           />
-          <p className="mt-2 text-xs text-stone-400">
+          <p className="mt-2 text-dns-14 text-[#9ca3af]">
             連絡先の用途や雰囲気が伝わる名前にすると、モチーフを決めやすくなります。
           </p>
         </Section>
 
         <Section title="2. 参考URL（任意）" delay={0.05}>
           <div className="relative">
-            <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
+            <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9ca3af]" />
             <input
               name="referenceUrl"
               autoComplete="off"
               spellCheck={false}
               type="url"
-              className="w-full rounded-xl bg-white border border-gray-200 pl-12 pr-4 py-3 text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-shadow"
+              className="w-full rounded-[20px] bg-white border border-[#e5e7eb] pl-12 pr-4 py-3 text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#2563eb]/50 focus:border-[#2563eb] transition-shadow text-std-16"
               placeholder="https://example.com"
               value={url}
               onChange={(event) => setUrl(event.target.value)}
             />
           </div>
           <div
-            className="mt-2 rounded-2xl border border-stone-200 bg-white/80 px-4 py-3 text-xs text-stone-500"
+            className="mt-2 rounded-[24px] border border-[#e5e7eb] bg-white/80 px-4 py-3 text-dns-14 text-[#6b7280]"
             aria-live="polite"
           >
             {url.trim()
@@ -353,9 +347,9 @@ export function IconCreator() {
         </Section>
 
         <Section title="3. 参考画像（任意）" delay={0.1}>
-          <div className="mb-4 rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
-            <p className="font-medium">最大 {MAX_ICON_UPLOADS} 枚まで追加できます</p>
-            <p className="mt-1 text-gray-600">
+          <div className="mb-4 rounded-[24px] border border-[#e5e7eb] bg-[#f9fafb] px-4 py-3 text-dns-15 text-[#374151]">
+            <p className="font-bold">最大 {MAX_ICON_UPLOADS} 枚まで追加できます</p>
+            <p className="mt-1 text-[#4b5563]">
               ロゴ・人物写真・配色の参考画像などを入れると、仕上がりの方向性を合わせやすくなります。
             </p>
           </div>
@@ -373,7 +367,7 @@ export function IconCreator() {
                     type="button"
                     onClick={() => handleRemoveUploadSlot(slot.id)}
                     aria-label={`参考画像 ${index + 1} を削除`}
-                    className="absolute top-8 right-2 rounded-full bg-red-500/90 p-1.5 text-white shadow-md transition-colors hover:bg-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
+                    className="absolute top-8 right-2 rounded-[9999px] bg-[#991b1b]/90 p-1.5 text-white shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-colors hover:bg-[#7f1d1d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#991b1b]"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -385,10 +379,10 @@ export function IconCreator() {
             <button
               type="button"
               onClick={addUploadSlot}
-              className="w-full h-20 rounded-xl border-2 border-dashed border-gray-200 hover:border-blue-400 hover:bg-blue-50/50 transition-colors flex items-center justify-center text-gray-500 hover:text-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+              className="w-full h-20 rounded-[24px] border-2 border-dashed border-[#e5e7eb] hover:border-[#60a5fa] hover:bg-[#eff6ff] transition-colors flex items-center justify-center text-[#6b7280] hover:text-[#2563eb] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563eb]"
             >
               <span className="text-2xl mr-2">+</span>
-              <span className="text-sm font-medium">
+              <span className="text-oln-14 font-medium">
                 ロゴや写真を追加（あと {MAX_ICON_UPLOADS - uploads.length} 枚）
               </span>
             </button>
@@ -403,39 +397,41 @@ export function IconCreator() {
                 type="button"
                 onClick={() => setSelectedStyle(styleOption.id)}
                 className={cn(
-                  "relative flex flex-col items-start gap-2 rounded-xl border-2 p-4 text-left transition-colors",
+                  "relative flex flex-col items-start gap-2 rounded-[20px] border-2 p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563eb]",
                   selectedStyle === styleOption.id
-                    ? "border-blue-600 bg-blue-600/10 shadow-lg shadow-blue-600/10"
-                    : "border-gray-200 bg-gray-50 hover:border-gray-300 hover:bg-gray-100",
+                    ? "border-[#2563eb] bg-[#eff6ff] shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
+                    : "border-[#e5e7eb] bg-[#f9fafb] hover:border-[#d1d5db] hover:bg-[#f3f4f6]",
                 )}
               >
                 <div className="flex items-center gap-3 w-full">
                   <div
                     className={cn(
-                      "flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br text-sm shadow-md",
-                      styleOption.gradient,
+                      "flex h-10 w-10 items-center justify-center rounded-[20px] text-sm shadow-[0_1px_3px_rgba(0,0,0,0.08)]",
+                      styleOption.colorClass,
                     )}
                   >
-                    {styleOption.emoji}
+                    <Sparkles className="w-5 h-5 text-white" />
                   </div>
                   <div className="min-w-0">
                     <span
                       className={cn(
-                        "block text-sm font-semibold",
-                        selectedStyle === styleOption.id ? "text-blue-700" : "text-gray-700",
+                        "block text-oln-14 font-bold",
+                        selectedStyle === styleOption.id ? "text-[#1d4ed8]" : "text-[#374151]",
                       )}
                     >
                       {styleOption.label}
                     </span>
-                    <span className="block text-xs text-stone-400">{styleOption.preview}</span>
+                    <span className="block text-dns-14 text-[#9ca3af]">{styleOption.preview}</span>
                   </div>
                 </div>
-                <p className="text-xs leading-relaxed text-stone-500">{styleOption.description}</p>
+                <p className="text-dns-14 leading-relaxed text-[#6b7280]">
+                  {styleOption.description}
+                </p>
               </button>
             ))}
           </div>
-          <div className="mt-4 rounded-2xl border border-stone-200 bg-white/80 px-4 py-3 text-sm text-stone-500">
-            <span className="font-medium text-stone-700">
+          <div className="mt-4 rounded-[24px] border border-[#e5e7eb] bg-white/80 px-4 py-3 text-dns-15 text-[#6b7280]">
+            <span className="font-bold text-[#374151]">
               選択中のスタイル: {selectedStyleOption.label}
             </span>
             <p className="mt-1">{selectedStyleOption.preview}</p>
@@ -448,13 +444,13 @@ export function IconCreator() {
             autoComplete="off"
             spellCheck={false}
             maxLength={MAX_PROMPT_LENGTH}
-            className="w-full h-24 rounded-xl bg-white border border-gray-200 p-4 text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-shadow resize-none"
+            className="w-full h-24 rounded-[20px] bg-white border border-[#e5e7eb] p-4 text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#2563eb]/50 focus:border-[#2563eb] transition-shadow resize-none text-std-16"
             placeholder="例: 桜の花びらをモチーフにして、ピンク系の暖かい色合いでやさしくまとめたい…"
             value={customPrompt}
             onChange={(event) => setCustomPrompt(event.target.value)}
           />
           <p
-            className={`mt-1 text-xs text-right ${isCustomPromptTooLong ? "text-red-500" : "text-stone-400"}`}
+            className={`mt-1 text-dns-14 text-right ${isCustomPromptTooLong ? "text-[#991b1b]" : "text-[#9ca3af]"}`}
           >
             {customPrompt.length} / {MAX_PROMPT_LENGTH}
           </p>
@@ -464,7 +460,7 @@ export function IconCreator() {
           <Button
             type="submit"
             size="lg"
-            className="w-full h-14 bg-blue-600 hover:bg-blue-500 border-0 shadow-lg shadow-blue-600/20"
+            className="w-full h-14 bg-[#2563eb] hover:bg-[#1d4ed8] border-0 shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
             disabled={!canSubmit}
           >
             {isSubmitting ? (
@@ -478,18 +474,18 @@ export function IconCreator() {
               </>
             )}
           </Button>
-          <Button type="button" size="lg" variant="outline" onClick={resetEditor}>
+          <Button type="button" size="lg" variant="secondary" onClick={resetEditor}>
             入力をクリア
           </Button>
         </div>
 
         {errorMessage && (
           <div
-            className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm"
+            className="rounded-[24px] border border-[#fecaca] bg-[#fef2f2] p-4 text-dns-15"
             aria-live="polite"
           >
-            <p className="font-medium text-red-500">{errorMessage}</p>
-            <p className="mt-1 text-red-500/80">
+            <p className="font-bold text-[#991b1b]">{errorMessage}</p>
+            <p className="mt-1 text-[#991b1b]/80">
               URLや追加指示を短くすると改善することがあります。必要な情報だけ残して再試行してください。
             </p>
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -501,7 +497,7 @@ export function IconCreator() {
               >
                 同じ条件で再試行
               </Button>
-              <Button type="button" size="sm" variant="outline" onClick={resetEditor}>
+              <Button type="button" size="sm" variant="secondary" onClick={resetEditor}>
                 最初からやり直す
               </Button>
             </div>
