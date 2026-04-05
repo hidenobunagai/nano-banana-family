@@ -68,15 +68,15 @@ export function FileInput({
             className={cn(
               "relative flex flex-col items-center justify-center w-full h-48 rounded-2xl border-2 border-dashed transition-all cursor-pointer group overflow-hidden",
               isDragging
-                ? "border-amber-500/80 bg-amber-500/10 scale-[1.02]"
-                : "border-stone-200 hover:border-stone-300 bg-stone-100 hover:bg-stone-100",
+                ? "border-blue-500/80 bg-blue-500/10 scale-[1.02]"
+                : "border-gray-200 hover:border-gray-300 bg-gray-100 hover:bg-gray-100",
             )}
           >
-            <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/0 via-amber-500/0 to-amber-500/0 group-hover:from-amber-500/5 group-hover:via-amber-500/5 group-hover:to-transparent transition-all duration-500" />
+            <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/0 via-blue-500/0 to-blue-500/0 group-hover:from-blue-500/5 group-hover:via-blue-500/5 group-hover:to-transparent transition-all duration-500" />
 
-            <div className="flex flex-col items-center justify-center pt-5 pb-6 text-stone-400 group-hover:text-amber-600 transition-colors z-10">
+            <div className="flex flex-col items-center justify-center pt-5 pb-6 text-gray-400 group-hover:text-blue-600 transition-colors z-10">
               {isOptimizing ? (
-                <Loader2 className="w-10 h-10 mb-3 animate-spin text-amber-500" />
+                <Loader2 className="w-10 h-10 mb-3 animate-spin text-blue-500" />
               ) : (
                 <Upload
                   className={cn(

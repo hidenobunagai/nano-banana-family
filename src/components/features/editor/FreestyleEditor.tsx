@@ -245,9 +245,9 @@ export function FreestyleEditor() {
     >
       <form onSubmit={handleSubmit} className="space-y-8">
         <Section title="1. 参考にしたい画像をアップロード">
-          <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <div className="mb-4 rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
             <p className="font-medium">最大 {MAX_FREESTYLE_UPLOADS} 枚まで追加できます</p>
-            <p className="mt-1 text-amber-700/90">
+            <p className="mt-1 text-gray-600">
               複数の参考画像を入れるほど雰囲気を合わせやすくなります。選んだ画像は送信前に自動で最適化されます。
             </p>
           </div>
@@ -280,12 +280,12 @@ export function FreestyleEditor() {
                 <button
                   type="button"
                   onClick={addUploadSlot}
-                  className="h-48 rounded-xl border-2 border-dashed border-stone-200 bg-stone-50 text-stone-500 transition-colors hover:border-amber-500/50 hover:bg-amber-50 hover:text-amber-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 flex flex-col items-center justify-center"
+                  className="h-48 rounded-xl border-2 border-dashed border-gray-200 bg-white text-gray-500 transition-colors hover:border-blue-400 hover:bg-blue-50/50 hover:text-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 flex flex-col items-center justify-center"
                 >
-                <span className="block text-3xl">+</span>
-                <span className="mt-2 block text-sm font-medium">
-                  参考画像を追加（あと {MAX_FREESTYLE_UPLOADS - uploads.length} 枚）
-                </span>
+                  <span className="block text-3xl">+</span>
+                  <span className="mt-2 block text-sm font-medium">
+                    参考画像を追加（あと {MAX_FREESTYLE_UPLOADS - uploads.length} 枚）
+                  </span>
                 </button>
               </div>
             )}
@@ -308,7 +308,7 @@ export function FreestyleEditor() {
             autoComplete="off"
             spellCheck={false}
             maxLength={MAX_PROMPT_LENGTH}
-            className="w-full h-32 rounded-xl bg-white border border-stone-200 p-4 text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-shadow resize-y"
+            className="w-full h-32 rounded-xl bg-white border border-gray-200 p-4 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-shadow resize-y"
             placeholder="仕上がりのイメージを自由に記入してください…"
             value={prompt}
             onChange={(event) => setPrompt(event.target.value)}
@@ -317,7 +317,7 @@ export function FreestyleEditor() {
             <button
               type="button"
               onClick={() => setShowReferencePicker(true)}
-              className="inline-flex items-center gap-1.5 text-sm text-amber-600 hover:text-amber-700 font-medium transition-colors"
+              className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
             >
               <BookOpen className="w-4 h-4" />
               参考プロンプトから選ぶ
@@ -332,7 +332,7 @@ export function FreestyleEditor() {
           <Button
             type="submit"
             size="lg"
-            className="w-full h-14 bg-amber-500 hover:bg-amber-400 border-0 shadow-lg shadow-amber-500/20"
+            className="w-full h-14 bg-blue-600 hover:bg-blue-500 border-0 shadow-lg shadow-blue-600/20"
             disabled={!canSubmit}
           >
             {isSubmitting ? (

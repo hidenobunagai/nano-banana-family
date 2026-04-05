@@ -20,10 +20,10 @@ interface ShellProps {
 
 export function Shell({ children, onSignOut, navMode, onNavModeChange }: ShellProps) {
   return (
-    <div className="flex h-dvh w-full overflow-hidden text-stone-900 selection:bg-amber-500/30">
+    <div className="flex h-dvh w-full overflow-hidden text-gray-900 selection:bg-blue-500/20">
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         {/* Top Bar (Glass) */}
-        <header className="absolute top-0 left-0 right-0 h-20 flex items-center justify-between px-4 sm:px-8 z-30 bg-white/80 backdrop-blur-xl border-b border-amber-100 transition-all">
+        <header className="absolute top-0 left-0 right-0 h-20 flex items-center justify-between px-4 sm:px-8 z-30 bg-white/90 backdrop-blur-xl border-b border-gray-200 transition-all">
           <div className="pointer-events-auto">
             <h1 className="text-2xl font-display font-bold bg-gradient-to-r from-stone-900 via-stone-700 to-stone-500 bg-clip-text text-transparent drop-shadow-sm tracking-tight">
               Hide NB Studio
@@ -40,10 +40,10 @@ export function Shell({ children, onSignOut, navMode, onNavModeChange }: ShellPr
                   key={item.id}
                   onClick={() => onNavModeChange(item.id)}
                   className={cn(
-                    "relative flex items-center gap-2 px-4 py-2.5 rounded-lg text-base font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50",
+                    "relative flex items-center gap-2 px-4 py-2.5 rounded-lg text-base font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50",
                     active
-                      ? "text-amber-700 bg-amber-50"
-                      : "text-stone-600 hover:text-stone-900 hover:bg-stone-100",
+                      ? "text-gray-900 bg-gray-100"
+                      : "text-gray-500 hover:text-gray-900 hover:bg-gray-50",
                   )}
                 >
                   <Icon className="w-5 h-5" />
@@ -51,7 +51,7 @@ export function Shell({ children, onSignOut, navMode, onNavModeChange }: ShellPr
                   {active && (
                     <motion.div
                       layoutId="header-nav-indicator"
-                      className="absolute bottom-0 left-3 right-3 h-0.5 bg-amber-500 rounded-full"
+                      className="absolute bottom-0 left-3 right-3 h-0.5 bg-blue-500 rounded-full"
                     />
                   )}
                 </button>

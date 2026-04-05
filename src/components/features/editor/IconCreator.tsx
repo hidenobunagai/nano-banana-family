@@ -75,7 +75,7 @@ const ICON_STYLE_OPTIONS: IconStyleOption[] = [
     label: "写真加工",
     description: "写真ベースの丸型アイコン",
     emoji: "📷",
-    gradient: "from-amber-500 to-yellow-500",
+    gradient: "from-blue-500 to-indigo-500",
     preview: "人物やロゴを活かしたいときに便利",
   },
 ];
@@ -245,7 +245,7 @@ export function IconCreator() {
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
               <div className="flex flex-col items-center gap-4">
                 <div className="relative">
-                  <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-stone-200 shadow-2xl shadow-amber-500/10">
+                  <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-gray-200 shadow-2xl shadow-gray-400/10">
                     <Image
                       src={resultImage}
                       alt={`${name} の生成アイコン`}
@@ -255,7 +255,7 @@ export function IconCreator() {
                       unoptimized
                     />
                   </div>
-                  <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-amber-500 rounded-full flex items-center justify-center shadow-lg">
+                  <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center shadow-lg">
                     <Sparkles className="w-5 h-5 text-white" />
                   </div>
                 </div>
@@ -318,7 +318,7 @@ export function IconCreator() {
             name="contactName"
             autoComplete="off"
             type="text"
-            className="w-full rounded-xl bg-white border border-stone-200 px-4 py-3 text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-shadow text-lg"
+            className="w-full rounded-xl bg-white border border-gray-200 px-4 py-3 text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-shadow text-lg"
             placeholder="例: 桜小学校児童クラブ"
             value={name}
             onChange={(event) => setName(event.target.value)}
@@ -336,7 +336,7 @@ export function IconCreator() {
               autoComplete="off"
               spellCheck={false}
               type="url"
-              className="w-full rounded-xl bg-white border border-stone-200 pl-12 pr-4 py-3 text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-shadow"
+              className="w-full rounded-xl bg-white border border-gray-200 pl-12 pr-4 py-3 text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-shadow"
               placeholder="https://example.com"
               value={url}
               onChange={(event) => setUrl(event.target.value)}
@@ -353,9 +353,9 @@ export function IconCreator() {
         </Section>
 
         <Section title="3. 参考画像（任意）" delay={0.1}>
-          <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <div className="mb-4 rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
             <p className="font-medium">最大 {MAX_ICON_UPLOADS} 枚まで追加できます</p>
-            <p className="mt-1 text-amber-700/90">
+            <p className="mt-1 text-gray-600">
               ロゴ・人物写真・配色の参考画像などを入れると、仕上がりの方向性を合わせやすくなります。
             </p>
           </div>
@@ -385,7 +385,7 @@ export function IconCreator() {
             <button
               type="button"
               onClick={addUploadSlot}
-              className="w-full h-20 rounded-xl border-2 border-dashed border-stone-200 hover:border-amber-500/50 hover:bg-amber-50 transition-colors flex items-center justify-center text-stone-500 hover:text-amber-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+              className="w-full h-20 rounded-xl border-2 border-dashed border-gray-200 hover:border-blue-400 hover:bg-blue-50/50 transition-colors flex items-center justify-center text-gray-500 hover:text-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
             >
               <span className="text-2xl mr-2">+</span>
               <span className="text-sm font-medium">
@@ -405,8 +405,8 @@ export function IconCreator() {
                 className={cn(
                   "relative flex flex-col items-start gap-2 rounded-xl border-2 p-4 text-left transition-colors",
                   selectedStyle === styleOption.id
-                    ? "border-amber-500 bg-amber-500/10 shadow-lg shadow-amber-500/10"
-                    : "border-stone-200 bg-stone-50 hover:border-stone-300 hover:bg-stone-100",
+                    ? "border-blue-600 bg-blue-600/10 shadow-lg shadow-blue-600/10"
+                    : "border-gray-200 bg-gray-50 hover:border-gray-300 hover:bg-gray-100",
                 )}
               >
                 <div className="flex items-center gap-3 w-full">
@@ -422,7 +422,7 @@ export function IconCreator() {
                     <span
                       className={cn(
                         "block text-sm font-semibold",
-                        selectedStyle === styleOption.id ? "text-amber-700" : "text-stone-700",
+                        selectedStyle === styleOption.id ? "text-blue-700" : "text-gray-700",
                       )}
                     >
                       {styleOption.label}
@@ -448,7 +448,7 @@ export function IconCreator() {
             autoComplete="off"
             spellCheck={false}
             maxLength={MAX_PROMPT_LENGTH}
-            className="w-full h-24 rounded-xl bg-white border border-stone-200 p-4 text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-shadow resize-none"
+            className="w-full h-24 rounded-xl bg-white border border-gray-200 p-4 text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-shadow resize-none"
             placeholder="例: 桜の花びらをモチーフにして、ピンク系の暖かい色合いでやさしくまとめたい…"
             value={customPrompt}
             onChange={(event) => setCustomPrompt(event.target.value)}
@@ -464,7 +464,7 @@ export function IconCreator() {
           <Button
             type="submit"
             size="lg"
-            className="w-full h-14 bg-amber-500 hover:bg-amber-400 border-0 shadow-lg shadow-amber-500/20"
+            className="w-full h-14 bg-blue-600 hover:bg-blue-500 border-0 shadow-lg shadow-blue-600/20"
             disabled={!canSubmit}
           >
             {isSubmitting ? (

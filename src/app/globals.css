@@ -18,8 +18,8 @@
 }
 
 :root {
-  --background: #FFFFFF;
-  --foreground: #1C1917;
+  --background: #f2f4f7;
+  --foreground: #111827;
 }
 
 @layer utilities {
@@ -30,7 +30,7 @@
   .custom-scrollbar {
     scrollbar-gutter: stable;
     scrollbar-width: thin;
-    scrollbar-color: #fde68a #fef9ee;
+    scrollbar-color: #cbd5e1 #f1f5f9;
   }
 
   .custom-scrollbar::-webkit-scrollbar {
@@ -39,16 +39,16 @@
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
-    background: #fef9ee;
+    background: #f1f5f9;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #fde68a;
+    background: #cbd5e1;
     border-radius: 9999px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #fcd34d;
+    background: #94a3b8;
   }
 
   @media (pointer: coarse) {
@@ -65,15 +65,15 @@
 
   /* Glassmorphism Utilities */
   .glass-panel {
-    @apply bg-white/80 backdrop-blur-md border border-amber-100 shadow-sm;
+    @apply bg-white/90 backdrop-blur-md border border-gray-200 shadow-sm;
   }
 
   .glass-button {
-    @apply bg-white/80 hover:bg-white/95 active:bg-white/80 backdrop-blur-sm border border-amber-100 transition-all duration-200;
+    @apply bg-white/80 hover:bg-white/95 active:bg-white/80 backdrop-blur-sm border border-gray-200 transition-all duration-200;
   }
 
   .text-gradient-accent {
-    @apply bg-gradient-to-br from-amber-400 to-yellow-500 bg-clip-text text-transparent;
+    @apply bg-gradient-to-br from-gray-600 to-gray-800 bg-clip-text text-transparent;
   }
 }
 

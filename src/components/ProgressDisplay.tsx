@@ -39,12 +39,8 @@ export function ProgressDisplay({
     >
       <div className="space-y-4">
         <div className="flex items-center justify-between gap-4 text-sm">
-          <h3 className="font-semibold text-amber-600">
-            {title ?? "Gemini が画像を編集中..."}
-          </h3>
-          <span className="font-mono text-stone-400 tabular-nums">
-            {Math.round(progress)}%
-          </span>
+          <h3 className="font-semibold text-blue-600">{title ?? "Gemini が画像を編集中..."}</h3>
+          <span className="font-mono text-stone-400 tabular-nums">{Math.round(progress)}%</span>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-stone-400">
@@ -55,9 +51,9 @@ export function ProgressDisplay({
         </div>
 
         {/* Progress Bar */}
-        <div className="h-1.5 bg-stone-200 rounded-full overflow-hidden">
+        <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
           <div
-            className="h-full bg-amber-500 transition-all duration-300 ease-out shadow-[0_0_10px_rgba(245,158,11,0.35)]"
+            className="h-full bg-blue-600 transition-all duration-300 ease-out shadow-[0_0_10px_rgba(37,99,235,0.35)]"
             style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
           />
         </div>
@@ -74,17 +70,17 @@ export function ProgressDisplay({
               key={step.id}
               className={cn(
                 "relative z-10 flex items-center gap-4 transition-colors duration-500",
-                isPending ? "opacity-40" : "opacity-100"
+                isPending ? "opacity-40" : "opacity-100",
               )}
             >
               <div
                 className={cn(
                   "w-6 h-6 rounded-full flex items-center justify-center border transition-all duration-300 bg-white",
                   isCompleted
-                    ? "border-amber-500 text-amber-500"
+                    ? "border-blue-500 text-blue-500"
                     : isActive
-                    ? "border-amber-400 text-amber-500 ring-2 ring-amber-500/20"
-                    : "border-stone-300 text-stone-300"
+                      ? "border-blue-400 text-blue-500 ring-2 ring-blue-500/20"
+                      : "border-gray-300 text-gray-300",
                 )}
               >
                 {isCompleted ? (
@@ -98,7 +94,7 @@ export function ProgressDisplay({
               <span
                 className={cn(
                   "text-sm font-medium transition-colors",
-                  isActive ? "text-stone-800" : "text-stone-400"
+                  isActive ? "text-gray-800" : "text-gray-400",
                 )}
               >
                 {step.label}

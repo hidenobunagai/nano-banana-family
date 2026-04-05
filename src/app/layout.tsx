@@ -69,7 +69,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         />
       </head>
       {/* UI/UX Pro Max: Global Background & Font Classes */}
-      <body className="font-sans bg-white text-stone-900 antialiased selection:bg-amber-500/30 selection:text-amber-900">
+      <body className="font-sans bg-[#f2f4f7] text-gray-900 antialiased selection:bg-blue-500/20 selection:text-blue-900">
         {/* Google Tag Manager (noscript) */}
         <noscript>
           <iframe
@@ -81,14 +81,14 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         </noscript>
         {/* Background Gradients for depth */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-          <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-amber-300/15 rounded-full blur-[120px]" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-yellow-300/15 rounded-full blur-[120px]" />
+          <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-300/8 rounded-full blur-[120px]" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-indigo-300/8 rounded-full blur-[120px]" />
         </div>
 
         {/* Skip to content link for accessibility */}
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-amber-500 focus:text-white focus:rounded-lg focus:shadow-lg"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:shadow-lg"
         >
           メインコンテンツへスキップ
         </a>
