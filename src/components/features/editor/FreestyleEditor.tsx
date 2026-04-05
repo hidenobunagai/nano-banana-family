@@ -273,16 +273,21 @@ export function FreestyleEditor() {
               </div>
             ))}
             {uploads.length < MAX_FREESTYLE_UPLOADS && (
-              <button
-                type="button"
-                onClick={addUploadSlot}
-                className="h-48 rounded-xl border-2 border-dashed border-stone-200 bg-stone-50 text-stone-500 transition-colors hover:border-amber-500/50 hover:bg-amber-50 hover:text-amber-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
-              >
+              <div className="space-y-3">
+                <div className="flex flex-col">
+                  <span className="text-sm text-stone-400">&nbsp;</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={addUploadSlot}
+                  className="h-48 rounded-xl border-2 border-dashed border-stone-200 bg-stone-50 text-stone-500 transition-colors hover:border-amber-500/50 hover:bg-amber-50 hover:text-amber-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 flex flex-col items-center justify-center"
+                >
                 <span className="block text-3xl">+</span>
                 <span className="mt-2 block text-sm font-medium">
                   参考画像を追加（あと {MAX_FREESTYLE_UPLOADS - uploads.length} 枚）
                 </span>
-              </button>
+                </button>
+              </div>
             )}
           </div>
         </Section>
