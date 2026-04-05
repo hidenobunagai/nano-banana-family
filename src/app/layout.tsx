@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Outfit, Inter } from "next/font/google"; // UI/UX Pro Max: Premium fonts
+import { Inter, Outfit } from "next/font/google"; // UI/UX Pro Max: Premium fonts
 import Script from "next/script";
-import { AuthProvider } from "./providers";
 import "./globals.css";
+import { AuthProvider } from "./providers";
 
 import { Analytics } from "@vercel/analytics/next";
 

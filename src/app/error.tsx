@@ -24,16 +24,12 @@ export default function Error({
           </div>
         </div>
         <div>
-          <h2 className="text-xl font-bold text-stone-900 font-display">
-            エラーが発生しました
-          </h2>
+          <h2 className="text-xl font-bold text-stone-900 font-display">エラーが発生しました</h2>
           <p className="mt-2 text-sm text-stone-500">
             予期しないエラーが起きました。もう一度お試しください。
           </p>
           {error.digest && (
-            <p className="mt-1 text-xs text-stone-400 font-mono">
-              エラーID: {error.digest}
-            </p>
+            <p className="mt-1 text-xs text-stone-400 font-mono">エラーID: {error.digest}</p>
           )}
         </div>
         <Button onClick={reset} size="lg" className="w-full">
