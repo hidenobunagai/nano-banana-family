@@ -33,7 +33,7 @@ export default function Home() {
 
   if (status === "loading") {
     return (
-      <main className="min-h-dvh flex items-center justify-center bg-[#FFFEF7] text-stone-900">
+      <main className="min-h-dvh flex items-center justify-center bg-white text-stone-900">
         <div className="flex flex-col items-center gap-4 animate-pulse">
           <Loader2 className="w-10 h-10 animate-spin text-amber-500" />
           <p className="text-stone-600 font-medium font-sans">読み込み中...</p>
@@ -44,7 +44,7 @@ export default function Home() {
 
   if (status !== "authenticated") {
     return (
-      <main className="min-h-dvh flex items-center justify-center p-6 bg-[#FFFEF7] relative overflow-hidden">
+      <main className="min-h-dvh flex items-center justify-center p-6 bg-white relative overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-amber-400/10 rounded-full blur-[120px] pointer-events-none animate-float" />
         <div className="absolute bottom-0 right-0 w-[600px] h-[400px] bg-yellow-300/10 rounded-full blur-[100px] pointer-events-none" />
 

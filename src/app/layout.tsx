@@ -44,7 +44,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
-  themeColor: "#FFFEF7", // Match background
+  themeColor: "#FFFFFF", // Match background
 };
 
 export default function RootLayout({
@@ -69,7 +69,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         />
       </head>
       {/* UI/UX Pro Max: Global Background & Font Classes */}
-      <body className="font-sans bg-[#FFFEF7] text-stone-900 antialiased selection:bg-amber-500/30 selection:text-amber-900">
+      <body className="font-sans bg-white text-stone-900 antialiased selection:bg-amber-500/30 selection:text-amber-900">
         {/* Google Tag Manager (noscript) */}
         <noscript>
           <iframe
