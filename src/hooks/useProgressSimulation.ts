@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useReducer } from "react";
 import { ProgressStep } from "@/components/ProgressDisplay";
+import { useCallback, useEffect, useReducer, useRef } from "react";
 
 export const PROGRESS_STEPS: ProgressStep[] = [
   {
@@ -100,6 +100,7 @@ export function useProgressSimulation({
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
+      completionRequestedRef.current = false;
       const resetTimeout = setTimeout(() => {
         dispatch({ type: "RESET" });
       }, 0);
