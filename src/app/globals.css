@@ -3,6 +3,7 @@
 @theme {
   --font-sans: "Noto Sans JP", -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: "Noto Sans Mono", monospace;
+  --font-display: "Noto Sans JP", -apple-system, BlinkMacSystemFont, sans-serif;
 
   /* DADS Spacing Scale (8px base, 5 steps) */
   --spacing-xs: 8px;
@@ -505,4 +506,23 @@ a:focus-visible {
     width: 0;
     height: 0;
   }
+}
+
+/* Glass panel (used in auth/landing page) */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* Floating pulse for decorative blobs */
+@keyframes float-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.animate-float {
+  animation: float-pulse 8s ease-in-out infinite;
 }

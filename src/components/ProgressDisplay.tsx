@@ -34,31 +34,31 @@ export function ProgressDisplay({
 
   return (
     <div
-      className="bg-white border border-[#e5e7eb] rounded-[24px] p-6 shadow-[0_1px_3px_rgba(0,0,0,0.08)] space-y-6"
+      className="bg-white border border-[var(--color-neutral-200)] rounded-[var(--radius-lg)] p-6 shadow-[var(--shadow-level-1)] space-y-6"
       aria-live="polite"
     >
       <div className="space-y-4">
         <div className="flex items-center justify-between gap-4 text-dns-14">
-          <h3 className="font-bold text-[#2563eb]">{title ?? "Gemini が画像を編集中..."}</h3>
-          <span className="font-mono text-[#9ca3af] tabular-nums">{Math.round(progress)}%</span>
+          <h3 className="font-bold text-[var(--color-primary-600)]">{title ?? "Gemini が画像を生成中..."}</h3>
+          <span className="font-mono text-[var(--color-neutral-400)] tabular-nums">{Math.round(progress)}%</span>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-2 text-dns-14 text-[#9ca3af]">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-dns-14 text-[var(--color-neutral-400)]">
           <span>{currentStepInfo?.label ?? "処理を準備中…"}</span>
           {roundedTimeRemaining && (
             <span className="font-mono tabular-nums">残り約 {roundedTimeRemaining} 秒</span>
           )}
         </div>
 
-        <div className="h-2 bg-[#e5e7eb] rounded-[9999px] overflow-hidden">
+        <div className="h-2.5 bg-[var(--color-neutral-100)] rounded-[var(--radius-full)] overflow-hidden">
           <div
-            className="h-full bg-[#2563eb] transition-all duration-300 ease-out"
+            className="h-full bg-gradient-to-r from-[var(--color-primary-400)] to-[var(--color-primary-600)] transition-all duration-300 ease-out rounded-full"
             style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
           />
         </div>
       </div>
 
-      <div className="space-y-3 relative before:absolute before:inset-y-0 before:left-3 before:w-px before:bg-[#e5e7eb] before:z-0">
+      <div className="space-y-3 relative before:absolute before:inset-y-0 before:left-3 before:w-px before:bg-[var(--color-neutral-100)] before:z-0">
         {steps.map((step, index) => {
           const isCompleted = index < currentStep;
           const isActive = index === currentStep;
@@ -74,12 +74,12 @@ export function ProgressDisplay({
             >
               <div
                 className={cn(
-                  "w-6 h-6 rounded-[9999px] flex items-center justify-center border transition-all duration-300 bg-white",
+                  "w-6 h-6 rounded-[var(--radius-full)] flex items-center justify-center border transition-all duration-300 bg-white",
                   isCompleted
-                    ? "border-[#2563eb] text-[#2563eb]"
+                    ? "border-[var(--color-primary-600)] text-[var(--color-primary-600)]"
                     : isActive
-                      ? "border-[#60a5fa] text-[#2563eb] ring-2 ring-[#2563eb]/20"
-                      : "border-[#d1d5db] text-[#d1d5db]",
+                      ? "border-[var(--color-primary-400)] text-[var(--color-primary-600)] ring-2 ring-[var(--color-primary-600)]/20"
+                      : "border-[var(--color-neutral-300)] text-[var(--color-neutral-300)]",
                 )}
               >
                 {isCompleted ? (
@@ -93,7 +93,7 @@ export function ProgressDisplay({
               <span
                 className={cn(
                   "text-oln-14 font-medium transition-colors",
-                  isActive ? "text-[#1f2937]" : "text-[#9ca3af]",
+                  isActive ? "text-[var(--color-neutral-800)]" : "text-[var(--color-neutral-400)]",
                 )}
               >
                 {step.label}

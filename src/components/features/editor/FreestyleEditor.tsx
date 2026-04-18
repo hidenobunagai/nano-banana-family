@@ -233,11 +233,16 @@ export function FreestyleEditor() {
               </Button>
             </div>
           ) : (
-            <div className="h-64 flex flex-col items-center justify-center gap-2 text-[#9ca3af] border-2 border-dashed border-[#e5e7eb] bg-[#f9fafb] rounded-[24px] px-6 text-center">
-              <p className="font-medium text-[#6b7280]">結果エリア</p>
-              <p className="text-dns-14">
-                参考画像と仕上がりイメージを入力すると、ここに生成結果が表示されます。
-              </p>
+            <div className="h-64 flex flex-col items-center justify-center gap-3 text-[var(--color-neutral-400)] border-2 border-dashed border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)] rounded-[var(--radius-lg)] px-6 text-center">
+              <div className="w-14 h-14 rounded-full bg-[var(--color-neutral-100)] flex items-center justify-center">
+                <Download className="w-6 h-6 text-[var(--color-neutral-300)]" />
+              </div>
+              <div className="space-y-1">
+                <p className="font-medium text-[var(--color-neutral-500)]">生成結果がここに表示されます</p>
+                <p className="text-dns-14 leading-relaxed">
+                  参考画像と仕上がりイメージを入力して生成を実行してください。
+                </p>
+              </div>
             </div>
           )}
         </Section>
@@ -245,15 +250,15 @@ export function FreestyleEditor() {
     >
       <form onSubmit={handleSubmit} className="space-y-8">
         <Section title="1. 参考にしたい画像をアップロード">
-          <div className="mb-4 rounded-[24px] border border-[#e5e7eb] bg-[#f9fafb] px-4 py-3 text-dns-15 text-[#374151]">
+          <div className="mb-4 rounded-[var(--radius-lg)] border border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)] px-4 py-3 text-dns-15 text-[var(--color-neutral-700)]">
             <p className="font-bold">最大 {MAX_FREESTYLE_UPLOADS} 枚まで追加できます</p>
-            <p className="mt-1 text-[#4b5563]">
+            <p className="mt-1 text-[var(--color-neutral-600)]">
               複数の参考画像を入れるほど雰囲気を合わせやすくなります。選んだ画像は送信前に自動で最適化されます。
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {uploads.map((slot, index) => (
-              <div key={slot.id} className="relative">
+              <div key={slot.id} className="relative group">
                 <FileInput
                   subLabel={`参考画像 ${index + 1}`}
                   previewUrl={slot.previewUrl}
@@ -265,7 +270,7 @@ export function FreestyleEditor() {
                     type="button"
                     onClick={() => handleRemoveUploadSlot(slot.id)}
                     aria-label={`参考画像 ${index + 1} を削除`}
-                    className="absolute top-8 right-2 rounded-[9999px] bg-[#991b1b]/90 p-1.5 text-white shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-colors hover:bg-[#7f1d1d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#991b1b]"
+                    className="absolute top-2 right-2 rounded-[var(--radius-full)] bg-[var(--color-error-dark)]/90 p-1.5 text-white shadow-[var(--shadow-level-1)] transition-colors hover:bg-[var(--color-error-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error-dark)]"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -273,27 +278,22 @@ export function FreestyleEditor() {
               </div>
             ))}
             {uploads.length < MAX_FREESTYLE_UPLOADS && (
-              <div className="space-y-3">
-                <div className="flex flex-col">
-                  <span className="text-dns-14 text-[#9ca3af]">&nbsp;</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={addUploadSlot}
-                  className="h-48 rounded-[24px] border-2 border-dashed border-[#e5e7eb] bg-white text-[#6b7280] transition-colors hover:border-[#60a5fa] hover:bg-[#eff6ff] hover:text-[#2563eb] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563eb] flex flex-col items-center justify-center"
-                >
-                  <span className="block text-3xl">+</span>
-                  <span className="mt-2 block text-oln-14 font-medium">
-                    参考画像を追加（あと {MAX_FREESTYLE_UPLOADS - uploads.length} 枚）
-                  </span>
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={addUploadSlot}
+                className="h-48 rounded-[var(--radius-lg)] border-2 border-dashed border-[var(--color-neutral-200)] bg-white text-[var(--color-neutral-500)] transition-colors hover:border-[var(--color-primary-400)] hover:bg-[var(--color-primary-50)] hover:text-[var(--color-primary-600)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)] flex flex-col items-center justify-center"
+              >
+                <span className="block text-3xl">+</span>
+                <span className="mt-2 block text-oln-14 font-medium">
+                  参考画像を追加（あと {MAX_FREESTYLE_UPLOADS - uploads.length} 枚）
+                </span>
+              </button>
             )}
           </div>
         </Section>
 
         <Section title="2. 仕上がりのイメージを記入">
-          <div className="mb-4 rounded-[24px] border border-[#e5e7eb] bg-white/80 px-4 py-3 text-dns-15 text-[#6b7280]">
+          <div className="mb-4 rounded-[var(--radius-md)] border border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)] px-4 py-3 text-dns-15 text-[var(--color-neutral-600)]">
             <p>
               例:「やわらかい水彩風にしたい」「兄弟が冒険している映画ポスターのように」など、雰囲気・色・構図を書くと結果が安定します。
             </p>
@@ -308,7 +308,7 @@ export function FreestyleEditor() {
             autoComplete="off"
             spellCheck={false}
             maxLength={MAX_PROMPT_LENGTH}
-            className="w-full h-32 rounded-[20px] bg-white border border-[#e5e7eb] p-4 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#2563eb]/50 focus:border-[#2563eb] transition-shadow resize-y text-std-16"
+            className="w-full h-32 rounded-[var(--radius-md)] bg-white border border-[var(--color-neutral-200)] p-4 text-[var(--color-neutral-900)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30 focus:border-[var(--color-primary-500)] transition-shadow resize-y text-std-16"
             placeholder="仕上がりのイメージを自由に記入してください…"
             value={prompt}
             onChange={(event) => setPrompt(event.target.value)}
@@ -317,12 +317,12 @@ export function FreestyleEditor() {
             <button
               type="button"
               onClick={() => setShowReferencePicker(true)}
-              className="inline-flex items-center gap-1.5 text-oln-14 text-[#2563eb] hover:text-[#1d4ed8] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563eb]"
+              className="inline-flex items-center gap-1.5 text-oln-14 text-[var(--color-primary-600)] hover:text-[var(--color-primary-700)] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]"
             >
               <BookOpen className="w-4 h-4" />
               参考プロンプトから選ぶ
             </button>
-            <p className={`text-dns-14 ${isPromptTooLong ? "text-[#991b1b]" : "text-[#9ca3af]"}`}>
+            <p className={`text-dns-14 ${isPromptTooLong ? "text-[var(--color-error-dark)]" : "text-[var(--color-neutral-400)]"}`}>
               {prompt.length} / {MAX_PROMPT_LENGTH}
             </p>
           </div>
@@ -349,11 +349,11 @@ export function FreestyleEditor() {
         </div>
         {errorMessage && (
           <div
-            className="rounded-[24px] border border-[#fecaca] bg-[#fef2f2] p-4 text-dns-15"
+            className="dads-banner dads-banner--error text-dns-15"
             aria-live="polite"
           >
-            <p className="font-bold text-[#991b1b]">{errorMessage}</p>
-            <p className="mt-1 text-[#991b1b]/80">
+            <p className="font-bold">{errorMessage}</p>
+            <p className="mt-1 opacity-80">
               指示文を短くしたり、参考画像を減らしたりすると安定することがあります。
             </p>
             <div className="mt-3 grid gap-3 sm:grid-cols-2">

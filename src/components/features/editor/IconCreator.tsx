@@ -239,7 +239,7 @@ export function IconCreator() {
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
               <div className="flex flex-col items-center gap-4">
                 <div className="relative">
-                  <div className="w-48 h-48 rounded-[9999px] overflow-hidden border-4 border-[#e5e7eb] shadow-[0_10px_15px_rgba(0,0,0,0.1)]">
+                  <div className="w-48 h-48 rounded-[var(--radius-full)] overflow-hidden border-4 border-[var(--color-neutral-200)] shadow-[var(--shadow-level-3)]">
                     <Image
                       src={resultImage}
                       alt={`${name} の生成アイコン`}
@@ -249,17 +249,17 @@ export function IconCreator() {
                       unoptimized
                     />
                   </div>
-                  <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-[#2563eb] rounded-[9999px] flex items-center justify-center shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
+                  <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-[var(--color-primary-600)] rounded-[var(--radius-full)] flex items-center justify-center shadow-[var(--shadow-level-2)]">
                     <Sparkles className="w-5 h-5 text-white" />
                   </div>
                 </div>
                 <div className="text-center">
-                  <p className="text-std-16 font-medium text-[#374151]">{name}</p>
-                  <p className="text-dns-14 text-[#9ca3af] mt-1">{selectedStyleOption.preview}</p>
+                  <p className="text-std-16 font-medium text-[var(--color-neutral-700)]">{name}</p>
+                  <p className="text-dns-14 text-[var(--color-neutral-400)] mt-1">{selectedStyleOption.preview}</p>
                 </div>
               </div>
 
-              <div className="rounded-[24px] overflow-hidden border border-[#e5e7eb] shadow-[0_10px_15px_rgba(0,0,0,0.1)]">
+              <div className="rounded-[var(--radius-lg)] overflow-hidden border border-[var(--color-neutral-200)] shadow-[var(--shadow-level-3)]">
                 <Image
                   src={resultImage}
                   alt={`${name} の四角いプレビュー`}
@@ -295,24 +295,28 @@ export function IconCreator() {
               </Button>
             </div>
           ) : (
-            <div className="h-64 flex flex-col items-center justify-center text-[#9ca3af] border-2 border-dashed border-[#e5e7eb] bg-[#f9fafb] rounded-[24px] gap-3 px-6 text-center">
-              <User className="w-12 h-12 text-[#d1d5db]" />
-              <p className="text-dns-14">生成されたアイコンがここに表示されます</p>
-              <p className="text-dns-14 text-[#9ca3af]">
-                名前とスタイルを選び、必要ならURLや参考画像も追加してください。
-              </p>
+            <div className="h-64 flex flex-col items-center justify-center gap-3 text-[var(--color-neutral-400)] border-2 border-dashed border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)] rounded-[var(--radius-lg)] px-6 text-center">
+              <div className="w-16 h-16 rounded-full bg-[var(--color-neutral-100)] flex items-center justify-center">
+                <User className="w-8 h-8 text-[var(--color-neutral-300)]" />
+              </div>
+              <div className="space-y-1">
+                <p className="font-medium text-[var(--color-neutral-500)]">アイコンがここに表示されます</p>
+                <p className="text-dns-14 leading-relaxed">
+                  名前とスタイルを選び、必要ならURLや参考画像も追加してください。
+                </p>
+              </div>
             </div>
           )}
         </Section>
       }
     >
       <form onSubmit={handleSubmit} className="space-y-6">
-        <Section title="1. 連絡先名" delay={0}>
+        <Section title="1. 連絡先名">
           <input
             name="contactName"
             autoComplete="off"
             type="text"
-            className="w-full rounded-[20px] bg-white border border-[#e5e7eb] px-4 py-3 text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#2563eb]/50 focus:border-[#2563eb] transition-shadow text-std-20"
+            className="w-full rounded-[var(--radius-md)] bg-white border border-[var(--color-neutral-200)] px-4 py-3 text-[var(--color-neutral-900)] placeholder:text-[var(--color-neutral-400)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30 focus:border-[var(--color-primary-500)] transition-shadow text-std-20"
             placeholder="例: 桜小学校児童クラブ"
             value={name}
             onChange={(event) => setName(event.target.value)}
@@ -322,7 +326,7 @@ export function IconCreator() {
           </p>
         </Section>
 
-        <Section title="2. 参考URL（任意）" delay={0.05}>
+        <Section title="2. 参考URL（任意）">
           <div className="relative">
             <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9ca3af]" />
             <input
@@ -330,14 +334,14 @@ export function IconCreator() {
               autoComplete="off"
               spellCheck={false}
               type="url"
-              className="w-full rounded-[20px] bg-white border border-[#e5e7eb] pl-12 pr-4 py-3 text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#2563eb]/50 focus:border-[#2563eb] transition-shadow text-std-16"
+              className="w-full rounded-[var(--radius-md)] bg-white border border-[var(--color-neutral-200)] pl-12 pr-4 py-3 text-[var(--color-neutral-900)] placeholder:text-[var(--color-neutral-400)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30 focus:border-[var(--color-primary-500)] transition-shadow text-std-16"
               placeholder="https://example.com"
               value={url}
               onChange={(event) => setUrl(event.target.value)}
             />
           </div>
           <div
-            className="mt-2 rounded-[24px] border border-[#e5e7eb] bg-white/80 px-4 py-3 text-dns-14 text-[#6b7280]"
+            className="mt-2 rounded-[var(--radius-lg)] border border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)] px-4 py-3 text-dns-14 text-[var(--color-neutral-500)]"
             aria-live="polite"
           >
             {url.trim()
@@ -346,10 +350,10 @@ export function IconCreator() {
           </div>
         </Section>
 
-        <Section title="3. 参考画像（任意）" delay={0.1}>
-          <div className="mb-4 rounded-[24px] border border-[#e5e7eb] bg-[#f9fafb] px-4 py-3 text-dns-15 text-[#374151]">
+        <Section title="3. 参考画像（任意）">
+          <div className="mb-4 rounded-[var(--radius-md)] border border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)] px-4 py-3 text-dns-15 text-[var(--color-neutral-700)]">
             <p className="font-bold">最大 {MAX_ICON_UPLOADS} 枚まで追加できます</p>
-            <p className="mt-1 text-[#4b5563]">
+            <p className="mt-1 text-[var(--color-neutral-600)]">
               ロゴ・人物写真・配色の参考画像などを入れると、仕上がりの方向性を合わせやすくなります。
             </p>
           </div>
@@ -367,7 +371,7 @@ export function IconCreator() {
                     type="button"
                     onClick={() => handleRemoveUploadSlot(slot.id)}
                     aria-label={`参考画像 ${index + 1} を削除`}
-                    className="absolute top-8 right-2 rounded-[9999px] bg-[#991b1b]/90 p-1.5 text-white shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-colors hover:bg-[#7f1d1d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#991b1b]"
+                    className="absolute top-2 right-2 rounded-[var(--radius-full)] bg-[var(--color-error-dark)]/90 p-1.5 text-white shadow-[var(--shadow-level-1)] transition-colors hover:bg-[var(--color-error-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error-dark)]"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -379,7 +383,7 @@ export function IconCreator() {
             <button
               type="button"
               onClick={addUploadSlot}
-              className="w-full h-20 rounded-[24px] border-2 border-dashed border-[#e5e7eb] hover:border-[#60a5fa] hover:bg-[#eff6ff] transition-colors flex items-center justify-center text-[#6b7280] hover:text-[#2563eb] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563eb]"
+              className="w-full h-20 rounded-[var(--radius-lg)] border-2 border-dashed border-[var(--color-neutral-200)] hover:border-[var(--color-primary-400)] hover:bg-[var(--color-primary-50)] transition-colors flex items-center justify-center text-[var(--color-neutral-500)] hover:text-[var(--color-primary-600)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]"
             >
               <span className="text-2xl mr-2">+</span>
               <span className="text-oln-14 font-medium">
@@ -389,7 +393,7 @@ export function IconCreator() {
           )}
         </Section>
 
-        <Section title="4. スタイル" delay={0.15}>
+        <Section title="4. スタイル">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {ICON_STYLE_OPTIONS.map((styleOption) => (
               <button
@@ -399,8 +403,8 @@ export function IconCreator() {
                 className={cn(
                   "relative flex flex-col items-start gap-2 rounded-[20px] border-2 p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563eb]",
                   selectedStyle === styleOption.id
-                    ? "border-[#2563eb] bg-[#eff6ff] shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
-                    : "border-[#e5e7eb] bg-[#f9fafb] hover:border-[#d1d5db] hover:bg-[#f3f4f6]",
+                    ? "border-[var(--color-primary-600)] bg-[var(--color-primary-50)] shadow-[var(--shadow-level-1)]"
+                    : "border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)] hover:border-[var(--color-neutral-300)] hover:bg-[var(--color-neutral-100)]",
                 )}
               >
                 <div className="flex items-center gap-3 w-full">
@@ -416,41 +420,41 @@ export function IconCreator() {
                     <span
                       className={cn(
                         "block text-oln-14 font-bold",
-                        selectedStyle === styleOption.id ? "text-[#1d4ed8]" : "text-[#374151]",
+                        selectedStyle === styleOption.id ? "text-[var(--color-primary-700)]" : "text-[var(--color-neutral-700)]",
                       )}
                     >
                       {styleOption.label}
                     </span>
-                    <span className="block text-dns-14 text-[#9ca3af]">{styleOption.preview}</span>
+                <span className="block text-dns-14 text-[var(--color-neutral-400)]">{styleOption.preview}</span>
                   </div>
                 </div>
-                <p className="text-dns-14 leading-relaxed text-[#6b7280]">
+                <p className="text-dns-14 leading-relaxed text-[var(--color-neutral-500)]">
                   {styleOption.description}
                 </p>
               </button>
             ))}
           </div>
-          <div className="mt-4 rounded-[24px] border border-[#e5e7eb] bg-white/80 px-4 py-3 text-dns-15 text-[#6b7280]">
-            <span className="font-bold text-[#374151]">
+          <div className="mt-4 rounded-[var(--radius-lg)] border border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)] px-4 py-3 text-dns-15 text-[var(--color-neutral-500)]">
+            <span className="font-bold text-[var(--color-neutral-700)]">
               選択中のスタイル: {selectedStyleOption.label}
             </span>
             <p className="mt-1">{selectedStyleOption.preview}</p>
           </div>
         </Section>
 
-        <Section title="5. 追加の指示（任意）" delay={0.2}>
+        <Section title="5. 追加の指示（任意）">
           <textarea
             name="customPrompt"
             autoComplete="off"
             spellCheck={false}
             maxLength={MAX_PROMPT_LENGTH}
-            className="w-full h-24 rounded-[20px] bg-white border border-[#e5e7eb] p-4 text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#2563eb]/50 focus:border-[#2563eb] transition-shadow resize-none text-std-16"
+            className="w-full h-24 rounded-[var(--radius-md)] bg-white border border-[var(--color-neutral-200)] p-4 text-[var(--color-neutral-900)] placeholder:text-[var(--color-neutral-400)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30 focus:border-[var(--color-primary-500)] transition-shadow resize-none text-std-16"
             placeholder="例: 桜の花びらをモチーフにして、ピンク系の暖かい色合いでやさしくまとめたい…"
             value={customPrompt}
             onChange={(event) => setCustomPrompt(event.target.value)}
           />
           <p
-            className={`mt-1 text-dns-14 text-right ${isCustomPromptTooLong ? "text-[#991b1b]" : "text-[#9ca3af]"}`}
+            className={`mt-1 text-dns-14 text-right ${isCustomPromptTooLong ? "text-[var(--color-error-dark)]" : "text-[var(--color-neutral-400)]"}`}
           >
             {customPrompt.length} / {MAX_PROMPT_LENGTH}
           </p>
@@ -481,11 +485,11 @@ export function IconCreator() {
 
         {errorMessage && (
           <div
-            className="rounded-[24px] border border-[#fecaca] bg-[#fef2f2] p-4 text-dns-15"
+            className="dads-banner dads-banner--error text-dns-15"
             aria-live="polite"
           >
-            <p className="font-bold text-[#991b1b]">{errorMessage}</p>
-            <p className="mt-1 text-[#991b1b]/80">
+            <p className="font-bold">{errorMessage}</p>
+            <p className="mt-1 opacity-80">
               URLや追加指示を短くすると改善することがあります。必要な情報だけ残して再試行してください。
             </p>
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
