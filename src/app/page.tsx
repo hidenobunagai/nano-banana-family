@@ -51,13 +51,17 @@ export default function Home() {
                 <div className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-xl bg-[var(--color-primary-50)] text-[var(--color-primary-600)]">
                   <Palette className="w-5 h-5" />
                 </div>
-                <span className="text-std-16 font-medium text-[var(--color-neutral-800)]">自由生成</span>
+                <span className="text-std-16 font-medium text-[var(--color-neutral-800)]">
+                  自由生成
+                </span>
               </div>
               <div className="flex items-center gap-3 rounded-2xl border border-[var(--color-neutral-200)] bg-white px-4 py-3 shadow-[var(--shadow-level-1)]">
                 <div className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-xl bg-[var(--color-primary-50)] text-[var(--color-primary-600)]">
                   <UserCircle className="w-5 h-5" />
                 </div>
-                <span className="text-std-16 font-medium text-[var(--color-neutral-800)]">アイコン作成</span>
+                <span className="text-std-16 font-medium text-[var(--color-neutral-800)]">
+                  アイコン作成
+                </span>
               </div>
             </div>
 
