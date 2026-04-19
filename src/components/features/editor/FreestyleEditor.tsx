@@ -238,7 +238,9 @@ export function FreestyleEditor() {
                 <Download className="w-6 h-6 text-[var(--color-neutral-300)]" />
               </div>
               <div className="space-y-1">
-                <p className="font-medium text-[var(--color-neutral-500)]">生成結果がここに表示されます</p>
+                <p className="font-medium text-[var(--color-neutral-500)]">
+                  生成結果がここに表示されます
+                </p>
                 <p className="text-dns-14 leading-relaxed">
                   参考画像と仕上がりイメージを入力して生成を実行してください。
                 </p>
@@ -322,7 +324,9 @@ export function FreestyleEditor() {
               <BookOpen className="w-4 h-4" />
               参考プロンプトから選ぶ
             </button>
-            <p className={`text-dns-14 ${isPromptTooLong ? "text-[var(--color-error-dark)]" : "text-[var(--color-neutral-400)]"}`}>
+            <p
+              className={`text-dns-14 ${isPromptTooLong ? "text-[var(--color-error-dark)]" : "text-[var(--color-neutral-400)]"}`}
+            >
               {prompt.length} / {MAX_PROMPT_LENGTH}
             </p>
           </div>
@@ -348,10 +352,7 @@ export function FreestyleEditor() {
           </Button>
         </div>
         {errorMessage && (
-          <div
-            className="dads-banner dads-banner--error text-dns-15"
-            aria-live="polite"
-          >
+          <div className="dads-banner dads-banner--error text-dns-15" aria-live="polite">
             <p className="font-bold">{errorMessage}</p>
             <p className="mt-1 opacity-80">
               指示文を短くしたり、参考画像を減らしたりすると安定することがあります。

@@ -39,8 +39,12 @@ export function ProgressDisplay({
     >
       <div className="space-y-4">
         <div className="flex items-center justify-between gap-4 text-dns-14">
-          <h3 className="font-bold text-[var(--color-primary-600)]">{title ?? "Gemini が画像を生成中..."}</h3>
-          <span className="font-mono text-[var(--color-neutral-400)] tabular-nums">{Math.round(progress)}%</span>
+          <h3 className="font-bold text-[var(--color-primary-600)]">
+            {title ?? "Gemini が画像を生成中..."}
+          </h3>
+          <span className="font-mono text-[var(--color-neutral-400)] tabular-nums">
+            {Math.round(progress)}%
+          </span>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-2 text-dns-14 text-[var(--color-neutral-400)]">

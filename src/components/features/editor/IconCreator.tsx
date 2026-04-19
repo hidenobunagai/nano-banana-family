@@ -255,7 +255,9 @@ export function IconCreator() {
                 </div>
                 <div className="text-center">
                   <p className="text-std-16 font-medium text-[var(--color-neutral-700)]">{name}</p>
-                  <p className="text-dns-14 text-[var(--color-neutral-400)] mt-1">{selectedStyleOption.preview}</p>
+                  <p className="text-dns-14 text-[var(--color-neutral-400)] mt-1">
+                    {selectedStyleOption.preview}
+                  </p>
                 </div>
               </div>
 
@@ -300,7 +302,9 @@ export function IconCreator() {
                 <User className="w-8 h-8 text-[var(--color-neutral-300)]" />
               </div>
               <div className="space-y-1">
-                <p className="font-medium text-[var(--color-neutral-500)]">アイコンがここに表示されます</p>
+                <p className="font-medium text-[var(--color-neutral-500)]">
+                  アイコンがここに表示されます
+                </p>
                 <p className="text-dns-14 leading-relaxed">
                   名前とスタイルを選び、必要ならURLや参考画像も追加してください。
                 </p>
@@ -420,12 +424,16 @@ export function IconCreator() {
                     <span
                       className={cn(
                         "block text-oln-14 font-bold",
-                        selectedStyle === styleOption.id ? "text-[var(--color-primary-700)]" : "text-[var(--color-neutral-700)]",
+                        selectedStyle === styleOption.id
+                          ? "text-[var(--color-primary-700)]"
+                          : "text-[var(--color-neutral-700)]",
                       )}
                     >
                       {styleOption.label}
                     </span>
-                <span className="block text-dns-14 text-[var(--color-neutral-400)]">{styleOption.preview}</span>
+                    <span className="block text-dns-14 text-[var(--color-neutral-400)]">
+                      {styleOption.preview}
+                    </span>
                   </div>
                 </div>
                 <p className="text-dns-14 leading-relaxed text-[var(--color-neutral-500)]">
@@ -484,10 +492,7 @@ export function IconCreator() {
         </div>
 
         {errorMessage && (
-          <div
-            className="dads-banner dads-banner--error text-dns-15"
-            aria-live="polite"
-          >
+          <div className="dads-banner dads-banner--error text-dns-15" aria-live="polite">
             <p className="font-bold">{errorMessage}</p>
             <p className="mt-1 opacity-80">
               URLや追加指示を短くすると改善することがあります。必要な情報だけ残して再試行してください。
