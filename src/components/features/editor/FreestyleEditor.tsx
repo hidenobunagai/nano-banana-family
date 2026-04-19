@@ -189,7 +189,7 @@ export function FreestyleEditor() {
   return (
     <EditorLayout
       resultPane={
-        <Section title="仕上がり" className="h-full">
+        <Section title="仕上がり">
           {isSubmitting ? (
             <ProgressDisplay
               isVisible={true}
@@ -252,12 +252,6 @@ export function FreestyleEditor() {
     >
       <form onSubmit={handleSubmit} className="space-y-8">
         <Section title="1. 参考にしたい画像をアップロード">
-          <div className="mb-4 rounded-[var(--radius-lg)] border border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)] px-4 py-3 text-dns-15 text-[var(--color-neutral-700)]">
-            <p className="font-bold">最大 {MAX_FREESTYLE_UPLOADS} 枚まで追加できます</p>
-            <p className="mt-1 text-[var(--color-neutral-600)]">
-              複数の参考画像を入れるほど雰囲気を合わせやすくなります。選んだ画像は送信前に自動で最適化されます。
-            </p>
-          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {uploads.map((slot, index) => (
               <div key={slot.id} className="relative group">
@@ -295,15 +289,6 @@ export function FreestyleEditor() {
         </Section>
 
         <Section title="2. 仕上がりのイメージを記入">
-          <div className="mb-4 rounded-[var(--radius-md)] border border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)] px-4 py-3 text-dns-15 text-[var(--color-neutral-600)]">
-            <p>
-              例:「やわらかい水彩風にしたい」「兄弟が冒険している映画ポスターのように」など、雰囲気・色・構図を書くと結果が安定します。
-            </p>
-            <p className="mt-1">
-              下のボタンから140種類以上の参考プロンプトを選んでドラフトに入力できます。
-            </p>
-          </div>
-
           <textarea
             ref={textareaRef}
             name="freestylePrompt"
@@ -336,7 +321,7 @@ export function FreestyleEditor() {
           <Button
             type="submit"
             size="lg"
-            className="w-full h-14 bg-[#2563eb] hover:bg-[#1d4ed8] border-0 shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
+            className="w-full h-14 bg-[var(--color-primary-600)] text-white hover:bg-[var(--color-primary-700)] border-0"
             disabled={!canSubmit}
           >
             {isSubmitting ? (

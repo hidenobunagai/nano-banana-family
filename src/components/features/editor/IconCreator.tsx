@@ -472,7 +472,7 @@ export function IconCreator() {
           <Button
             type="submit"
             size="lg"
-            className="w-full h-14 bg-[#2563eb] hover:bg-[#1d4ed8] border-0 shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
+            className="w-full h-14 bg-[var(--color-primary-600)] text-white hover:bg-[var(--color-primary-700)] border-0"
             disabled={!canSubmit}
           >
             {isSubmitting ? (
