@@ -226,7 +226,7 @@ export function IconCreator() {
   return (
     <EditorLayout
       resultPane={
-        <Section title="生成されたアイコン" className="h-full">
+        <Section title="仕上がり">
           {isSubmitting ? (
             <ProgressDisplay
               isVisible={true}
@@ -301,14 +301,9 @@ export function IconCreator() {
               <div className="w-16 h-16 rounded-full bg-[var(--color-neutral-100)] flex items-center justify-center">
                 <User className="w-8 h-8 text-[var(--color-neutral-300)]" />
               </div>
-              <div className="space-y-1">
-                <p className="font-medium text-[var(--color-neutral-500)]">
-                  アイコンがここに表示されます
-                </p>
-                <p className="text-dns-14 leading-relaxed">
-                  名前とスタイルを選び、必要ならURLや参考画像も追加してください。
-                </p>
-              </div>
+              <p className="font-medium text-[var(--color-neutral-500)]">
+                アイコンがここに表示されます
+              </p>
             </div>
           )}
         </Section>
@@ -325,14 +320,11 @@ export function IconCreator() {
             value={name}
             onChange={(event) => setName(event.target.value)}
           />
-          <p className="mt-2 text-dns-14 text-[#9ca3af]">
-            連絡先の用途や雰囲気が伝わる名前にすると、モチーフを決めやすくなります。
-          </p>
         </Section>
 
         <Section title="2. 参考URL（任意）">
           <div className="relative">
-            <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9ca3af]" />
+            <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-neutral-400)]" />
             <input
               name="referenceUrl"
               autoComplete="off"
@@ -344,23 +336,9 @@ export function IconCreator() {
               onChange={(event) => setUrl(event.target.value)}
             />
           </div>
-          <div
-            className="mt-2 rounded-[var(--radius-lg)] border border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)] px-4 py-3 text-dns-14 text-[var(--color-neutral-500)]"
-            aria-live="polite"
-          >
-            {url.trim()
-              ? "生成時にタイトル・説明・OGP画像の取得を試み、アイコンの方向性に反映します。"
-              : "Webサイトの雰囲気も反映したいときだけ入力してください。URLなしでも生成できます。"}
-          </div>
         </Section>
 
         <Section title="3. 参考画像（任意）">
-          <div className="mb-4 rounded-[var(--radius-md)] border border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)] px-4 py-3 text-dns-15 text-[var(--color-neutral-700)]">
-            <p className="font-bold">最大 {MAX_ICON_UPLOADS} 枚まで追加できます</p>
-            <p className="mt-1 text-[var(--color-neutral-600)]">
-              ロゴ・人物写真・配色の参考画像などを入れると、仕上がりの方向性を合わせやすくなります。
-            </p>
-          </div>
           {uploads.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
               {uploads.map((slot, index) => (
@@ -391,7 +369,7 @@ export function IconCreator() {
             >
               <span className="text-2xl mr-2">+</span>
               <span className="text-oln-14 font-medium">
-                ロゴや写真を追加（あと {MAX_ICON_UPLOADS - uploads.length} 枚）
+                画像を追加（あと {MAX_ICON_UPLOADS - uploads.length} 枚）
               </span>
             </button>
           )}
@@ -405,7 +383,7 @@ export function IconCreator() {
                 type="button"
                 onClick={() => setSelectedStyle(styleOption.id)}
                 className={cn(
-                  "relative flex flex-col items-start gap-2 rounded-[20px] border-2 p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563eb]",
+                  "relative flex flex-col items-start gap-2 rounded-[var(--radius-md)] border-2 p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]",
                   selectedStyle === styleOption.id
                     ? "border-[var(--color-primary-600)] bg-[var(--color-primary-50)] shadow-[var(--shadow-level-1)]"
                     : "border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)] hover:border-[var(--color-neutral-300)] hover:bg-[var(--color-neutral-100)]",
@@ -414,7 +392,7 @@ export function IconCreator() {
                 <div className="flex items-center gap-3 w-full">
                   <div
                     className={cn(
-                      "flex h-10 w-10 items-center justify-center rounded-[20px] text-sm shadow-[0_1px_3px_rgba(0,0,0,0.08)]",
+                      "flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] text-sm shadow-[var(--shadow-level-1)]",
                       styleOption.colorClass,
                     )}
                   >
@@ -442,12 +420,6 @@ export function IconCreator() {
               </button>
             ))}
           </div>
-          <div className="mt-4 rounded-[var(--radius-lg)] border border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)] px-4 py-3 text-dns-15 text-[var(--color-neutral-500)]">
-            <span className="font-bold text-[var(--color-neutral-700)]">
-              選択中のスタイル: {selectedStyleOption.label}
-            </span>
-            <p className="mt-1">{selectedStyleOption.preview}</p>
-          </div>
         </Section>
 
         <Section title="5. 追加の指示（任意）">
@@ -457,7 +429,7 @@ export function IconCreator() {
             spellCheck={false}
             maxLength={MAX_PROMPT_LENGTH}
             className="w-full h-24 rounded-[var(--radius-md)] bg-white border border-[var(--color-neutral-200)] p-4 text-[var(--color-neutral-900)] placeholder:text-[var(--color-neutral-400)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30 focus:border-[var(--color-primary-500)] transition-shadow resize-none text-std-16"
-            placeholder="例: 桜の花びらをモチーフにして、ピンク系の暖かい色合いでやさしくまとめたい…"
+            placeholder="追加したい雰囲気があれば入力"
             value={customPrompt}
             onChange={(event) => setCustomPrompt(event.target.value)}
           />

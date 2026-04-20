@@ -205,7 +205,7 @@ export function FreestyleEditor() {
                 alt="自由生成の結果画像"
                 width={900}
                 height={600}
-                className="rounded-[24px] w-full border border-[#e5e7eb] shadow-[0_10px_15px_rgba(0,0,0,0.1)]"
+                className="rounded-[var(--radius-lg)] w-full border border-[var(--color-neutral-200)] shadow-[var(--shadow-level-3)]"
                 unoptimized
               />
               <div className="grid gap-3 sm:grid-cols-2">
@@ -237,20 +237,15 @@ export function FreestyleEditor() {
               <div className="w-14 h-14 rounded-full bg-[var(--color-neutral-100)] flex items-center justify-center">
                 <Download className="w-6 h-6 text-[var(--color-neutral-300)]" />
               </div>
-              <div className="space-y-1">
-                <p className="font-medium text-[var(--color-neutral-500)]">
-                  生成結果がここに表示されます
-                </p>
-                <p className="text-dns-14 leading-relaxed">
-                  参考画像と仕上がりイメージを入力して生成を実行してください。
-                </p>
-              </div>
+              <p className="font-medium text-[var(--color-neutral-500)]">
+                生成結果がここに表示されます
+              </p>
             </div>
           )}
         </Section>
       }
     >
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <Section title="1. 参考にしたい画像をアップロード">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {uploads.map((slot, index) => (
@@ -281,7 +276,7 @@ export function FreestyleEditor() {
               >
                 <span className="block text-3xl">+</span>
                 <span className="mt-2 block text-oln-14 font-medium">
-                  参考画像を追加（あと {MAX_FREESTYLE_UPLOADS - uploads.length} 枚）
+                  画像を追加（あと {MAX_FREESTYLE_UPLOADS - uploads.length} 枚）
                 </span>
               </button>
             )}

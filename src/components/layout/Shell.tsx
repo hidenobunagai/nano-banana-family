@@ -7,8 +7,8 @@ import { LogOut, Palette, UserCircle } from "lucide-react";
 import * as React from "react";
 
 const HEADER_NAV_ITEMS = [
-  { id: "freestyle", label: "Freestyle", icon: Palette },
-  { id: "icon", label: "Icon", icon: UserCircle },
+  { id: "freestyle", label: "自由生成", icon: Palette },
+  { id: "icon", label: "アイコン", icon: UserCircle },
 ] as const;
 
 interface ShellProps {
@@ -20,7 +20,7 @@ interface ShellProps {
 
 export function Shell({ children, onSignOut, navMode, onNavModeChange }: ShellProps) {
   return (
-    <div className="flex h-dvh w-full overflow-hidden text-[#111827] selection:bg-[#2563eb]/20">
+    <div className="flex h-dvh w-full overflow-hidden text-[var(--color-neutral-900)] selection:bg-[var(--color-primary-600)]/20">
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-4 sm:px-8 bg-white/95 backdrop-blur-xl border-b border-[var(--color-neutral-200)]">
           <div>

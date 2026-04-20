@@ -47,11 +47,15 @@ export function FileInput({
   };
 
   return (
-    <div className="space-y-3">
+    <div>
       {(label || subLabel) && (
-        <div className="flex flex-col">
-          {label && <span className="text-std-16 font-bold text-[#374151]">{label}</span>}
-          {subLabel && <span className="text-dns-14 text-[#9ca3af]">{subLabel}</span>}
+        <div className="flex flex-col mb-2">
+          {label && (
+            <span className="text-std-16 font-bold text-[var(--color-neutral-700)]">{label}</span>
+          )}
+          {subLabel && (
+            <span className="text-dns-14 text-[var(--color-neutral-400)]">{subLabel}</span>
+          )}
         </div>
       )}
 
@@ -66,30 +70,25 @@ export function FileInput({
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             className={cn(
-              "relative flex flex-col items-center justify-center w-full h-48 rounded-[24px] border-2 border-dashed transition-all cursor-pointer group overflow-hidden",
+              "relative flex flex-col items-center justify-center w-full h-48 rounded-[var(--radius-lg)] border-2 border-dashed transition-all cursor-pointer group overflow-hidden",
               isDragging
-                ? "border-[#2563eb] bg-[#eff6ff] scale-[1.02]"
-                : "border-[#e5e7eb] hover:border-[#d1d5db] bg-[#f9fafb]",
+                ? "border-[var(--color-primary-600)] bg-[var(--color-primary-50)] scale-[1.02]"
+                : "border-[var(--color-neutral-200)] hover:border-[var(--color-neutral-300)] bg-[var(--color-neutral-50)]",
             )}
           >
-            <div className="flex flex-col items-center justify-center pt-5 pb-6 text-[#9ca3af] group-hover:text-[#2563eb] transition-colors z-10">
+            <div className="flex flex-col items-center justify-center text-[var(--color-neutral-400)] group-hover:text-[var(--color-primary-600)] transition-colors z-10">
               {isOptimizing ? (
-                <Loader2 className="w-10 h-10 mb-3 animate-spin text-[#2563eb]" />
+                <Loader2 className="w-8 h-8 mb-2 animate-spin text-[var(--color-primary-600)]" />
               ) : (
                 <Upload
                   className={cn(
-                    "w-10 h-10 mb-3 transition-transform duration-300",
+                    "w-8 h-8 mb-2 transition-transform duration-300",
                     isDragging ? "scale-110" : "group-hover:scale-110",
                   )}
                 />
               )}
-              <p className="text-oln-16 font-medium">
-                {isDragging ? "ここにドロップ" : "クリックまたはドラッグで追加"}
-              </p>
-              <p className="mt-1 text-dns-14 text-[#9ca3af]">
-                {isOptimizing
-                  ? "画像を圧縮して送信しやすいサイズに整えています…"
-                  : "JPG / PNG / WebP に対応。送信前に自動で最適化します。"}
+              <p className="text-oln-14 font-medium">
+                {isDragging ? "ここにドロップ" : "クリックして追加"}
               </p>
             </div>
             <input
@@ -107,7 +106,7 @@ export function FileInput({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             key="preview-image"
-            className="relative rounded-[24px] overflow-hidden border border-[#e5e7eb] group shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
+            className="relative rounded-[var(--radius-lg)] overflow-hidden border border-[var(--color-neutral-200)] group shadow-[var(--shadow-level-1)]"
           >
             <Image
               src={previewUrl}
@@ -119,7 +118,7 @@ export function FileInput({
             />
             <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
               <label className="cursor-pointer">
-                <div className="px-6 py-3 bg-black/10 backdrop-blur-md rounded-[9999px] border border-black/10 text-[#111827] hover:bg-black/15 hover:scale-105 active:scale-95 transition-all font-medium text-oln-14 flex items-center gap-2 shadow-[0_20px_25px_rgba(0,0,0,0.1)]">
+                <div className="px-5 py-2.5 bg-white/90 backdrop-blur-md rounded-[var(--radius-full)] text-[var(--color-neutral-900)] hover:bg-white hover:scale-105 active:scale-95 transition-all font-medium text-oln-14 flex items-center gap-2 shadow-[var(--shadow-level-2)]">
                   <RefreshCw className="w-4 h-4" />
                   画像を変更
                 </div>
