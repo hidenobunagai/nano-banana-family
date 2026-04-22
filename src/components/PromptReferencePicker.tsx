@@ -58,11 +58,7 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
     <div className="dads-modal-overlay">
       <div className="dads-modal-backdrop" onClick={onClose} aria-hidden="true" />
 
-      <div
-        role="dialog"
-        aria-labelledby={legendId}
-        className="dads-modal-content max-w-3xl"
-      >
+      <div role="dialog" aria-labelledby={legendId} className="dads-modal-content max-w-3xl">
         <div className="flex-shrink-0 border-b border-[var(--color-neutral-200)] px-6 py-5">
           <div className="mb-4 flex items-center justify-between gap-4">
             <h2 id={legendId} className="text-std-24 font-bold text-[var(--color-neutral-900)]">
@@ -121,7 +117,9 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
                     <span
                       className={cn(
                         "ml-1.5 text-[10px]",
-                        isActive ? "text-[var(--color-primary-100)]" : "text-[var(--color-neutral-400)]",
+                        isActive
+                          ? "text-[var(--color-primary-100)]"
+                          : "text-[var(--color-neutral-400)]",
                       )}
                     >
                       {groups[category].length}
