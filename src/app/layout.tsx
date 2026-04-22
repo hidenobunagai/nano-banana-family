@@ -59,7 +59,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           }}
         />
       </head>
-      <body className="font-sans antialiased selection:bg-[#2563eb]/20 selection:text-[#111827]">
+      <body className="font-sans antialiased selection:bg-[var(--color-primary-600)]/20 selection:text-[var(--color-neutral-900)]">
         <noscript>
           <iframe
             src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
@@ -69,13 +69,13 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           />
         </noscript>
         <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-          <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#bfdbfe]/30 rounded-[9999px] blur-[120px]" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#c7d6fe]/30 rounded-[9999px] blur-[120px]" />
+          <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[var(--color-primary-200)]/30 rounded-[9999px] blur-[120px]" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[var(--color-secondary-200)]/30 rounded-[9999px] blur-[120px]" />
         </div>
 
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#2563eb] focus:text-white focus:rounded-[8px] focus:shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[var(--color-primary-600)] focus:text-white focus:rounded-[var(--radius-md)] focus:shadow-[var(--shadow-level-1)]"
         >
           メインコンテンツへスキップ
         </a>
