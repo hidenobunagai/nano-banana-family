@@ -20,12 +20,12 @@ const MENU_ITEMS = [
 export function Dock({ currentMode, onModeChange }: DockProps) {
   return (
     <motion.nav
-      initial={{ y: 80, opacity: 0 }}
+      initial={{ y: 96, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ type: "spring", stiffness: 260, damping: 20 }}
-      className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-[var(--color-neutral-200)] lg:hidden"
+      className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-[var(--color-neutral-200)] lg:hidden pb-[env(safe-area-inset-bottom)]"
     >
-      <div className="flex items-stretch justify-around h-20">
+      <div className="flex items-stretch justify-around h-16">
         {MENU_ITEMS.map((item) => (
           <NavItem
             key={item.id}
@@ -55,7 +55,7 @@ function NavItem({
     <button
       onClick={onClick}
       className={cn(
-        "relative flex flex-col items-center justify-center flex-1 gap-1.5 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)] focus-visible:ring-inset",
+        "relative flex flex-col items-center justify-center flex-1 gap-1 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)] focus-visible:ring-inset",
         active
           ? "text-[var(--color-primary-600)]"
           : "text-[var(--color-neutral-500)] hover:text-[var(--color-neutral-900)]",
@@ -67,7 +67,7 @@ function NavItem({
           className="absolute top-0 left-4 right-4 h-1 bg-[var(--color-primary-600)] rounded-full"
         />
       )}
-      <Icon className="w-6 h-6" />
+      <Icon className="w-5 h-5" />
       <span className="text-oln-14 font-medium">{label}</span>
     </button>
   );
