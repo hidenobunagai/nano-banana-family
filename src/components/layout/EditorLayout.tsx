@@ -8,8 +8,8 @@ interface EditorLayoutProps {
 export function EditorLayout({ children, resultPane }: EditorLayoutProps) {
   return (
     <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_440px] gap-6 xl:gap-8 items-start w-full max-w-[1400px] mx-auto">
-      <div className="xl:sticky xl:top-6 xl:order-2 min-w-0">{resultPane}</div>
       <div className="min-w-0 space-y-6 xl:order-1">{children}</div>
+      <div id="result-pane" className="xl:sticky xl:top-6 xl:order-2 min-w-0">{resultPane}</div>
     </div>
   );
 }
