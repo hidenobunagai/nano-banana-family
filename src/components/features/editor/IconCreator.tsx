@@ -132,6 +132,9 @@ export function IconCreator() {
     resetUploads();
     setResultImage(null);
     setErrorMessage(null);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   }, [resetUploads]);
 
   const handleRemoveUploadSlot = useCallback(
@@ -152,6 +155,14 @@ export function IconCreator() {
     setIsSubmitting(true);
     setErrorMessage(null);
     setResultImage(null);
+
+    // Scroll to result pane on mobile devices
+    if (typeof window !== "undefined" && window.innerWidth < 1280) {
+      setTimeout(() => {
+        const element = document.getElementById("result-pane");
+        element?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 50);
+    }
 
     abortControllerRef.current?.abort();
     const controller = new AbortController();
