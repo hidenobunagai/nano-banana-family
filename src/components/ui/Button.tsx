@@ -9,7 +9,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center rounded-[var(--radius-lg)] text-oln-16 font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)] focus-visible:ring-offset-2 disabled:cursor-not-allowed active:scale-[0.98]",
+  "inline-flex items-center justify-center rounded-[var(--radius-lg)] text-oln-16 font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)] focus-visible:ring-offset-2 disabled:cursor-not-allowed active:scale-[0.98] no-underline",
   {
     variants: {
       variant: {

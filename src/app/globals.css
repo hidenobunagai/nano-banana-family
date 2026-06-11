@@ -207,30 +207,32 @@ body {
 }
 
 /* DADS Link Styles */
-a {
-  color: var(--color-link);
-  text-decoration-line: underline;
-  text-underline-offset: 2px;
-  transition: color 0.15s ease;
-}
+@layer base {
+  a {
+    color: var(--color-link);
+    text-decoration-line: underline;
+    text-underline-offset: 2px;
+    transition: color 0.15s ease;
+  }
 
-a:hover {
-  color: var(--color-link-hover);
-}
+  a:hover {
+    color: var(--color-link-hover);
+  }
 
-a:active {
-  color: var(--color-link-active);
-}
+  a:active {
+    color: var(--color-link-active);
+  }
 
-a:visited {
-  color: var(--color-link-visited);
-}
+  a:visited {
+    color: var(--color-link-visited);
+  }
 
-a:focus-visible {
-  outline: 2px solid var(--color-link-focus-outline);
-  background-color: var(--color-link-focus-bg);
-  outline-offset: 2px;
-  border-radius: 2px;
+  a:focus-visible {
+    outline: 2px solid var(--color-link-focus-outline);
+    background-color: var(--color-link-focus-bg);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
 }
 
 /* DADS Button States */
