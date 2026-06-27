@@ -1,17 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { NextResponse } from "next/server";
 
 const mockGenerateContent = vi.hoisted(() => vi.fn());
 const mockFetchUrlMetadata = vi.hoisted(() => vi.fn());
+
+function jsonResponse(data: Record<string, unknown>, status: number): NextResponse {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { "content-type": "application/json" },
+  }) as unknown as NextResponse;
+}
 
 vi.mock("@/utils/server/api-helpers", () => ({
   authenticateRequest: vi.fn(),
   checkUserRateLimit: vi.fn(),
   validateApiKey: vi.fn(),
   handleApiError: vi.fn((e, _l, _r, _u, fallback) =>
-    new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : String(e), fallback }),
-      { status: 500 },
-    ),
+    jsonResponse({ error: e instanceof Error ? e.message : String(e), fallback }, 500),
   ),
   validateImageFile: vi.fn(),
 }));
@@ -55,10 +60,7 @@ describe("POST /api/icon-generate", () => {
   it("returns 401 when not authenticated", async () => {
     const { authenticateRequest } = await import("@/utils/server/api-helpers");
     vi.mocked(authenticateRequest).mockResolvedValue({
-      response: new Response(JSON.stringify({ error: "認証が必要です。" }), {
-        status: 401,
-        headers: { "content-type": "application/json" },
-      }),
+      response: jsonResponse({ error: "認証が必要です。" }, 401),
     });
 
     const res = await POST(createRequest());
