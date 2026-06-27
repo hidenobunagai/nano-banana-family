@@ -1,9 +1,3 @@
-/**
- * Structured server-side logger for API routes.
- * Emits JSON lines in production (machine-readable for log aggregators),
- * and a compact formatted message in development.
- */
-
 type LogLevel = "info" | "warn" | "error";
 
 interface LogFields {
@@ -14,7 +8,14 @@ interface LogFields {
   [key: string]: unknown;
 }
 
+const LEVEL_MAP: Record<LogLevel, "log" | "warn" | "error"> = {
+  info: "log",
+  warn: "warn",
+  error: "error",
+};
+
 function log(level: LogLevel, message: string, fields: LogFields = {}) {
+  const consoleMethod = LEVEL_MAP[level];
   if (process.env.NODE_ENV === "production") {
     const entry = JSON.stringify({
       level,
@@ -22,26 +23,13 @@ function log(level: LogLevel, message: string, fields: LogFields = {}) {
       timestamp: new Date().toISOString(),
       ...fields,
     });
-    if (level === "error") {
-      console.error(entry);
-    } else if (level === "warn") {
-      console.warn(entry);
-    } else {
-      console.log(entry);
-    }
+    console[consoleMethod](entry);
   } else {
     const prefix = `[${level.toUpperCase()}]`;
     const context = Object.keys(fields).length
       ? ` ${JSON.stringify(fields)}`
       : "";
-    const formatted = `${prefix} ${message}${context}`;
-    if (level === "error") {
-      console.error(formatted);
-    } else if (level === "warn") {
-      console.warn(formatted);
-    } else {
-      console.log(formatted);
-    }
+    console[consoleMethod](`${prefix} ${message}${context}`);
   }
 }
 
