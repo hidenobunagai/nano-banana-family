@@ -1,19 +1,14 @@
-import { GoogleGenAI, Part } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
 
 import { MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
 import {
-  MAX_FILE_SIZE_BYTES,
-  MAX_FILE_SIZE_MB,
-  resolveMimeType,
-} from "@/utils/server/imageValidation";
-import {
   authenticateRequest,
   checkUserRateLimit,
   validateApiKey,
-  validateImageFile,
   handleApiError,
 } from "@/utils/server/api-helpers";
+import { filesToParts } from "@/utils/server/imageProcessing";
 import { logger } from "@/utils/server/logger";
 
 export const runtime = "nodejs";
@@ -78,35 +73,13 @@ export async function POST(request: Request) {
   const trimmedPrompt = prompt.trim();
 
   try {
-    const client = new GoogleGenAI({ apiKey });
-
-    const parts: Part[] = [];
-
-    for (let index = 0; index < files.length; index += 1) {
-      const file = files[index];
-      const label = `画像${index + 1}`;
-
-      const validation = validateImageFile(
-        file,
-        resolveMimeType,
-        MAX_FILE_SIZE_BYTES,
-        MAX_FILE_SIZE_MB,
-        label,
-      );
-      if (!validation.valid) {
-        return NextResponse.json({ error: validation.error }, { status: validation.status });
-      }
-
-      const buffer = Buffer.from(await file.arrayBuffer());
-      const mimeType = resolveMimeType(file)!;
-
-      parts.push({
-        inlineData: {
-          data: buffer.toString("base64"),
-          mimeType,
-        },
-      });
+    const partsResult = await filesToParts(files);
+    if ("error" in partsResult) {
+      return NextResponse.json({ error: partsResult.error }, { status: partsResult.status });
     }
+    const parts = partsResult.parts;
+
+    const client = new GoogleGenAI({ apiKey });
 
     parts.push({
       text: [

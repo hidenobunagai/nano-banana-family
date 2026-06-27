@@ -1,20 +1,15 @@
-import { GoogleGenAI, type Part } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
 
 import { buildIconPrompt, type IconStyleId } from "@/utils/server/iconPromptBuilder";
 import { MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
 import {
-  MAX_FILE_SIZE_BYTES,
-  MAX_FILE_SIZE_MB,
-  resolveMimeType,
-} from "@/utils/server/imageValidation";
-import {
   authenticateRequest,
   checkUserRateLimit,
   validateApiKey,
-  validateImageFile,
   handleApiError,
 } from "@/utils/server/api-helpers";
+import { filesToParts, fetchOgImage } from "@/utils/server/imageProcessing";
 import { logger } from "@/utils/server/logger";
 import { fetchUrlMetadata } from "@/utils/server/urlMetadata";
 
@@ -22,7 +17,6 @@ export const runtime = "nodejs";
 
 const DEFAULT_MODEL = process.env.GEMINI_IMAGE_MODEL ?? "gemini-3.1-flash-image-preview";
 const MAX_IMAGE_COUNT = 3;
-const OG_IMAGE_FETCH_TIMEOUT_MS = 5000;
 
 export async function POST(request: Request) {
   // Authentication
@@ -91,36 +85,11 @@ export async function POST(request: Request) {
       customPrompt: trimmedCustomPrompt,
     });
 
-    const client = new GoogleGenAI({ apiKey });
-
-    const parts: Part[] = [];
-
-    // Add uploaded images
-    for (let index = 0; index < files.length; index += 1) {
-      const file = files[index];
-      const label = `画像${index + 1}`;
-
-      const validation = validateImageFile(
-        file,
-        resolveMimeType,
-        MAX_FILE_SIZE_BYTES,
-        MAX_FILE_SIZE_MB,
-        label,
-      );
-      if (!validation.valid) {
-        return NextResponse.json({ error: validation.error }, { status: validation.status });
-      }
-
-      const buffer = Buffer.from(await file.arrayBuffer());
-      const mimeType = resolveMimeType(file)!;
-
-      parts.push({
-        inlineData: {
-          data: buffer.toString("base64"),
-          mimeType,
-        },
-      });
+    const partsResult = await filesToParts(files);
+    if ("error" in partsResult) {
+      return NextResponse.json({ error: partsResult.error }, { status: partsResult.status });
     }
+    const parts = partsResult.parts;
 
     // If URL metadata has an OG image, fetch and include it as a reference image
     if (urlMeta?.ogImage) {
@@ -138,6 +107,8 @@ export async function POST(request: Request) {
         // OG image fetch failure is non-critical, continue without it
       }
     }
+
+    const client = new GoogleGenAI({ apiKey });
 
     // Add the prompt text
     parts.push({ text: prompt });
@@ -173,41 +144,4 @@ export async function POST(request: Request) {
   }
 }
 
-/**
- * Fetch an OG image and return its base64 data plus mime type.
- */
-async function fetchOgImage(
-  imageUrl: string,
-): Promise<{ base64: string; mimeType: string } | null> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), OG_IMAGE_FETCH_TIMEOUT_MS);
 
-  try {
-    const response = await fetch(imageUrl, {
-      signal: controller.signal,
-      headers: {
-        Accept: "image/*",
-      },
-    });
-
-    clearTimeout(timeout);
-
-    if (!response.ok) return null;
-
-    const contentType = response.headers.get("content-type") ?? "";
-    if (!contentType.startsWith("image/")) return null;
-
-    // Limit to 4MB to avoid memory issues
-    const buffer = Buffer.from(await response.arrayBuffer());
-    if (buffer.length > 4 * 1024 * 1024) return null;
-
-    const mimeType = contentType.split(";")[0].trim();
-    return {
-      base64: buffer.toString("base64"),
-      mimeType,
-    };
-  } catch {
-    clearTimeout(timeout);
-    return null;
-  }
-}
