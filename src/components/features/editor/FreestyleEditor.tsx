@@ -10,28 +10,34 @@ import { useProgressSimulation } from "@/hooks/useProgressSimulation";
 import { useUploadSlots } from "@/hooks/useUploadSlots";
 import { MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
 import { getRequestErrorMessage } from "@/utils/requestErrorMessage";
-import { BookOpen, Download, Loader2, RefreshCw, RotateCcw, X } from "lucide-react";
+import { BookOpen, ChevronLeft, ChevronRight, Download, Loader2, RefreshCw, RotateCcw, Wand2, X } from "lucide-react";
 import Image from "next/image";
 import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { makeBrighterPrompt, makePopPrompt, makeStampPrompt, makeSepiaPrompt } from "@/utils/server/stylePrompts";
 
 const FREESTYLE_PROGRESS_STEPS: ProgressStep[] = [
   { id: "gather", label: "参考画像を読み込み中...", estimatedDuration: 1600 },
   { id: "plan", label: "編集プランを構築中...", estimatedDuration: 1800 },
   { id: "prompt", label: "指示内容を解釈中...", estimatedDuration: 1500 },
-  {
-    id: "generate",
-    label: "Gemini で画像を生成中...",
-    estimatedDuration: 6200,
-  },
+  { id: "generate", label: "Gemini で画像を生成中...", estimatedDuration: 6200 },
   { id: "refine", label: "仕上がりを調整中...", estimatedDuration: 1400 },
   { id: "complete", label: "完了", estimatedDuration: 400 },
 ];
 
 const MAX_FREESTYLE_UPLOADS = 5;
+const MAX_HISTORY = 4;
+const STYLE_SUGGESTIONS = [
+  { label: "明るく", prompt: makeBrighterPrompt() },
+  { label: "ポップ", prompt: makePopPrompt() },
+  { label: "スタンプ風", prompt: makeStampPrompt() },
+  { label: "セピア", prompt: makeSepiaPrompt() },
+];
 
 export function FreestyleEditor() {
   const [prompt, setPrompt] = useState("");
   const [resultImage, setResultImage] = useState<string | null>(null);
+  const [history, setHistory] = useState<string[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showReferencePicker, setShowReferencePicker] = useState(false);
@@ -84,10 +90,32 @@ export function FreestyleEditor() {
     !isSubmitting &&
     !isOptimizingAny;
 
+  const canGoBack = historyIndex > 0;
+  const canGoForward = historyIndex < history.length - 1;
+
+  const navigateHistory = useCallback((index: number) => {
+    if (index < 0 || index >= history.length) return;
+    setHistoryIndex(index);
+    setResultImage(history[index]);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [history]);
+
+  const goBack = useCallback(() => {
+    if (!canGoBack) return;
+    navigateHistory(historyIndex - 1);
+  }, [canGoBack, historyIndex, navigateHistory]);
+
+  const goForward = useCallback(() => {
+    if (!canGoForward) return;
+    navigateHistory(historyIndex + 1);
+  }, [canGoForward, historyIndex, navigateHistory]);
+
   const resetEditor = useCallback(() => {
     resetUploads();
     setPrompt("");
     setResultImage(null);
+    setHistory([]);
+    setHistoryIndex(-1);
     setErrorMessage(null);
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -114,6 +142,15 @@ export function FreestyleEditor() {
     textareaRef.current?.focus();
   }, []);
 
+  const handleSuggestion = useCallback((nextPrompt: string) => {
+    if (prompt.trim()) {
+      setPrompt(`${prompt.trim()}\n\n${nextPrompt}`);
+    } else {
+      setPrompt(nextPrompt);
+    }
+    textareaRef.current?.focus();
+  }, [prompt]);
+
   const submitEdit = useCallback(async () => {
     if (!prompt.trim()) {
       setErrorMessage("仕上がりのイメージを入力してください。");
@@ -129,7 +166,6 @@ export function FreestyleEditor() {
     setErrorMessage(null);
     setResultImage(null);
 
-    // Scroll to result pane on mobile devices
     if (typeof window !== "undefined" && window.innerWidth < 1280) {
       setTimeout(() => {
         const element = document.getElementById("result-pane");
@@ -179,7 +215,14 @@ export function FreestyleEditor() {
       const mimeType =
         "mimeType" in data && typeof data.mimeType === "string" ? data.mimeType : "image/png";
 
-      setResultImage(`data:${mimeType};base64,${data.imageBase64}`);
+      const nextImage = `data:${mimeType};base64,${data.imageBase64}`;
+
+      const nextHistory = [...history];
+      const nextIndex = nextHistory.push(nextImage) - 1;
+      const trimmed = nextIndex > MAX_HISTORY ? nextIndex - MAX_HISTORY : 0;
+      setHistory(nextHistory.slice(trimmed));
+      setHistoryIndex(nextIndex - trimmed);
+      setResultImage(nextImage);
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") return;
       setErrorMessage(
@@ -190,7 +233,7 @@ export function FreestyleEditor() {
     } finally {
       completeProgress();
     }
-  }, [activeUploads, completeProgress, hasActiveFiles, prompt]);
+  }, [activeUploads, completeProgress, hasActiveFiles, history, prompt]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -211,6 +254,25 @@ export function FreestyleEditor() {
             />
           ) : resultImage ? (
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
+              <div className="flex items-center justify-between">
+                {history.length > 1 ? (
+                  <div className="flex items-center gap-2">
+                    <Button type="button" size="sm" variant="ghost" onClick={goBack} disabled={!canGoBack}>
+                      <ChevronLeft className="w-4 h-4 mr-1" />
+                      前の結果
+                    </Button>
+                    <Button type="button" size="sm" variant="ghost" onClick={goForward} disabled={!canGoForward}>
+                      次の結果
+                      <ChevronRight className="w-4 h-4 ml-1" />
+                    </Button>
+                    <span className="text-dns-14 text-[var(--color-neutral-400)] tabular-nums">
+                      {historyIndex + 1} / {history.length}
+                    </span>
+                  </div>
+                ) : null}
+                <div className="flex-1" />
+              </div>
+
               <Image
                 src={resultImage}
                 alt="自由生成の結果画像"
@@ -306,7 +368,21 @@ export function FreestyleEditor() {
             value={prompt}
             onChange={(event) => setPrompt(event.target.value)}
           />
-          <div className="flex items-center justify-between mt-2">
+          <div className="flex items-center justify-between mt-3">
+            <div className="flex flex-wrap gap-2">
+              {STYLE_SUGGESTIONS.map((item) => (
+                <Button
+                  key={item.label}
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => handleSuggestion(item.prompt)}
+                >
+                  <Wand2 className="w-3.5 h-3.5 mr-1" />
+                  {item.label}
+                </Button>
+              ))}
+            </div>
             <button
               type="button"
               onClick={() => setShowReferencePicker(true)}
@@ -315,12 +391,12 @@ export function FreestyleEditor() {
               <BookOpen className="w-4 h-4" />
               参考プロンプトから選ぶ
             </button>
-            <p
-              className={`text-dns-14 ${isPromptTooLong ? "text-[var(--color-error-dark)]" : "text-[var(--color-neutral-400)]"}`}
-            >
-              {prompt.length} / {MAX_PROMPT_LENGTH}
-            </p>
           </div>
+          <p
+            className={`mt-2 text-dns-14 ${isPromptTooLong ? "text-[var(--color-error-dark)]" : "text-[var(--color-neutral-400)]"}`}
+          >
+            {prompt.length} / {MAX_PROMPT_LENGTH}
+          </p>
         </Section>
 
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_200px]">
