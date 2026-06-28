@@ -11,7 +11,7 @@ import { MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
 import { getRequestErrorMessage } from "@/utils/requestErrorMessage";
 import { ChevronLeft, ChevronRight, Download, Globe, Loader2, RefreshCw, RotateCcw, Sparkles, User, X } from "lucide-react";
 import Image from "next/image";
-import { type FormEvent, useCallback, useMemo, useRef, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const ICON_PROGRESS_STEPS: ProgressStep[] = [
   { id: "analyze", label: "連絡先情報を分析中...", estimatedDuration: 1200 },
@@ -28,6 +28,7 @@ const ICON_PROGRESS_STEPS: ProgressStep[] = [
 
 const MAX_ICON_UPLOADS = 3;
 const MAX_HISTORY = 4;
+const MAX_RECENT_PROMPTS = 6;
 
 interface IconStyleOption {
   id: string;
@@ -80,6 +81,7 @@ export function IconCreator() {
   const [url, setUrl] = useState("");
   const [selectedStyle, setSelectedStyle] = useState("auto");
   const [customPrompt, setCustomPrompt] = useState("");
+  const [recentPrompts, setRecentPrompts] = useState<string[]>([]);
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
@@ -87,6 +89,32 @@ export function IconCreator() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const requestStartTimeRef = useRef<number>(0);
+  const customPromptTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const undoStackRef = useRef<string[]>([]);
+  const redoStackRef = useRef<string[]>([]);
+
+  const pushRecentPrompt = useCallback((text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    setRecentPrompts((prev) => {
+      const next = [trimmed, ...prev.filter((item) => item !== trimmed)].slice(0, MAX_RECENT_PROMPTS);
+      if (typeof window !== "undefined") {
+        try { window.localStorage.setItem("icon-recent-prompts", JSON.stringify(next)); } catch { /* ignore */ }
+      }
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const stored = window.localStorage.getItem("icon-recent-prompts");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) setRecentPrompts(parsed);
+      }
+    } catch { /* ignore */ }
+  }, []);
 
   const {
     uploads,
@@ -153,15 +181,17 @@ export function IconCreator() {
     setUrl("");
     setSelectedStyle("auto");
     setCustomPrompt("");
-    resetUploads();
+    setRecentPrompts([]);
     setResultImage(null);
     setHistory([]);
     setHistoryIndex(-1);
     setErrorMessage(null);
+    undoStackRef.current = [];
+    redoStackRef.current = [];
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
-  }, [resetUploads]);
+  }, []);
 
   const handleRemoveUploadSlot = useCallback(
     (id: string) => {
@@ -171,6 +201,62 @@ export function IconCreator() {
     },
     [removeUploadSlot],
   );
+
+  const handlePromptChange = useCallback(
+    (value: string) => {
+      undoStackRef.current.push(customPrompt);
+      redoStackRef.current = [];
+      if (undoStackRef.current.length > 40) undoStackRef.current.shift();
+      setCustomPrompt(value);
+    },
+    [customPrompt],
+  );
+
+  const handleUndo = useCallback(() => {
+    if (!undoStackRef.current.length) return;
+    const prev = undoStackRef.current.pop();
+    if (typeof prev === "string") {
+      redoStackRef.current.push(customPrompt);
+      setCustomPrompt(prev);
+    }
+  }, [customPrompt]);
+
+  const handleRedo = useCallback(() => {
+    if (!redoStackRef.current.length) return;
+    const next = redoStackRef.current.pop();
+    if (typeof next === "string") {
+      undoStackRef.current.push(customPrompt);
+      setCustomPrompt(next);
+    }
+  }, [customPrompt]);
+
+  const handleRecentSelect = useCallback(
+    (recentPrompt: string) => {
+      handlePromptChange(recentPrompt);
+      customPromptTextareaRef.current?.focus();
+    },
+    [handlePromptChange],
+  );
+
+  useEffect(() => {
+    const handleKey = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      const isEditing =
+        target && (target.tagName === "TEXTAREA" || target.getAttribute("contenteditable") === "true");
+      if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key.toLowerCase() === "z") {
+        event.preventDefault();
+        if (isEditing) handleRedo();
+      } else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "z" && !event.shiftKey) {
+        event.preventDefault();
+        if (isEditing) handleUndo();
+      } else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "y") {
+        event.preventDefault();
+        if (isEditing) handleRedo();
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [handleUndo, handleRedo]);
 
   const submitEdit = useCallback(async () => {
     if (!name.trim()) {
@@ -205,6 +291,7 @@ export function IconCreator() {
 
       if (customPrompt.trim()) {
         formData.append("customPrompt", customPrompt.trim());
+        pushRecentPrompt(customPrompt);
       }
 
       activeUploads.forEach((upload) => {
@@ -268,7 +355,7 @@ export function IconCreator() {
         completeProgress();
       }
     }
-  }, [activeUploads, completeProgress, customPrompt, history, name, selectedStyle, url]);
+  }, [activeUploads, completeProgress, customPrompt, history, name, pushRecentPrompt, selectedStyle, url]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -494,16 +581,61 @@ export function IconCreator() {
         </Section>
 
         <Section title="5. 追加の指示（任意）">
-          <textarea
-            name="customPrompt"
-            autoComplete="off"
-            spellCheck={false}
-            maxLength={MAX_PROMPT_LENGTH}
-            className="w-full h-24 rounded-[var(--radius-md)] bg-white border border-[var(--color-neutral-200)] p-4 text-[var(--color-neutral-900)] placeholder:text-[var(--color-neutral-400)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30 focus:border-[var(--color-primary-500)] transition-shadow resize-none text-std-16"
-            placeholder="追加したい雰囲気があれば入力"
-            value={customPrompt}
-            onChange={(event) => setCustomPrompt(event.target.value)}
-          />
+          <div className="relative">
+            <textarea
+              ref={customPromptTextareaRef}
+              name="customPrompt"
+              autoComplete="off"
+              spellCheck={false}
+              maxLength={MAX_PROMPT_LENGTH}
+              className="w-full h-24 rounded-[var(--radius-md)] bg-white border border-[var(--color-neutral-200)] p-4 pr-12 text-[var(--color-neutral-900)] placeholder:text-[var(--color-neutral-400)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30 focus:border-[var(--color-primary-500)] transition-shadow resize-none text-std-16"
+              placeholder="追加したい雰囲気があれば入力 (Ctrl+Z で元に戻せます)"
+              value={customPrompt}
+              onChange={(event) => handlePromptChange(event.target.value)}
+            />
+            <div className="absolute right-3 bottom-3 flex items-center gap-1">
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={handleUndo}
+                disabled={!undoStackRef.current.length || isSubmitting || isOptimizingAny}
+                className="h-8 w-8 p-0"
+                aria-label="元に戻す"
+              >
+                <span className="text-dns-15 font-bold text-[var(--color-neutral-500)]">↶</span>
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={handleRedo}
+                disabled={!redoStackRef.current.length || isSubmitting || isOptimizingAny}
+                className="h-8 w-8 p-0"
+                aria-label="やり直す"
+              >
+                <span className="text-dns-15 font-bold text-[var(--color-neutral-500)]">↷</span>
+              </Button>
+            </div>
+          </div>
+          {recentPrompts.length > 0 && (
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <span className="text-oln-14 text-[var(--color-neutral-500)]">最近:</span>
+              {recentPrompts.map((recent) => (
+                <Button
+                  key={`${recent}-${Date.now()}`}
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 rounded-full border border-[var(--color-neutral-200)] px-2 text-dns-14"
+                  onClick={() => handleRecentSelect(recent)}
+                  disabled={isSubmitting || isOptimizingAny}
+                >
+                  {recent.length > 18 ? `${recent.slice(0, 18)}…` : recent}
+                </Button>
+              ))}
+            </div>
+          )}
           <p
             className={`mt-1 text-dns-14 text-right ${isCustomPromptTooLong ? "text-[var(--color-error-dark)]" : "text-[var(--color-neutral-400)]"}`}
           >
