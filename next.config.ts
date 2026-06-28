@@ -135,8 +135,7 @@ const withPWA = withPWAInit({
       urlPattern: ({ url }: { url: URL }) => {
         return (
           url.origin === self.origin &&
-          (url.pathname === "/api/edit-image" ||
-            url.pathname === "/api/freestyle-edit" ||
+          (url.pathname === "/api/freestyle-edit" ||
             url.pathname === "/api/icon-generate")
         );
       },

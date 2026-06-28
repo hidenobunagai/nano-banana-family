@@ -7,9 +7,15 @@ import {
   checkUserRateLimit,
   validateApiKey,
   handleApiError,
+  validateFormData,
 } from "@/utils/server/api-helpers";
 import { filesToParts } from "@/utils/server/imageProcessing";
 import { logger } from "@/utils/server/logger";
+import {
+  FreestyleEditFormSchema,
+  ImageGenerationResponseSchema,
+} from "@/utils/server/validation";
+import { generateCacheKey, imageGenerationCache } from "@/utils/server/cache";
 
 export const runtime = "nodejs";
 
@@ -17,24 +23,15 @@ const DEFAULT_MODEL = process.env.GEMINI_IMAGE_MODEL ?? "gemini-3.1-flash-image-
 const MAX_IMAGE_COUNT = 5;
 
 export async function POST(request: Request) {
-  // Authentication
   const authResult = await authenticateRequest();
-  if ("response" in authResult) {
-    return authResult.response;
-  }
+  if ("response" in authResult) return authResult.response;
   const { session } = authResult;
 
-  // Rate limiting
   const rateLimitResult = checkUserRateLimit(session.user?.email ?? "anonymous");
-  if ("response" in rateLimitResult) {
-    return rateLimitResult.response;
-  }
+  if ("response" in rateLimitResult) return rateLimitResult.response;
 
-  // API key validation
   const apiKeyResult = validateApiKey();
-  if ("response" in apiKeyResult) {
-    return apiKeyResult.response;
-  }
+  if ("response" in apiKeyResult) return apiKeyResult.response;
   const apiKey = apiKeyResult.key;
 
   const formData = await request.formData();
@@ -43,37 +40,35 @@ export async function POST(request: Request) {
   const additionalImage = formData.get("image");
 
   const files: File[] = imageEntries.filter((entry): entry is File => entry instanceof File);
-
   if (files.length === 0 && additionalImage instanceof File) {
     files.push(additionalImage);
   }
 
-  if (typeof prompt !== "string" || prompt.trim().length === 0) {
-    return NextResponse.json({ error: "編集内容を入力してください。" }, { status: 400 });
-  }
-
-  if (prompt.length > MAX_PROMPT_LENGTH) {
+  const parsed = validateFormData(FreestyleEditFormSchema, {
+    prompt,
+    images: files,
+  });
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: `編集内容は${MAX_PROMPT_LENGTH}文字以内で入力してください。` },
+      { error: parsed.error, field: "form" },
       { status: 400 },
     );
   }
+  const { prompt: trimmedPrompt, images: validatedFiles } = parsed.data;
 
-  if (files.length === 0) {
-    return NextResponse.json({ error: "画像を1枚以上アップロードしてください。" }, { status: 400 });
+  const cacheKey = generateCacheKey({
+    prompt: trimmedPrompt,
+    images: validatedFiles.map((f) => `${f.name}:${f.size}:${f.type}`).sort(),
+  });
+  const cached = imageGenerationCache.get<{ imageBase64: string; mimeType: string }>(
+    cacheKey,
+  );
+  if (cached) {
+    return NextResponse.json(cached);
   }
-
-  if (files.length > MAX_IMAGE_COUNT) {
-    return NextResponse.json(
-      { error: `画像は最大${MAX_IMAGE_COUNT}枚までアップロードできます。` },
-      { status: 400 },
-    );
-  }
-
-  const trimmedPrompt = prompt.trim();
 
   try {
-    const partsResult = await filesToParts(files);
+    const partsResult = await filesToParts(validatedFiles);
     if ("error" in partsResult) {
       return NextResponse.json({ error: partsResult.error }, { status: partsResult.status });
     }
@@ -95,12 +90,7 @@ export async function POST(request: Request) {
 
     const response = await client.models.generateContent({
       model: DEFAULT_MODEL,
-      contents: [
-        {
-          role: "user",
-          parts,
-        },
-      ],
+      contents: [{ role: "user", parts }],
     });
 
     const responseParts = response.candidates?.[0]?.content?.parts ?? [];
@@ -112,7 +102,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "画像の生成に失敗しました。" }, { status: 502 });
     }
 
-    return NextResponse.json({ imageBase64: base64Data, mimeType: resultMime });
+    const result = { imageBase64: base64Data, mimeType: resultMime };
+    const validated = ImageGenerationResponseSchema.parse(result);
+    imageGenerationCache.set(cacheKey, validated);
+
+    return NextResponse.json(validated);
   } catch (error) {
     return handleApiError(
       error,

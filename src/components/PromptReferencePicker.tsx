@@ -2,8 +2,8 @@
 
 import { cn } from "@/components/ui/Button";
 import { PROMPT_REFERENCES, type PromptReference } from "@/promptReferences";
-import { Search, X } from "lucide-react";
-import { useId, useMemo, useState } from "react";
+import { Heart, Search, Star, X } from "lucide-react";
+import { useId, useMemo, useState, useCallback, useRef, useEffect } from "react";
 
 type PromptGroups = Record<string, PromptReference[]>;
 
@@ -12,9 +12,46 @@ type PromptReferencePickerProps = {
   onClose: () => void;
 };
 
+const FAVORITES_STORAGE_KEY = "prompt-reference-favorites";
+
+function loadFavorites(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const stored = window.localStorage.getItem(FAVORITES_STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch {
+    // ignore
+  }
+  return [];
+}
+
 export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePickerProps) {
   const [query, setQuery] = useState("");
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [favorites, setFavorites] = useState<string[]>(loadFavorites);
   const legendId = useId();
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  const persistFavorites = useCallback((next: string[]) => {
+    setFavorites(next);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(next));
+    }
+  }, []);
+
+  const toggleFavorite = useCallback(
+    (id: string, event: React.MouseEvent) => {
+      event.stopPropagation();
+      const next = favorites.includes(id)
+        ? favorites.filter((item) => item !== id)
+        : [...favorites, id];
+      persistFavorites(next);
+    },
+    [favorites, persistFavorites],
+  );
 
   const groups = useMemo(() => {
     const g: PromptGroups = {};
@@ -26,23 +63,29 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
   }, []);
 
   const categories = useMemo(() => Object.keys(groups), [groups]);
-  const [activeTab, setActiveTab] = useState<string>(() => categories[0] || "");
+  const [activeTab, setActiveTab] = useState<string>(categories[0] || "");
 
   const normalizedQuery = query.trim().toLowerCase();
 
   const displayedPrompts = useMemo(() => {
-    if (normalizedQuery) {
-      const allPrompts = Object.values(groups).flat();
-      return allPrompts.filter((ref) => {
-        const haystack =
-          `${ref.title} ${ref.prompt} ${ref.tags.join(" ")} ${ref.category}`.toLowerCase();
-        return haystack.includes(normalizedQuery);
-      });
-    }
-    return groups[activeTab] || [];
-  }, [groups, activeTab, normalizedQuery]);
+    const pool = showFavoritesOnly
+      ? PROMPT_REFERENCES.filter((ref) => favorites.includes(ref.id))
+      : normalizedQuery
+        ? Object.values(groups).flat()
+        : groups[activeTab] || [];
 
-  const resetSearch = () => setQuery("");
+    if (!normalizedQuery || showFavoritesOnly) return pool;
+
+    return pool.filter((ref) => {
+      const haystack = `${ref.title} ${ref.prompt} ${ref.tags.join(" ")} ${ref.category}`.toLowerCase();
+      return haystack.includes(normalizedQuery);
+    });
+  }, [groups, activeTab, normalizedQuery, favorites, showFavoritesOnly]);
+
+  const resetSearch = useCallback(() => {
+    setQuery("");
+    setShowFavoritesOnly(false);
+  }, []);
 
   const getPromptPreview = (ref: PromptReference) => {
     const condensed = ref.prompt.replace(/\s+/g, " ").trim();
@@ -54,17 +97,46 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
     onClose();
   };
 
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
+      if (event.key === "Escape") {
+        event.stopPropagation();
+        onClose();
+      }
+    },
+    [onClose],
+  );
+
+  useEffect(() => {
+    const handleGlobalKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [onClose]);
+
+  const isFavoritesActive = showFavoritesOnly && !normalizedQuery;
+
   return (
-    <div className="dads-modal-overlay">
+    <div className="dads-modal-overlay" onKeyDown={handleKeyDown}>
       <div className="dads-modal-backdrop" onClick={onClose} aria-hidden="true" />
 
-      <div role="dialog" aria-labelledby={legendId} className="dads-modal-content max-w-3xl">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={legendId}
+        className="dads-modal-content max-w-3xl"
+      >
         <div className="flex-shrink-0 border-b border-[var(--color-neutral-200)] px-6 py-5">
           <div className="mb-4 flex items-center justify-between gap-4">
             <h2 id={legendId} className="text-std-24 font-bold text-[var(--color-neutral-900)]">
               参考プロンプト
             </h2>
             <button
+              ref={closeButtonRef}
               type="button"
               onClick={onClose}
               className="flex size-10 items-center justify-center rounded-[var(--radius-full)] text-[var(--color-neutral-400)] transition-colors hover:bg-[var(--color-neutral-100)] hover:text-[var(--color-neutral-700)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]"
@@ -98,35 +170,65 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
           </div>
 
           {!normalizedQuery && categories.length > 0 && (
-            <div className="mt-4 flex min-w-0 flex-wrap gap-2" role="tablist">
-              {categories.map((category) => {
-                const isActive = activeTab === category;
-                return (
-                  <button
-                    key={category}
-                    type="button"
-                    role="tab"
-                    aria-selected={isActive}
-                    onClick={() => setActiveTab(category)}
-                    className={cn(
-                      "dads-chip dads-chip--interactive border border-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]",
-                      isActive ? "dads-chip--active shadow-[var(--shadow-level-1)]" : "",
-                    )}
-                  >
-                    {category}
-                    <span
-                      className={cn(
-                        "ml-1.5 text-[10px]",
-                        isActive
-                          ? "text-[var(--color-primary-100)]"
-                          : "text-[var(--color-neutral-400)]",
-                      )}
-                    >
-                      {groups[category].length}
-                    </span>
-                  </button>
-                );
-              })}
+            <div className="mt-4 flex min-w-0 flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowFavoritesOnly((prev) => !prev)}
+                className={cn(
+                  "dads-chip dads-chip--interactive border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]",
+                  isFavoritesActive
+                    ? "dads-chip--active border-transparent shadow-[var(--shadow-level-1)]"
+                    : "border-[var(--color-neutral-200)]",
+                )}
+                aria-pressed={isFavoritesActive}
+              >
+                <Star
+                  className={cn(
+                    "mr-1.5 h-3.5 w-3.5",
+                    isFavoritesActive
+                      ? "text-[var(--color-primary-100)]"
+                      : "text-[var(--color-neutral-400)]",
+                  )}
+                />
+                お気に入り{favorites.length > 0 ? `(${favorites.length})` : ""}
+              </button>
+              <div className="min-w-0 flex-1" role="tablist">
+                <div className="flex min-w-0 flex-wrap gap-2">
+                  {categories.map((category) => {
+                    const isActive = activeTab === category && !isFavoritesActive;
+                    return (
+                      <button
+                        key={category}
+                        type="button"
+                        role="tab"
+                        aria-selected={isActive}
+                        onClick={() => {
+                          setActiveTab(category);
+                          setShowFavoritesOnly(false);
+                        }}
+                        className={cn(
+                          "dads-chip dads-chip--interactive border border-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]",
+                          isActive
+                            ? "dads-chip--active shadow-[var(--shadow-level-1)]"
+                            : "",
+                        )}
+                      >
+                        {category}
+                        <span
+                          className={cn(
+                            "ml-1.5 text-[10px]",
+                            isActive
+                              ? "text-[var(--color-primary-100)]"
+                              : "text-[var(--color-neutral-400)]",
+                          )}
+                        >
+                          {groups[category].length}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -134,47 +236,68 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
         <div className="flex-1 overflow-y-auto custom-scrollbar px-6 py-4">
           {displayedPrompts.length > 0 ? (
             <div className="space-y-2">
-              {displayedPrompts.map((ref, index) => (
-                <button
-                  key={ref.id}
-                  type="button"
-                  onClick={() => handleSelect(ref)}
-                  className="w-full rounded-[var(--radius-md)] border border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)] p-4 text-left transition-colors hover:border-[var(--color-primary-200)] hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="flex size-8 shrink-0 items-center justify-center rounded-[var(--radius-sm)] border border-[var(--color-neutral-200)] bg-white text-dns-14 font-bold text-[var(--color-neutral-400)]">
-                      {String(index + 1).padStart(2, "0")}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-oln-16 font-bold text-[var(--color-neutral-800)]">
-                          {ref.title}
-                        </span>
-                        <span className="rounded-[var(--radius-sm)] bg-[var(--color-neutral-100)] px-2 py-1 text-[10px] text-[var(--color-neutral-500)]">
-                          {ref.category}
-                        </span>
+              {displayedPrompts.map((ref, index) => {
+                const isFav = favorites.includes(ref.id);
+                return (
+                  <button
+                    key={ref.id}
+                    type="button"
+                    onClick={() => handleSelect(ref)}
+                    className="w-full rounded-[var(--radius-md)] border border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)] p-4 text-left transition-colors hover:border-[var(--color-primary-200)] hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="flex size-8 shrink-0 items-center justify-center rounded-[var(--radius-sm)] border border-[var(--color-neutral-200)] bg-white text-dns-14 font-bold text-[var(--color-neutral-400)]">
+                        {String(index + 1).padStart(2, "0")}
                       </div>
-                      <p className="mt-1 line-clamp-2 text-dns-14 leading-relaxed text-[var(--color-neutral-500)]">
-                        {getPromptPreview(ref)}
-                      </p>
-                      <div className="mt-2 flex flex-wrap gap-1.5">
-                        {ref.tags.slice(0, 2).map((tag) => (
-                          <span
-                            key={tag}
-                            className="rounded-[var(--radius-sm)] bg-[var(--color-neutral-100)] px-2 py-1 text-[10px] text-[var(--color-neutral-400)]"
-                          >
-                            #{tag}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-oln-16 font-bold text-[var(--color-neutral-800)]">
+                            {ref.title}
                           </span>
-                        ))}
+                          <span className="rounded-[var(--radius-sm)] bg-[var(--color-neutral-100)] px-2 py-1 text-[10px] text-[var(--color-neutral-500)]">
+                            {ref.category}
+                          </span>
+                        </div>
+                        <p className="mt-1 line-clamp-2 text-dns-14 leading-relaxed text-[var(--color-neutral-500)]">
+                          {getPromptPreview(ref)}
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {ref.tags.slice(0, 2).map((tag) => (
+                            <span
+                              key={tag}
+                              className="rounded-[var(--radius-sm)] bg-[var(--color-neutral-100)] px-2 py-1 text-[10px] text-[var(--color-neutral-400)]"
+                            >
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
                       </div>
+                      <button
+                        type="button"
+                        onClick={(event) => toggleFavorite(ref.id, event)}
+                        className={cn(
+                          "flex size-9 items-center justify-center rounded-[var(--radius-md)] border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]",
+                          isFav
+                            ? "border-[var(--color-primary-200)] bg-[var(--color-primary-50)] text-[var(--color-primary-600)]"
+                            : "border-transparent bg-transparent text-[var(--color-neutral-300)] hover:text-[var(--color-neutral-500)]",
+                        )}
+                        aria-label={isFav ? "お気に入りから削除" : "お気に入りに追加"}
+                        aria-pressed={isFav}
+                      >
+                        <Heart className={cn("w-4 h-4", isFav ? "fill-current" : "")} />
+                      </button>
                     </div>
-                  </div>
-                </button>
-              ))}
+                  </button>
+                );
+              })}
             </div>
           ) : (
             <div className="py-12 text-center text-[var(--color-neutral-400)]">
-              <p className="text-dns-14">一致するプロンプトが見つかりません。</p>
+              <p className="text-dns-14">
+                {showFavoritesOnly && !query
+                  ? "お気に入りに登録されたプロンプトはありません。"
+                  : "一致するプロンプトが見つかりません。"}
+              </p>
             </div>
           )}
         </div>
