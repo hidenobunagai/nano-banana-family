@@ -86,6 +86,7 @@ export function IconCreator() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const requestStartTimeRef = useRef<number>(0);
 
   const {
     uploads,
@@ -193,6 +194,7 @@ export function IconCreator() {
     abortControllerRef.current = controller;
 
     try {
+      requestStartTimeRef.current = Date.now();
       const formData = new FormData();
       formData.append("name", name.trim());
       formData.append("style", selectedStyle);
@@ -216,6 +218,7 @@ export function IconCreator() {
         body: formData,
         signal: controller.signal,
       });
+      const elapsedMs = Date.now() - requestStartTimeRef.current;
       const data: unknown = await res.json();
 
       if (!res.ok) {
@@ -255,7 +258,15 @@ export function IconCreator() {
           : "生成中にエラーが発生しました。しばらくしてからお試しください。",
       );
     } finally {
-      completeProgress();
+      const elapsedMs =
+        typeof requestStartTimeRef.current === "number" && requestStartTimeRef.current > 0
+          ? Date.now() - requestStartTimeRef.current
+          : undefined;
+      if (elapsedMs !== undefined) {
+        completeProgress(elapsedMs);
+      } else {
+        completeProgress();
+      }
     }
   }, [activeUploads, completeProgress, customPrompt, history, name, selectedStyle, url]);
 

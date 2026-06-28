@@ -43,6 +43,7 @@ export function FreestyleEditor() {
   const [showReferencePicker, setShowReferencePicker] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const requestStartTimeRef = useRef<number>(0);
 
   useEffect(() => {
     return () => {
@@ -178,6 +179,7 @@ export function FreestyleEditor() {
     abortControllerRef.current = controller;
 
     try {
+      requestStartTimeRef.current = Date.now();
       const formData = new FormData();
       formData.append("prompt", prompt.trim());
       activeUploads.forEach((upload) => {
@@ -191,6 +193,7 @@ export function FreestyleEditor() {
         body: formData,
         signal: controller.signal,
       });
+      const elapsedMs = Date.now() - requestStartTimeRef.current;
       const data: unknown = await res.json();
 
       if (!res.ok) {
@@ -231,7 +234,15 @@ export function FreestyleEditor() {
           : "生成中にエラーが発生しました。しばらくしてからお試しください。",
       );
     } finally {
-      completeProgress();
+      const elapsedMs =
+        typeof requestStartTimeRef.current === "number" && requestStartTimeRef.current > 0
+          ? Date.now() - requestStartTimeRef.current
+          : undefined;
+      if (elapsedMs !== undefined) {
+        completeProgress(elapsedMs);
+      } else {
+        completeProgress();
+      }
     }
   }, [activeUploads, completeProgress, hasActiveFiles, history, prompt]);
 

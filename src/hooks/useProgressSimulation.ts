@@ -38,6 +38,7 @@ export interface UseProgressSimulationProps {
   isActive: boolean;
   onComplete?: () => void;
   steps?: ProgressStep[];
+  actualElapsedMs?: number;
 }
 
 export interface UseProgressSimulationReturn {
@@ -45,7 +46,7 @@ export interface UseProgressSimulationReturn {
   currentStep: number;
   timeRemaining: number;
   reset: () => void;
-  complete: () => void;
+  complete: (elapsedMs?: number) => void;
 }
 
 interface ProgressState {
@@ -73,6 +74,7 @@ export function useProgressSimulation({
   isActive,
   onComplete,
   steps = PROGRESS_STEPS,
+  actualElapsedMs,
 }: UseProgressSimulationProps): UseProgressSimulationReturn {
   const [state, dispatch] = useReducer(progressReducer, {
     progress: 0,
@@ -82,6 +84,11 @@ export function useProgressSimulation({
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(0);
   const completionRequestedRef = useRef(false);
+  const actualElapsedRef = useRef(actualElapsedMs ?? 0);
+
+  useEffect(() => {
+    actualElapsedRef.current = actualElapsedMs ?? 0;
+  }, [actualElapsedMs]);
 
   const totalDuration = steps.reduce((sum, step) => sum + step.estimatedDuration, 0);
 
@@ -115,9 +122,12 @@ export function useProgressSimulation({
     const minimumElapsed = Math.max(0, totalDuration - finalPhaseDuration);
 
     if (completionRequestedRef.current) {
-      startTimeRef.current = Date.now() - minimumElapsed;
+      const base = minimumElapsed;
+      const latest = actualElapsedRef.current;
+      startTimeRef.current = Date.now() - (latest >= base ? latest : base);
     } else {
-      startTimeRef.current = Date.now();
+      const latest = actualElapsedRef.current;
+      startTimeRef.current = Date.now() - (latest >= minimumElapsed ? latest : 0);
     }
 
     intervalRef.current = setInterval(() => {
@@ -125,7 +135,10 @@ export function useProgressSimulation({
       const elapsed = now - startTimeRef.current;
       const completionRequested = completionRequestedRef.current;
 
-      const effectiveElapsed = completionRequested ? elapsed : Math.min(elapsed, minimumElapsed);
+      const latestActual = actualElapsedRef.current;
+      const effectiveElapsed = completionRequested
+        ? elapsed
+        : Math.max(elapsed, latestActual);
       const progressPercent =
         totalDuration > 0 ? Math.min(100, (effectiveElapsed / totalDuration) * 100) : 0;
 
@@ -178,40 +191,48 @@ export function useProgressSimulation({
     };
   }, [isActive, totalDuration, onComplete, steps]);
 
-  const complete = useCallback(() => {
-    const finalPhaseStepCount = Math.min(2, steps.length);
-    if (finalPhaseStepCount === 0) {
-      onComplete?.();
-      return;
-    }
+  const complete = useCallback(
+    (elapsedMs?: number) => {
+      if (typeof elapsedMs === "number") {
+        actualElapsedRef.current = elapsedMs;
+      }
 
-    const finalPhaseStartIndex = Math.max(steps.length - finalPhaseStepCount, 0);
-    const finalPhaseDuration = steps
-      .slice(finalPhaseStartIndex)
-      .reduce((sum, step) => sum + step.estimatedDuration, 0);
+      const finalPhaseStepCount = Math.min(2, steps.length);
+      if (finalPhaseStepCount === 0) {
+        onComplete?.();
+        return;
+      }
 
-    const minimumElapsed = Math.max(0, totalDuration - finalPhaseDuration);
-    const now = Date.now();
+      const finalPhaseStartIndex = Math.max(steps.length - finalPhaseStepCount, 0);
+      const finalPhaseDuration = steps
+        .slice(finalPhaseStartIndex)
+        .reduce((sum, step) => sum + step.estimatedDuration, 0);
 
-    completionRequestedRef.current = true;
-    startTimeRef.current = now - minimumElapsed;
+      const minimumElapsed = Math.max(0, totalDuration - finalPhaseDuration);
+      const now = Date.now();
+      const latest = actualElapsedRef.current;
 
-    const progressPercent =
-      totalDuration > 0 ? Math.min(99, (minimumElapsed / totalDuration) * 100) : 100;
+      completionRequestedRef.current = true;
+      startTimeRef.current = now - (latest >= minimumElapsed ? latest : minimumElapsed);
 
-    dispatch({
-      type: "TICK",
-      payload: {
-        progress: progressPercent,
-        currentStep: finalPhaseStartIndex,
-        timeRemaining: finalPhaseDuration / 1000,
-      },
-    });
+      const progressPercent =
+        totalDuration > 0 ? Math.min(99, minimumElapsed / totalDuration * 100) : 100;
 
-    if (finalPhaseDuration === 0) {
-      onComplete?.();
-    }
-  }, [onComplete, steps, totalDuration]);
+      dispatch({
+        type: "TICK",
+        payload: {
+          progress: progressPercent,
+          currentStep: finalPhaseStartIndex,
+          timeRemaining: finalPhaseDuration / 1000,
+        },
+      });
+
+      if (finalPhaseDuration === 0) {
+        onComplete?.();
+      }
+    },
+    [onComplete, steps, totalDuration],
+  );
 
   return {
     progress: state.progress,
