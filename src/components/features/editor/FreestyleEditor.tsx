@@ -26,6 +26,7 @@ const FREESTYLE_PROGRESS_STEPS: ProgressStep[] = [
 
 const MAX_FREESTYLE_UPLOADS = 5;
 const MAX_HISTORY = 4;
+const MAX_RECENT_PROMPTS = 6;
 const STYLE_SUGGESTIONS = [
   { label: "明るく", prompt: makeBrighterPrompt() },
   { label: "ポップ", prompt: makePopPrompt() },
@@ -35,6 +36,7 @@ const STYLE_SUGGESTIONS = [
 
 export function FreestyleEditor() {
   const [prompt, setPrompt] = useState("");
+  const [recentPrompts, setRecentPrompts] = useState<string[]>([]);
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
@@ -44,6 +46,8 @@ export function FreestyleEditor() {
   const abortControllerRef = useRef<AbortController | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const requestStartTimeRef = useRef<number>(0);
+  const undoStackRef = useRef<string[]>([]);
+  const redoStackRef = useRef<string[]>([]);
 
   useEffect(() => {
     return () => {
@@ -69,6 +73,38 @@ export function FreestyleEditor() {
     },
     onFileError: setErrorMessage,
   });
+
+  const pushRecentPrompt = useCallback((text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    setRecentPrompts((prev) => {
+      const next = [trimmed, ...prev.filter((item) => item !== trimmed)].slice(
+        0,
+        MAX_RECENT_PROMPTS,
+      );
+      if (typeof window !== "undefined") {
+        try {
+          window.localStorage.setItem("freestyle-recent-prompts", JSON.stringify(next));
+        } catch {
+          // ignore
+        }
+      }
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const stored = window.localStorage.getItem("freestyle-recent-prompts");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) setRecentPrompts(parsed);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
 
   const handleProgressComplete = useCallback(() => setIsSubmitting(false), []);
   const {
@@ -118,6 +154,8 @@ export function FreestyleEditor() {
     setHistory([]);
     setHistoryIndex(-1);
     setErrorMessage(null);
+    undoStackRef.current = [];
+    redoStackRef.current = [];
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -133,22 +171,74 @@ export function FreestyleEditor() {
     [uploads.length, removeUploadSlot],
   );
 
+  const handlePromptChange = useCallback(
+    (value: string) => {
+      undoStackRef.current.push(prompt);
+      redoStackRef.current = [];
+      if (undoStackRef.current.length > 40) undoStackRef.current.shift();
+      setPrompt(value);
+    },
+    [prompt],
+  );
+
+  const handleUndo = useCallback(() => {
+    if (!undoStackRef.current.length) return;
+    const prev = undoStackRef.current.pop();
+    if (typeof prev === "string") {
+      redoStackRef.current.push(prompt);
+      setPrompt(prev);
+    }
+  }, [prompt]);
+
+  const handleRedo = useCallback(() => {
+    if (!redoStackRef.current.length) return;
+    const next = redoStackRef.current.pop();
+    if (typeof next === "string") {
+      undoStackRef.current.push(prompt);
+      setPrompt(next);
+    }
+  }, [prompt]);
+
+  useEffect(() => {
+    const handleKey = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      const isEditing =
+        target && (target.tagName === "TEXTAREA" || target.getAttribute("contenteditable") === "true");
+
+      if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key.toLowerCase() === "z") {
+        event.preventDefault();
+        if (isEditing) handleRedo();
+      } else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "z" && !event.shiftKey) {
+        event.preventDefault();
+        if (isEditing) handleUndo();
+      } else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "y") {
+        event.preventDefault();
+        if (isEditing) handleRedo();
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [handleUndo, handleRedo]);
+
   const handleReferenceSelect = useCallback((referencePrompt: string) => {
     setPrompt((prev) => {
-      if (prev.trim()) {
-        return `${prev}\n\n${referencePrompt}`;
-      }
+      if (prev.trim()) return `${prev}\n\n${referencePrompt}`;
       return referencePrompt;
     });
     textareaRef.current?.focus();
   }, []);
 
+  const handleRecentSelect = useCallback(
+    (recentPrompt: string) => {
+      handlePromptChange(recentPrompt);
+      textareaRef.current?.focus();
+    },
+    [handlePromptChange],
+  );
+
   const handleSuggestion = useCallback((nextPrompt: string) => {
-    if (prompt.trim()) {
-      setPrompt(`${prompt.trim()}\n\n${nextPrompt}`);
-    } else {
-      setPrompt(nextPrompt);
-    }
+    if (prompt.trim()) setPrompt(`${prompt.trim()}\n\n${nextPrompt}`);
+    else setPrompt(nextPrompt);
     textareaRef.current?.focus();
   }, [prompt]);
 
@@ -166,6 +256,8 @@ export function FreestyleEditor() {
     setIsSubmitting(true);
     setErrorMessage(null);
     setResultImage(null);
+    undoStackRef.current = [];
+    redoStackRef.current = [];
 
     if (typeof window !== "undefined" && window.innerWidth < 1280) {
       setTimeout(() => {
@@ -183,9 +275,7 @@ export function FreestyleEditor() {
       const formData = new FormData();
       formData.append("prompt", prompt.trim());
       activeUploads.forEach((upload) => {
-        if (upload.file) {
-          formData.append("images", upload.file);
-        }
+        if (upload.file) formData.append("images", upload.file);
       });
 
       const res = await fetch("/api/freestyle-edit", {
@@ -218,14 +308,16 @@ export function FreestyleEditor() {
       const mimeType =
         "mimeType" in data && typeof data.mimeType === "string" ? data.mimeType : "image/png";
 
-      const nextImage = `data:${mimeType};base64,${data.imageBase64}`;
+      pushRecentPrompt(prompt);
 
+      const nextImage = `data:${mimeType};base64,${data.imageBase64}`;
       const nextHistory = [...history];
       const nextIndex = nextHistory.push(nextImage) - 1;
       const trimmed = nextIndex > MAX_HISTORY ? nextIndex - MAX_HISTORY : 0;
       setHistory(nextHistory.slice(trimmed));
       setHistoryIndex(nextIndex - trimmed);
       setResultImage(nextImage);
+      completeProgress(elapsedMs);
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") return;
       setErrorMessage(
@@ -233,18 +325,9 @@ export function FreestyleEditor() {
           ? error.message
           : "生成中にエラーが発生しました。しばらくしてからお試しください。",
       );
-    } finally {
-      const elapsedMs =
-        typeof requestStartTimeRef.current === "number" && requestStartTimeRef.current > 0
-          ? Date.now() - requestStartTimeRef.current
-          : undefined;
-      if (elapsedMs !== undefined) {
-        completeProgress(elapsedMs);
-      } else {
-        completeProgress();
-      }
+      completeProgress();
     }
-  }, [activeUploads, completeProgress, hasActiveFiles, history, prompt]);
+  }, [activeUploads, completeProgress, hasActiveFiles, history, prompt, pushRecentPrompt]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -265,7 +348,7 @@ export function FreestyleEditor() {
             />
           ) : resultImage ? (
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2">
                 {history.length > 1 ? (
                   <div className="flex items-center gap-2">
                     <Button type="button" size="sm" variant="ghost" onClick={goBack} disabled={!canGoBack}>
@@ -281,7 +364,20 @@ export function FreestyleEditor() {
                     </span>
                   </div>
                 ) : null}
-                <div className="flex-1" />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const current = resultImage;
+                    if (!current) return;
+                    const previous = history[historyIndex - 1] ?? null;
+                    setResultImage(previous);
+                    setHistoryIndex(Math.max(0, historyIndex - 1));
+                  }}
+                  className="inline-flex items-center gap-1 text-oln-14 text-[var(--color-neutral-500)] hover:text-[var(--color-primary-600)] rounded-[var(--radius-md)] px-2 py-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]"
+                  aria-label="結果を比較"
+                >
+                  <span className="text-dns-14">前の結果と比較</span>
+                </button>
               </div>
 
               <Image
@@ -343,7 +439,12 @@ export function FreestyleEditor() {
                 {uploads.length > 1 && (
                   <button
                     type="button"
-                    onClick={() => handleRemoveUploadSlot(slot.id)}
+                    onClick={() => {
+                      if (uploads.length <= 1) return;
+                      removeUploadSlot(slot.id);
+                      setResultImage(null);
+                      setErrorMessage(null);
+                    }}
                     aria-label={`参考画像 ${index + 1} を削除`}
                     className="absolute top-2 right-2 rounded-[var(--radius-full)] bg-[var(--color-error-dark)]/90 p-1.5 text-white shadow-[var(--shadow-level-1)] transition-colors hover:bg-[var(--color-error-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error-dark)]"
                   >
@@ -368,18 +469,62 @@ export function FreestyleEditor() {
         </Section>
 
         <Section title="2. 仕上がりのイメージを記入">
-          <textarea
-            ref={textareaRef}
-            name="freestylePrompt"
-            autoComplete="off"
-            spellCheck={false}
-            maxLength={MAX_PROMPT_LENGTH}
-            className="w-full h-32 rounded-[var(--radius-md)] bg-white border border-[var(--color-neutral-200)] p-4 text-[var(--color-neutral-900)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30 focus:border-[var(--color-primary-500)] transition-shadow resize-y text-std-16"
-            placeholder="仕上がりのイメージを自由に記入してください…"
-            value={prompt}
-            onChange={(event) => setPrompt(event.target.value)}
-          />
-          <div className="flex items-center justify-between mt-3">
+          <div className="relative">
+            <textarea
+              ref={textareaRef}
+              name="freestylePrompt"
+              autoComplete="off"
+              spellCheck={false}
+              maxLength={MAX_PROMPT_LENGTH}
+              className="w-full h-32 rounded-[var(--radius-md)] bg-white border border-[var(--color-neutral-200)] p-4 pr-12 text-[var(--color-neutral-900)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30 focus:border-[var(--color-primary-500)] transition-shadow resize-y text-std-16"
+              placeholder="仕上がりのイメージを自由に記入してください… (Ctrl+Z で元に戻せます)"
+              value={prompt}
+              onChange={(event) => handlePromptChange(event.target.value)}
+            />
+            <div className="absolute right-3 bottom-3 flex items-center gap-1">
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={handleUndo}
+                disabled={!undoStackRef.current.length || isSubmitting || isOptimizingAny}
+                className="h-8 w-8 p-0"
+                aria-label="元に戻す"
+              >
+                <span className="text-dns-15 font-bold text-[var(--color-neutral-500)]">↶</span>
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={handleRedo}
+                disabled={!redoStackRef.current.length || isSubmitting || isOptimizingAny}
+                className="h-8 w-8 p-0"
+                aria-label="やり直す"
+              >
+                <span className="text-dns-15 font-bold text-[var(--color-neutral-500)]">↷</span>
+              </Button>
+            </div>
+          </div>
+
+          <div className="mt-3 space-y-2">
+            {recentPrompts.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-oln-14 text-[var(--color-neutral-500)]">最近:</span>
+                {recentPrompts.map((recent) => (
+                  <Button
+                    key={`${recent}-${Date.now()}`}
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 rounded-full border border-[var(--color-neutral-200)] px-3 text-dns-14"
+                    onClick={() => handleRecentSelect(recent)}
+                  >
+                    {recent.length > 24 ? `${recent.slice(0, 24)}…` : recent}
+                  </Button>
+                ))}
+              </div>
+            )}
             <div className="flex flex-wrap gap-2">
               {STYLE_SUGGESTIONS.map((item) => (
                 <Button
@@ -388,20 +533,21 @@ export function FreestyleEditor() {
                   size="sm"
                   variant="ghost"
                   onClick={() => handleSuggestion(item.prompt)}
+                  disabled={isSubmitting || isOptimizingAny}
                 >
                   <Wand2 className="w-3.5 h-3.5 mr-1" />
                   {item.label}
                 </Button>
               ))}
+              <button
+                type="button"
+                onClick={() => setShowReferencePicker(true)}
+                className="inline-flex items-center gap-1.5 text-oln-14 text-[var(--color-primary-600)] hover:text-[var(--color-primary-700)] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]"
+              >
+                <BookOpen className="w-4 h-4" />
+                もっと見る
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => setShowReferencePicker(true)}
-              className="inline-flex items-center gap-1.5 text-oln-14 text-[var(--color-primary-600)] hover:text-[var(--color-primary-700)] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]"
-            >
-              <BookOpen className="w-4 h-4" />
-              参考プロンプトから選ぶ
-            </button>
           </div>
           <p
             className={`mt-2 text-dns-14 ${isPromptTooLong ? "text-[var(--color-error-dark)]" : "text-[var(--color-neutral-400)]"}`}
