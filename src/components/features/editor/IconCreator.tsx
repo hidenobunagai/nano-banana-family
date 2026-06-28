@@ -9,7 +9,7 @@ import { useProgressSimulation } from "@/hooks/useProgressSimulation";
 import { useUploadSlots } from "@/hooks/useUploadSlots";
 import { MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
 import { getRequestErrorMessage } from "@/utils/requestErrorMessage";
-import { Download, Globe, Loader2, RefreshCw, RotateCcw, Sparkles, User, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Globe, Loader2, RefreshCw, RotateCcw, Sparkles, User, X } from "lucide-react";
 import Image from "next/image";
 import { type FormEvent, useCallback, useMemo, useRef, useState } from "react";
 
@@ -27,6 +27,7 @@ const ICON_PROGRESS_STEPS: ProgressStep[] = [
 ];
 
 const MAX_ICON_UPLOADS = 3;
+const MAX_HISTORY = 4;
 
 interface IconStyleOption {
   id: string;
@@ -80,6 +81,8 @@ export function IconCreator() {
   const [selectedStyle, setSelectedStyle] = useState("auto");
   const [customPrompt, setCustomPrompt] = useState("");
   const [resultImage, setResultImage] = useState<string | null>(null);
+  const [history, setHistory] = useState<string[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -124,6 +127,26 @@ export function IconCreator() {
     [selectedStyle],
   );
 
+  const canGoBack = historyIndex > 0;
+  const canGoForward = historyIndex < history.length - 1;
+
+  const navigateHistory = useCallback((index: number) => {
+    if (index < 0 || index >= history.length) return;
+    setHistoryIndex(index);
+    setResultImage(history[index]);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [history]);
+
+  const goBack = useCallback(() => {
+    if (!canGoBack) return;
+    navigateHistory(historyIndex - 1);
+  }, [canGoBack, historyIndex, navigateHistory]);
+
+  const goForward = useCallback(() => {
+    if (!canGoForward) return;
+    navigateHistory(historyIndex + 1);
+  }, [canGoForward, historyIndex, navigateHistory]);
+
   const resetEditor = useCallback(() => {
     setName("");
     setUrl("");
@@ -131,6 +154,8 @@ export function IconCreator() {
     setCustomPrompt("");
     resetUploads();
     setResultImage(null);
+    setHistory([]);
+    setHistoryIndex(-1);
     setErrorMessage(null);
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -156,7 +181,6 @@ export function IconCreator() {
     setErrorMessage(null);
     setResultImage(null);
 
-    // Scroll to result pane on mobile devices
     if (typeof window !== "undefined" && window.innerWidth < 1280) {
       setTimeout(() => {
         const element = document.getElementById("result-pane");
@@ -216,7 +240,13 @@ export function IconCreator() {
       const mimeType =
         "mimeType" in data && typeof data.mimeType === "string" ? data.mimeType : "image/png";
 
-      setResultImage(`data:${mimeType};base64,${data.imageBase64}`);
+      const nextImage = `data:${mimeType};base64,${data.imageBase64}`;
+      const nextHistory = [...history];
+      const nextIndex = nextHistory.push(nextImage) - 1;
+      const trimmed = nextIndex > MAX_HISTORY ? nextIndex - MAX_HISTORY : 0;
+      setHistory(nextHistory.slice(trimmed));
+      setHistoryIndex(nextIndex - trimmed);
+      setResultImage(nextImage);
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") return;
       setErrorMessage(
@@ -227,7 +257,7 @@ export function IconCreator() {
     } finally {
       completeProgress();
     }
-  }, [activeUploads, completeProgress, customPrompt, name, selectedStyle, url]);
+  }, [activeUploads, completeProgress, customPrompt, history, name, selectedStyle, url]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -248,6 +278,25 @@ export function IconCreator() {
             />
           ) : resultImage ? (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
+              <div className="flex items-center justify-between">
+                {history.length > 1 ? (
+                  <div className="flex items-center gap-2">
+                    <Button type="button" size="sm" variant="ghost" onClick={goBack} disabled={!canGoBack}>
+                      <ChevronLeft className="w-4 h-4 mr-1" />
+                      前の結果
+                    </Button>
+                    <Button type="button" size="sm" variant="ghost" onClick={goForward} disabled={!canGoForward}>
+                      次の結果
+                      <ChevronRight className="w-4 h-4 ml-1" />
+                    </Button>
+                    <span className="text-dns-14 text-[var(--color-neutral-400)] tabular-nums">
+                      {historyIndex + 1} / {history.length}
+                    </span>
+                  </div>
+                ) : null}
+                <div className="flex-1" />
+              </div>
+
               <div className="flex flex-col items-center gap-4">
                 <div className="relative">
                   <div className="w-48 h-48 rounded-[var(--radius-full)] overflow-hidden border-4 border-[var(--color-neutral-200)] shadow-[var(--shadow-level-3)]">
