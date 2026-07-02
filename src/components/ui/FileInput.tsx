@@ -106,14 +106,14 @@ export function FileInput({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             key="preview-image"
-            className="relative rounded-[var(--radius-lg)] overflow-hidden border border-[var(--color-neutral-200)] group shadow-[var(--shadow-level-1)]"
+            className="relative h-48 rounded-[var(--radius-lg)] overflow-hidden border border-[var(--color-neutral-200)] group shadow-[var(--shadow-level-1)]"
           >
             <Image
               src={previewUrl}
               alt="Preview"
               width={800}
               height={600}
-              className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               unoptimized
             />
             <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
