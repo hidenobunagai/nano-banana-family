@@ -35,7 +35,7 @@ export async function POST(request: Request) {
   const apiKey = apiKeyResult.key;
 
   const formData = await request.formData();
-  const prompt = formData.get("prompt");
+  const prompt = (formData.get("prompt") as string | null) || "";
   const imageEntries = formData.getAll("images");
   const additionalImage = formData.get("image");
 

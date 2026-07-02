@@ -18,6 +18,13 @@ vi.mock("@/utils/server/api-helpers", () => ({
     jsonResponse({ error: e instanceof Error ? e.message : String(e), fallback }, 500),
   ),
   validateImageFile: vi.fn(),
+  validateFormData: vi.fn((schema, data) => {
+    const result = schema.safeParse(data);
+    if (result.success) {
+      return { success: true, data: result.data };
+    }
+    return { success: false, error: result.error.issues.map((i: any) => i.message).join(", ") };
+  }),
 }));
 
 vi.mock("@/utils/server/imageProcessing", () => ({

@@ -40,10 +40,10 @@ export async function POST(request: Request) {
   const apiKey = apiKeyResult.key;
 
   const formData = await request.formData();
-  const name = formData.get("name");
-  const url = formData.get("url");
-  const style = formData.get("style") as IconStyleId | null;
-  const customPrompt = formData.get("customPrompt");
+  const name = (formData.get("name") as string | null) || "";
+  const url = (formData.get("url") as string | null) || undefined;
+  const style = (formData.get("style") as IconStyleId | null) || undefined;
+  const customPrompt = (formData.get("customPrompt") as string | null) || undefined;
   const imageEntries = formData.getAll("images");
 
   const files: File[] = imageEntries.filter((entry): entry is File => entry instanceof File);
