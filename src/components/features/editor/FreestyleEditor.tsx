@@ -454,16 +454,21 @@ export function FreestyleEditor() {
               </div>
             ))}
             {uploads.length < MAX_FREESTYLE_UPLOADS && (
-              <button
-                type="button"
-                onClick={addUploadSlot}
-                className="h-48 rounded-[var(--radius-lg)] border-2 border-dashed border-[var(--color-neutral-200)] bg-white text-[var(--color-neutral-500)] transition-colors hover:border-[var(--color-primary-400)] hover:bg-[var(--color-primary-50)] hover:text-[var(--color-primary-600)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)] flex flex-col items-center justify-center"
-              >
-                <span className="block text-3xl">+</span>
-                <span className="mt-2 block text-oln-14 font-medium">
-                  画像を追加（あと {MAX_FREESTYLE_UPLOADS - uploads.length} 枚）
-                </span>
-              </button>
+              <div className="flex flex-col">
+                <div className="flex flex-col mb-2 invisible select-none" aria-hidden="true">
+                  <span className="text-dns-14">Placeholder</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={addUploadSlot}
+                  className="h-48 w-full rounded-[var(--radius-lg)] border-2 border-dashed border-[var(--color-neutral-200)] bg-white text-[var(--color-neutral-500)] transition-colors hover:border-[var(--color-primary-400)] hover:bg-[var(--color-primary-50)] hover:text-[var(--color-primary-600)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)] flex flex-col items-center justify-center"
+                >
+                  <span className="block text-3xl">+</span>
+                  <span className="mt-2 block text-oln-14 font-medium">
+                    画像を追加（あと {MAX_FREESTYLE_UPLOADS - uploads.length} 枚）
+                  </span>
+                </button>
+              </div>
             )}
           </div>
         </Section>
