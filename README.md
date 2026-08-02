@@ -97,6 +97,8 @@ bun run test:coverage
 bun run format
 ```
 
+TypeScript runs in a hybrid setup: the `typescript` package (6.x, JS API) drives `next build` and ESLint, while `@typescript/native` (7.x, the native compiler) backs the `tsc` binary for fast type checking.
+
 ## Prompt Presets
 
 The editor ships with several ready-made prompts, including:
