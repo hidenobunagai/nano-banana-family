@@ -5,7 +5,7 @@ import { z } from "zod";
 import { authOptions } from "@/auth";
 import { checkRateLimit } from "@/utils/server/rateLimit";
 import { logger } from "@/utils/server/logger";
-import { AppError, isAppError, toAppError, getUserMessage } from "@/utils/errors";
+import { toAppError, getUserMessage } from "@/utils/errors";
 
 export interface ApiRouteConfig {
   routeName: string;
@@ -24,7 +24,7 @@ export async function authenticateRequest(): Promise<
 > {
   const session = await getServerSession(authOptions);
   if (!session) {
-    throw new AppError("認証が必要です。", 401);
+    return { response: NextResponse.json({ error: "認証が必要です。" }, { status: 401 }) };
   }
   return { session: session as { user: { email?: string | null } } };
 }
@@ -34,10 +34,14 @@ export function checkUserRateLimit(
 ): { allowed: true } | { response: NextResponse } {
   const rateLimit = checkRateLimit(userId);
   if (!rateLimit.allowed) {
-    throw new AppError(
-      `リクエストが多すぎます。${rateLimit.retryAfter ?? 60}秒後にもう一度お試しください。`,
-      429,
-    );
+    return {
+      response: NextResponse.json(
+        {
+          error: `リクエストが多すぎます。${rateLimit.retryAfter ?? 60}秒後にもう一度お試しください。`,
+        },
+        { status: 429 },
+      ),
+    };
   }
   return { allowed: true };
 }
@@ -45,7 +49,12 @@ export function checkUserRateLimit(
 export function validateApiKey(): { key: string } | { response: NextResponse } {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    throw new AppError("Gemini API キーが設定されていません。", 500);
+    return {
+      response: NextResponse.json(
+        { error: "Gemini API キーが設定されていません。" },
+        { status: 500 },
+      ),
+    };
   }
   return { key: apiKey };
 }

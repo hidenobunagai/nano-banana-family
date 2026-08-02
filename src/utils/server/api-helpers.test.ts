@@ -1,5 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { validateImageFile, isAbortError } from "./api-helpers";
+import { getServerSession } from "next-auth";
+import { checkRateLimit } from "@/utils/server/rateLimit";
+import {
+  validateImageFile,
+  isAbortError,
+  authenticateRequest,
+  checkUserRateLimit,
+  validateApiKey,
+} from "./api-helpers";
 
 // Mock the dependencies
 vi.mock("@/auth", () => ({
@@ -8,6 +16,20 @@ vi.mock("@/auth", () => ({
 
 vi.mock("@/utils/server/rateLimit", () => ({
   checkRateLimit: vi.fn(),
+}));
+
+vi.mock("next-auth", () => ({
+  getServerSession: vi.fn(),
+}));
+
+vi.mock("next/server", () => ({
+  NextResponse: {
+    json: (body: unknown, init?: { status?: number }) =>
+      new Response(JSON.stringify(body), {
+        status: init?.status ?? 200,
+        headers: { "content-type": "application/json" },
+      }),
+  },
 }));
 
 describe("api-helpers", () => {
@@ -122,6 +144,81 @@ describe("api-helpers", () => {
       expect(isAbortError(null)).toBe(false);
       expect(isAbortError(undefined)).toBe(false);
       expect(isAbortError(123)).toBe(false);
+    });
+  });
+
+  describe("authenticateRequest", () => {
+    it("returns 401 JSON response when there is no session", async () => {
+      vi.mocked(getServerSession).mockResolvedValue(null);
+
+      const result = await authenticateRequest();
+      expect("response" in result).toBe(true);
+      if ("response" in result) {
+        expect(result.response.status).toBe(401);
+        const body = await result.response.json();
+        expect(body.error).toBe("認証が必要です。");
+      }
+    });
+
+    it("returns the session when authenticated", async () => {
+      vi.mocked(getServerSession).mockResolvedValue({
+        user: { email: "test@example.com" },
+      });
+
+      const result = await authenticateRequest();
+      expect("session" in result).toBe(true);
+      if ("session" in result) {
+        expect(result.session.user?.email).toBe("test@example.com");
+      }
+    });
+  });
+
+  describe("checkUserRateLimit", () => {
+    it("returns allowed when within the limit", () => {
+      vi.mocked(checkRateLimit).mockReturnValue({ allowed: true });
+
+      expect(checkUserRateLimit("user@example.com")).toEqual({ allowed: true });
+    });
+
+    it("returns 429 JSON response when rate limited", async () => {
+      vi.mocked(checkRateLimit).mockReturnValue({ allowed: false, retryAfter: 30 });
+
+      const result = checkUserRateLimit("user@example.com");
+      expect("response" in result).toBe(true);
+      if ("response" in result) {
+        expect(result.response.status).toBe(429);
+        const body = await result.response.json();
+        expect(body.error).toContain("30秒後");
+      }
+    });
+  });
+
+  describe("validateApiKey", () => {
+    it("returns the key when set", () => {
+      const previous = process.env.GEMINI_API_KEY;
+      process.env.GEMINI_API_KEY = "test-key";
+      try {
+        expect(validateApiKey()).toEqual({ key: "test-key" });
+      } finally {
+        if (previous === undefined) delete process.env.GEMINI_API_KEY;
+        else process.env.GEMINI_API_KEY = previous;
+      }
+    });
+
+    it("returns 500 JSON response when missing", async () => {
+      const previous = process.env.GEMINI_API_KEY;
+      delete process.env.GEMINI_API_KEY;
+      try {
+        const result = validateApiKey();
+        expect("response" in result).toBe(true);
+        if ("response" in result) {
+          expect(result.response.status).toBe(500);
+          const body = await result.response.json();
+          expect(body.error).toBe("Gemini API キーが設定されていません。");
+        }
+      } finally {
+        if (previous !== undefined) process.env.GEMINI_API_KEY = previous;
+      }
     });
   });
 });
