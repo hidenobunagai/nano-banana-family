@@ -7,6 +7,10 @@ import { Button } from "@/components/ui/Button";
 import { FileInput } from "@/components/ui/FileInput";
 import { Section } from "@/components/ui/Section";
 import { useProgressSimulation } from "@/hooks/useProgressSimulation";
+import { useRecentPrompts } from "@/hooks/useRecentPrompts";
+import { useResultHistory } from "@/hooks/useResultHistory";
+import { useTextUndoRedo } from "@/hooks/useTextUndoRedo";
+import { useUndoRedoShortcuts } from "@/hooks/useUndoRedoShortcuts";
 import { useUploadSlots } from "@/hooks/useUploadSlots";
 import { MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
 import { getRequestErrorMessage } from "@/utils/requestErrorMessage";
@@ -35,11 +39,7 @@ const STYLE_SUGGESTIONS = [
 ];
 
 export function FreestyleEditor() {
-  const [prompt, setPrompt] = useState("");
-  const [recentPrompts, setRecentPrompts] = useState<string[]>([]);
   const [resultImage, setResultImage] = useState<string | null>(null);
-  const [history, setHistory] = useState<string[]>([]);
-  const [historyIndex, setHistoryIndex] = useState(-1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showReferencePicker, setShowReferencePicker] = useState(false);
@@ -47,8 +47,30 @@ export function FreestyleEditor() {
   const abortControllerRef = useRef<AbortController | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const requestStartTimeRef = useRef<number>(0);
-  const undoStackRef = useRef<string[]>([]);
-  const redoStackRef = useRef<string[]>([]);
+
+  const { recentPrompts, pushRecent } = useRecentPrompts(
+    "freestyle-recent-prompts",
+    MAX_RECENT_PROMPTS,
+  );
+  const {
+    value: prompt,
+    setValue: setPrompt,
+    handleChange: handlePromptChange,
+    undo: handleUndo,
+    redo: handleRedo,
+    canUndo,
+    canRedo,
+    clearStacks,
+    reset: resetText,
+  } = useTextUndoRedo("");
+  useUndoRedoShortcuts(handleUndo, handleRedo);
+  const {
+    history,
+    historyIndex,
+    pushResult,
+    navigateTo,
+    reset: resetHistory,
+  } = useResultHistory(MAX_HISTORY);
 
   useEffect(() => {
     return () => {
@@ -75,45 +97,6 @@ export function FreestyleEditor() {
     onFileError: setErrorMessage,
   });
 
-  const pushRecentPrompt = useCallback((text: string) => {
-    const trimmed = text.trim();
-    if (!trimmed) return;
-    setRecentPrompts((prev) => {
-      const next = [trimmed, ...prev.filter((item) => item !== trimmed)].slice(
-        0,
-        MAX_RECENT_PROMPTS,
-      );
-      if (typeof window !== "undefined") {
-        try {
-          window.localStorage.setItem("freestyle-recent-prompts", JSON.stringify(next));
-        } catch {
-          // ignore
-        }
-      }
-      return next;
-    });
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      const stored = window.localStorage.getItem("freestyle-recent-prompts");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          setRecentPrompts(
-            [...new Set(parsed.filter((item) => typeof item === "string"))].slice(
-              0,
-              MAX_RECENT_PROMPTS,
-            ),
-          );
-        }
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
-
   const handleProgressComplete = useCallback(() => setIsSubmitting(false), []);
   const {
     progress,
@@ -138,13 +121,16 @@ export function FreestyleEditor() {
   const canGoBack = historyIndex > 0;
   const canGoForward = historyIndex < history.length - 1;
 
-  const navigateHistory = useCallback((index: number) => {
-    if (index < 0 || index >= history.length) return;
-    setHistoryIndex(index);
-    setResultImage(history[index]);
-    setIsComparing(false);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [history]);
+  const navigateHistory = useCallback(
+    (index: number) => {
+      if (index < 0 || index >= history.length) return;
+      navigateTo(index);
+      setResultImage(history[index]);
+      setIsComparing(false);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    },
+    [history, navigateTo],
+  );
 
   const goBack = useCallback(() => {
     if (!canGoBack) return;
@@ -168,18 +154,15 @@ export function FreestyleEditor() {
 
   const resetEditor = useCallback(() => {
     resetUploads();
-    setPrompt("");
+    resetText();
     setResultImage(null);
-    setHistory([]);
-    setHistoryIndex(-1);
+    resetHistory();
     setErrorMessage(null);
     setIsComparing(false);
-    undoStackRef.current = [];
-    redoStackRef.current = [];
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
-  }, [resetUploads]);
+  }, [resetUploads, resetText, resetHistory]);
 
   const handleRemoveUploadSlot = useCallback(
     (id: string) => {
@@ -191,62 +174,16 @@ export function FreestyleEditor() {
     [uploads.length, removeUploadSlot],
   );
 
-  const handlePromptChange = useCallback(
-    (value: string) => {
-      undoStackRef.current.push(prompt);
-      redoStackRef.current = [];
-      if (undoStackRef.current.length > 40) undoStackRef.current.shift();
-      setPrompt(value);
+  const handleReferenceSelect = useCallback(
+    (referencePrompt: string) => {
+      setPrompt((prev) => {
+        if (prev.trim()) return `${prev}\n\n${referencePrompt}`;
+        return referencePrompt;
+      });
+      textareaRef.current?.focus();
     },
-    [prompt],
+    [setPrompt],
   );
-
-  const handleUndo = useCallback(() => {
-    if (!undoStackRef.current.length) return;
-    const prev = undoStackRef.current.pop();
-    if (typeof prev === "string") {
-      redoStackRef.current.push(prompt);
-      setPrompt(prev);
-    }
-  }, [prompt]);
-
-  const handleRedo = useCallback(() => {
-    if (!redoStackRef.current.length) return;
-    const next = redoStackRef.current.pop();
-    if (typeof next === "string") {
-      undoStackRef.current.push(prompt);
-      setPrompt(next);
-    }
-  }, [prompt]);
-
-  useEffect(() => {
-    const handleKey = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement | null;
-      const isEditing =
-        target && (target.tagName === "TEXTAREA" || target.getAttribute("contenteditable") === "true");
-
-      if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key.toLowerCase() === "z") {
-        event.preventDefault();
-        if (isEditing) handleRedo();
-      } else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "z" && !event.shiftKey) {
-        event.preventDefault();
-        if (isEditing) handleUndo();
-      } else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "y") {
-        event.preventDefault();
-        if (isEditing) handleRedo();
-      }
-    };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [handleUndo, handleRedo]);
-
-  const handleReferenceSelect = useCallback((referencePrompt: string) => {
-    setPrompt((prev) => {
-      if (prev.trim()) return `${prev}\n\n${referencePrompt}`;
-      return referencePrompt;
-    });
-    textareaRef.current?.focus();
-  }, []);
 
   const handleRecentSelect = useCallback(
     (recentPrompt: string) => {
@@ -256,11 +193,14 @@ export function FreestyleEditor() {
     [handlePromptChange],
   );
 
-  const handleSuggestion = useCallback((nextPrompt: string) => {
-    if (prompt.trim()) setPrompt(`${prompt.trim()}\n\n${nextPrompt}`);
-    else setPrompt(nextPrompt);
-    textareaRef.current?.focus();
-  }, [prompt]);
+  const handleSuggestion = useCallback(
+    (nextPrompt: string) => {
+      if (prompt.trim()) setPrompt(`${prompt.trim()}\n\n${nextPrompt}`);
+      else setPrompt(nextPrompt);
+      textareaRef.current?.focus();
+    },
+    [prompt, setPrompt],
+  );
 
   const submitEdit = useCallback(async () => {
     if (!prompt.trim()) {
@@ -277,8 +217,7 @@ export function FreestyleEditor() {
     setErrorMessage(null);
     setResultImage(null);
     setIsComparing(false);
-    undoStackRef.current = [];
-    redoStackRef.current = [];
+    clearStacks();
 
     if (typeof window !== "undefined" && window.innerWidth < 1280) {
       setTimeout(() => {
@@ -329,14 +268,10 @@ export function FreestyleEditor() {
       const mimeType =
         "mimeType" in data && typeof data.mimeType === "string" ? data.mimeType : "image/png";
 
-      pushRecentPrompt(prompt);
+      pushRecent(prompt);
 
       const nextImage = `data:${mimeType};base64,${data.imageBase64}`;
-      const nextHistory = [...history];
-      const nextIndex = nextHistory.push(nextImage) - 1;
-      const trimmed = nextIndex > MAX_HISTORY ? nextIndex - MAX_HISTORY : 0;
-      setHistory(nextHistory.slice(trimmed));
-      setHistoryIndex(nextIndex - trimmed);
+      pushResult(nextImage);
       setResultImage(nextImage);
       completeProgress(elapsedMs);
     } catch (error) {
@@ -348,7 +283,15 @@ export function FreestyleEditor() {
       );
       completeProgress();
     }
-  }, [activeUploads, completeProgress, hasActiveFiles, history, prompt, pushRecentPrompt]);
+  }, [
+    activeUploads,
+    clearStacks,
+    completeProgress,
+    hasActiveFiles,
+    prompt,
+    pushRecent,
+    pushResult,
+  ]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -511,7 +454,7 @@ export function FreestyleEditor() {
                 size="sm"
                 variant="ghost"
                 onClick={handleUndo}
-                disabled={!undoStackRef.current.length || isSubmitting || isOptimizingAny}
+                disabled={!canUndo || isSubmitting || isOptimizingAny}
                 className="h-8 w-8 p-0"
                 aria-label="元に戻す"
               >
@@ -522,7 +465,7 @@ export function FreestyleEditor() {
                 size="sm"
                 variant="ghost"
                 onClick={handleRedo}
-                disabled={!redoStackRef.current.length || isSubmitting || isOptimizingAny}
+                disabled={!canRedo || isSubmitting || isOptimizingAny}
                 className="h-8 w-8 p-0"
                 aria-label="やり直す"
               >

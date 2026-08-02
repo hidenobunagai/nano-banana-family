@@ -6,6 +6,10 @@ import { Button, cn } from "@/components/ui/Button";
 import { FileInput } from "@/components/ui/FileInput";
 import { Section } from "@/components/ui/Section";
 import { useProgressSimulation } from "@/hooks/useProgressSimulation";
+import { useRecentPrompts } from "@/hooks/useRecentPrompts";
+import { useResultHistory } from "@/hooks/useResultHistory";
+import { useTextUndoRedo } from "@/hooks/useTextUndoRedo";
+import { useUndoRedoShortcuts } from "@/hooks/useUndoRedoShortcuts";
 import { useUploadSlots } from "@/hooks/useUploadSlots";
 import { MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
 import { getRequestErrorMessage } from "@/utils/requestErrorMessage";
@@ -80,48 +84,36 @@ export function IconCreator() {
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
   const [selectedStyle, setSelectedStyle] = useState("auto");
-  const [customPrompt, setCustomPrompt] = useState("");
-  const [recentPrompts, setRecentPrompts] = useState<string[]>([]);
   const [resultImage, setResultImage] = useState<string | null>(null);
-  const [history, setHistory] = useState<string[]>([]);
-  const [historyIndex, setHistoryIndex] = useState(-1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const requestStartTimeRef = useRef<number>(0);
   const customPromptTextareaRef = useRef<HTMLTextAreaElement>(null);
-  const undoStackRef = useRef<string[]>([]);
-  const redoStackRef = useRef<string[]>([]);
 
-  const pushRecentPrompt = useCallback((text: string) => {
-    const trimmed = text.trim();
-    if (!trimmed) return;
-    setRecentPrompts((prev) => {
-      const next = [trimmed, ...prev.filter((item) => item !== trimmed)].slice(0, MAX_RECENT_PROMPTS);
-      if (typeof window !== "undefined") {
-        try { window.localStorage.setItem("icon-recent-prompts", JSON.stringify(next)); } catch { /* ignore */ }
-      }
-      return next;
-    });
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      const stored = window.localStorage.getItem("icon-recent-prompts");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          setRecentPrompts(
-            [...new Set(parsed.filter((item) => typeof item === "string"))].slice(
-              0,
-              MAX_RECENT_PROMPTS,
-            ),
-          );
-        }
-      }
-    } catch { /* ignore */ }
-  }, []);
+  const { recentPrompts, pushRecent } = useRecentPrompts(
+    "icon-recent-prompts",
+    MAX_RECENT_PROMPTS,
+  );
+  const {
+    value: customPrompt,
+    setValue: setCustomPrompt,
+    handleChange: handlePromptChange,
+    undo: handleUndo,
+    redo: handleRedo,
+    canUndo,
+    canRedo,
+    clearStacks,
+    reset: resetText,
+  } = useTextUndoRedo("");
+  useUndoRedoShortcuts(handleUndo, handleRedo);
+  const {
+    history,
+    historyIndex,
+    pushResult,
+    navigateTo,
+    reset: resetHistory,
+  } = useResultHistory(MAX_HISTORY);
 
   const {
     uploads,
@@ -166,12 +158,15 @@ export function IconCreator() {
   const canGoBack = historyIndex > 0;
   const canGoForward = historyIndex < history.length - 1;
 
-  const navigateHistory = useCallback((index: number) => {
-    if (index < 0 || index >= history.length) return;
-    setHistoryIndex(index);
-    setResultImage(history[index]);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [history]);
+  const navigateHistory = useCallback(
+    (index: number) => {
+      if (index < 0 || index >= history.length) return;
+      navigateTo(index);
+      setResultImage(history[index]);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    },
+    [history, navigateTo],
+  );
 
   const goBack = useCallback(() => {
     if (!canGoBack) return;
@@ -187,18 +182,14 @@ export function IconCreator() {
     setName("");
     setUrl("");
     setSelectedStyle("auto");
-    setCustomPrompt("");
-    setRecentPrompts([]);
+    resetText();
     setResultImage(null);
-    setHistory([]);
-    setHistoryIndex(-1);
+    resetHistory();
     setErrorMessage(null);
-    undoStackRef.current = [];
-    redoStackRef.current = [];
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
-  }, []);
+  }, [resetText, resetHistory]);
 
   const handleRemoveUploadSlot = useCallback(
     (id: string) => {
@@ -209,34 +200,6 @@ export function IconCreator() {
     [removeUploadSlot],
   );
 
-  const handlePromptChange = useCallback(
-    (value: string) => {
-      undoStackRef.current.push(customPrompt);
-      redoStackRef.current = [];
-      if (undoStackRef.current.length > 40) undoStackRef.current.shift();
-      setCustomPrompt(value);
-    },
-    [customPrompt],
-  );
-
-  const handleUndo = useCallback(() => {
-    if (!undoStackRef.current.length) return;
-    const prev = undoStackRef.current.pop();
-    if (typeof prev === "string") {
-      redoStackRef.current.push(customPrompt);
-      setCustomPrompt(prev);
-    }
-  }, [customPrompt]);
-
-  const handleRedo = useCallback(() => {
-    if (!redoStackRef.current.length) return;
-    const next = redoStackRef.current.pop();
-    if (typeof next === "string") {
-      undoStackRef.current.push(customPrompt);
-      setCustomPrompt(next);
-    }
-  }, [customPrompt]);
-
   const handleRecentSelect = useCallback(
     (recentPrompt: string) => {
       handlePromptChange(recentPrompt);
@@ -244,26 +207,6 @@ export function IconCreator() {
     },
     [handlePromptChange],
   );
-
-  useEffect(() => {
-    const handleKey = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement | null;
-      const isEditing =
-        target && (target.tagName === "TEXTAREA" || target.getAttribute("contenteditable") === "true");
-      if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key.toLowerCase() === "z") {
-        event.preventDefault();
-        if (isEditing) handleRedo();
-      } else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "z" && !event.shiftKey) {
-        event.preventDefault();
-        if (isEditing) handleUndo();
-      } else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "y") {
-        event.preventDefault();
-        if (isEditing) handleRedo();
-      }
-    };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [handleUndo, handleRedo]);
 
   const submitEdit = useCallback(async () => {
     if (!name.trim()) {
@@ -298,7 +241,7 @@ export function IconCreator() {
 
       if (customPrompt.trim()) {
         formData.append("customPrompt", customPrompt.trim());
-        pushRecentPrompt(customPrompt);
+        pushRecent(customPrompt);
       }
 
       activeUploads.forEach((upload) => {
@@ -338,11 +281,8 @@ export function IconCreator() {
         "mimeType" in data && typeof data.mimeType === "string" ? data.mimeType : "image/png";
 
       const nextImage = `data:${mimeType};base64,${data.imageBase64}`;
-      const nextHistory = [...history];
-      const nextIndex = nextHistory.push(nextImage) - 1;
-      const trimmed = nextIndex > MAX_HISTORY ? nextIndex - MAX_HISTORY : 0;
-      setHistory(nextHistory.slice(trimmed));
-      setHistoryIndex(nextIndex - trimmed);
+      pushResult(nextImage);
+      clearStacks();
       setResultImage(nextImage);
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") return;
@@ -362,7 +302,17 @@ export function IconCreator() {
         completeProgress();
       }
     }
-  }, [activeUploads, completeProgress, customPrompt, history, name, pushRecentPrompt, selectedStyle, url]);
+  }, [
+    activeUploads,
+    clearStacks,
+    completeProgress,
+    customPrompt,
+    name,
+    pushRecent,
+    pushResult,
+    selectedStyle,
+    url,
+  ]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -606,7 +556,7 @@ export function IconCreator() {
                 size="sm"
                 variant="ghost"
                 onClick={handleUndo}
-                disabled={!undoStackRef.current.length || isSubmitting || isOptimizingAny}
+                disabled={!canUndo || isSubmitting || isOptimizingAny}
                 className="h-8 w-8 p-0"
                 aria-label="元に戻す"
               >
@@ -617,7 +567,7 @@ export function IconCreator() {
                 size="sm"
                 variant="ghost"
                 onClick={handleRedo}
-                disabled={!redoStackRef.current.length || isSubmitting || isOptimizingAny}
+                disabled={!canRedo || isSubmitting || isOptimizingAny}
                 className="h-8 w-8 p-0"
                 aria-label="やり直す"
               >
