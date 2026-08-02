@@ -6,6 +6,7 @@
 
 const WINDOW_MS = 60_000; // 1 minute
 const MAX_REQUESTS = 10;  // per user per window
+const PRUNE_THRESHOLD = 1000; // prune expired entries above this size
 
 interface RateLimitEntry {
   count: number;
@@ -13,6 +14,15 @@ interface RateLimitEntry {
 }
 
 const store = new Map<string, RateLimitEntry>();
+
+function pruneExpired(now: number): void {
+  if (store.size < PRUNE_THRESHOLD) return;
+  for (const [key, entry] of store) {
+    if (now > entry.resetAt) {
+      store.delete(key);
+    }
+  }
+}
 
 export interface RateLimitResult {
   allowed: boolean;
@@ -22,6 +32,7 @@ export interface RateLimitResult {
 
 export function checkRateLimit(userId: string): RateLimitResult {
   const now = Date.now();
+  pruneExpired(now);
   const entry = store.get(userId);
 
   if (!entry || now > entry.resetAt) {
