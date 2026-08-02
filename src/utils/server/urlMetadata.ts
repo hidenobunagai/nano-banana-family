@@ -3,6 +3,8 @@
  * Fetches a page and extracts title, description, and OG image.
  */
 
+import { fetchWithRedirects } from "@/utils/server/urlSafety";
+
 export interface UrlMetadata {
   title: string | null;
   description: string | null;
@@ -21,17 +23,19 @@ export async function fetchUrlMetadata(url: string): Promise<UrlMetadata | null>
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
-    const response = await fetch(url, {
-      signal: controller.signal,
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (compatible; HideNBStudio/1.0; +https://hide-nb-studio.vercel.app)",
-        Accept: "text/html,application/xhtml+xml",
-      },
-      redirect: "follow",
-    });
-
-    clearTimeout(timeout);
+    let response: Response;
+    try {
+      response = await fetchWithRedirects(url, {
+        signal: controller.signal,
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (compatible; HideNBStudio/1.0; +https://hide-nb-studio.vercel.app)",
+          Accept: "text/html,application/xhtml+xml",
+        },
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
 
     if (!response.ok) {
       return null;

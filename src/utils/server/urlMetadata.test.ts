@@ -1,6 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { fetchUrlMetadata } from "./urlMetadata";
 
+const mockLookup = vi.fn();
+
+vi.mock("node:dns/promises", () => ({
+  default: { lookup: (...args: unknown[]) => mockLookup(...args) },
+  lookup: (...args: unknown[]) => mockLookup(...args),
+}));
+
 const htmlTemplate = ({
   title = "Test Page",
   description = "A test page description",
@@ -34,6 +41,8 @@ function mockFetch(response: {
 describe("fetchUrlMetadata", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    mockLookup.mockReset();
+    mockLookup.mockResolvedValue([{ address: "93.184.216.34", family: 4 }]);
   });
 
   it("extracts title, description, and og:image from HTML", async () => {

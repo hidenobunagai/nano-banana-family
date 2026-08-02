@@ -103,7 +103,7 @@ export async function POST(request: Request) {
 
     if (urlMeta?.ogImage) {
       try {
-        const ogImageData = await fetchOgImage(urlMeta.ogImage);
+        const ogImageData = await fetchOgImage(urlMeta.ogImage, 5000, trimmedUrl);
         if (ogImageData) {
           parts.push({
             inlineData: {

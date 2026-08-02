@@ -5,6 +5,7 @@ import {
   resolveMimeType,
 } from "@/utils/server/imageValidation";
 import { validateImageFile } from "@/utils/server/api-helpers";
+import { fetchWithRedirects } from "@/utils/server/urlSafety";
 
 /**
  * Convert files to Gemini API inline data parts with validation.
@@ -47,16 +48,23 @@ export async function filesToParts(
 
 /**
  * Fetch an OG image and return its base64 data plus mime type.
+ * `baseUrl` is used to resolve relative og:image URLs against the page URL.
  */
 export async function fetchOgImage(
   imageUrl: string,
   timeoutMs: number = 5000,
+  baseUrl?: string,
 ): Promise<{ base64: string; mimeType: string } | null> {
+  const resolvedUrl =
+    baseUrl && !/^https?:\/\//i.test(imageUrl)
+      ? new URL(imageUrl, baseUrl).toString()
+      : imageUrl;
+
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const response = await fetch(imageUrl, {
+    const response = await fetchWithRedirects(resolvedUrl, {
       signal: controller.signal,
       headers: {
         Accept: "image/*",

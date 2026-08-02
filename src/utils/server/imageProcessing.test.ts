@@ -1,6 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { filesToParts, fetchOgImage } from "./imageProcessing";
 
+const mockLookup = vi.fn();
+
+vi.mock("node:dns/promises", () => ({
+  default: { lookup: (...args: unknown[]) => mockLookup(...args) },
+  lookup: (...args: unknown[]) => mockLookup(...args),
+}));
+
 function createMockFile(
   content: string,
   name: string,
@@ -66,6 +73,8 @@ describe("filesToParts", () => {
 describe("fetchOgImage", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    mockLookup.mockReset();
+    mockLookup.mockResolvedValue([{ address: "93.184.216.34", family: 4 }]);
   });
 
   it("fetches and returns image data", async () => {
