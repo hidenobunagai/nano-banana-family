@@ -48,3 +48,10 @@ public/fallback-*.js
 
 .serena/
 .env*.local
+
+# agent artifacts
+.headroom/
+headroom_memory.db
+
+# misc logs
+*.log

@@ -84,7 +84,7 @@ bun run env:ls
 bun run dev
 ```
 
-Visit <http://localhost:3000> and sign in with an allowed Google account to try the studio.
+Visit <http://localhost:3001> and sign in with an allowed Google account to try the studio.
 
 ## Quality Checks
 
@@ -127,5 +127,5 @@ or connect the GitHub repo in the Vercel dashboard for automatic deployments. An
 ## Progressive Web App
 
 - Install the app on iOS or Android from the browser share/install menu. The manifest and service worker are generated automatically via `next-pwa`.
-- When developing locally, run `bun run dev` and open <http://localhost:3000>; Chrome will expose the "Install app" option once the site is served over HTTPS (use `vercel dev` or `bun run build && bun run start` for a production-like HTTPS setup).
+- When developing locally, run `bun run dev` and open <http://localhost:3001>; Chrome will expose the "Install app" option once the site is served over HTTPS (use `vercel dev` or `bun run build && bun run start` for a production-like HTTPS setup).
 - Generated assets (`public/sw.js`, `public/workbox-*.js`) are ignored by Git and created during `next build`.
