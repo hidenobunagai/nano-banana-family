@@ -41,10 +41,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-# PWA artifacts
-public/sw.js
-public/workbox-*.js
-public/fallback-*.js
 
 .serena/
 .env*.local

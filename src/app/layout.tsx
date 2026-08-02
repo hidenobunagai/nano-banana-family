@@ -4,6 +4,7 @@ import Script from "next/script";
 import "./globals.css";
 import { AuthProvider } from "./providers";
 
+import { SerwistProvider } from "@serwist/turbopack/react";
 import { Analytics } from "@vercel/analytics/next";
 
 const GTM_ID = "GTM-NP6VPKT6";
@@ -86,7 +87,13 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         >
           メインコンテンツへスキップ
         </a>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          {process.env.NODE_ENV === "development" ? (
+            children
+          ) : (
+            <SerwistProvider swUrl="/serwist/sw.js">{children}</SerwistProvider>
+          )}
+        </AuthProvider>
         <Analytics />
       </body>
     </html>

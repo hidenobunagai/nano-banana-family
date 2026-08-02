@@ -12,10 +12,11 @@ Family-only image editing studio built with Next.js and Google Gemini. It authen
 
 ## Tech Stack
 
-- Next.js 16 (App Router) & React 19
+- Next.js 16 (App Router, Turbopack) & React 19
 - TypeScript
 - NextAuth (Google provider)
 - Google Gemini API (via `@google/genai`)
+- Serwist (PWA service worker)
 - Vercel Analytics
 
 ## Architecture Overview
@@ -126,6 +127,6 @@ or connect the GitHub repo in the Vercel dashboard for automatic deployments. An
 
 ## Progressive Web App
 
-- Install the app on iOS or Android from the browser share/install menu. The manifest and service worker are generated automatically via `next-pwa`.
-- When developing locally, run `bun run dev` and open <http://localhost:3001>; Chrome will expose the "Install app" option once the site is served over HTTPS (use `vercel dev` or `bun run build && bun run start` for a production-like HTTPS setup).
+- Install the app on iOS or Android from the browser share/install menu. The web app manifest is served from `src/app/manifest.ts` and the service worker is compiled by Serwist (`@serwist/turbopack`) and served from `/serwist/sw.js`.
+- Service worker registration is disabled during local development (`next dev`); run `bun run build && bun run start` to test the PWA locally over HTTPS.
 - Generated assets (`public/sw.js`, `public/workbox-*.js`) are ignored by Git and created during `next build`.
