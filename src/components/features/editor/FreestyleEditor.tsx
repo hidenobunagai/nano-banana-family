@@ -43,6 +43,7 @@ export function FreestyleEditor() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showReferencePicker, setShowReferencePicker] = useState(false);
+  const [isComparing, setIsComparing] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const requestStartTimeRef = useRef<number>(0);
@@ -99,7 +100,14 @@ export function FreestyleEditor() {
       const stored = window.localStorage.getItem("freestyle-recent-prompts");
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) setRecentPrompts(parsed);
+        if (Array.isArray(parsed)) {
+          setRecentPrompts(
+            [...new Set(parsed.filter((item) => typeof item === "string"))].slice(
+              0,
+              MAX_RECENT_PROMPTS,
+            ),
+          );
+        }
       }
     } catch {
       // ignore
@@ -134,6 +142,7 @@ export function FreestyleEditor() {
     if (index < 0 || index >= history.length) return;
     setHistoryIndex(index);
     setResultImage(history[index]);
+    setIsComparing(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [history]);
 
@@ -147,6 +156,16 @@ export function FreestyleEditor() {
     navigateHistory(historyIndex + 1);
   }, [canGoForward, historyIndex, navigateHistory]);
 
+  const toggleCompare = useCallback(() => {
+    setIsComparing((current) => {
+      const next = !current;
+      const previous = history[historyIndex - 1] ?? null;
+      const currentImage = history[historyIndex] ?? resultImage;
+      setResultImage(next ? previous : currentImage);
+      return next;
+    });
+  }, [history, historyIndex, resultImage]);
+
   const resetEditor = useCallback(() => {
     resetUploads();
     setPrompt("");
@@ -154,6 +173,7 @@ export function FreestyleEditor() {
     setHistory([]);
     setHistoryIndex(-1);
     setErrorMessage(null);
+    setIsComparing(false);
     undoStackRef.current = [];
     redoStackRef.current = [];
     if (typeof window !== "undefined") {
@@ -256,6 +276,7 @@ export function FreestyleEditor() {
     setIsSubmitting(true);
     setErrorMessage(null);
     setResultImage(null);
+    setIsComparing(false);
     undoStackRef.current = [];
     redoStackRef.current = [];
 
@@ -366,17 +387,15 @@ export function FreestyleEditor() {
                 ) : null}
                 <button
                   type="button"
-                  onClick={() => {
-                    const current = resultImage;
-                    if (!current) return;
-                    const previous = history[historyIndex - 1] ?? null;
-                    setResultImage(previous);
-                    setHistoryIndex(Math.max(0, historyIndex - 1));
-                  }}
-                  className="inline-flex items-center gap-1 text-oln-14 text-[var(--color-neutral-500)] hover:text-[var(--color-primary-600)] rounded-[var(--radius-md)] px-2 py-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]"
-                  aria-label="結果を比較"
+                  onClick={toggleCompare}
+                  disabled={!canGoBack}
+                  aria-pressed={isComparing}
+                  className="inline-flex items-center gap-1 text-oln-14 text-[var(--color-neutral-500)] hover:text-[var(--color-primary-600)] rounded-[var(--radius-md)] px-2 py-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)] disabled:opacity-40 disabled:pointer-events-none"
+                  aria-label="前の結果と比較"
                 >
-                  <span className="text-dns-14">前の結果と比較</span>
+                  <span className="text-dns-14">
+                    {isComparing ? "最新の結果に戻る" : "前の結果と比較"}
+                  </span>
                 </button>
               </div>
 
@@ -518,7 +537,7 @@ export function FreestyleEditor() {
                 <span className="text-oln-14 text-[var(--color-neutral-500)]">最近:</span>
                 {recentPrompts.map((recent) => (
                   <Button
-                    key={`${recent}-${Date.now()}`}
+                    key={recent}
                     type="button"
                     size="sm"
                     variant="ghost"

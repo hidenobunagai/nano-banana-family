@@ -111,7 +111,14 @@ export function IconCreator() {
       const stored = window.localStorage.getItem("icon-recent-prompts");
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) setRecentPrompts(parsed);
+        if (Array.isArray(parsed)) {
+          setRecentPrompts(
+            [...new Set(parsed.filter((item) => typeof item === "string"))].slice(
+              0,
+              MAX_RECENT_PROMPTS,
+            ),
+          );
+        }
       }
     } catch { /* ignore */ }
   }, []);
@@ -623,7 +630,7 @@ export function IconCreator() {
               <span className="text-oln-14 text-[var(--color-neutral-500)]">最近:</span>
               {recentPrompts.map((recent) => (
                 <Button
-                  key={`${recent}-${Date.now()}`}
+                  key={recent}
                   type="button"
                   size="sm"
                   variant="ghost"
