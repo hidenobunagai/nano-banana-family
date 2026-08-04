@@ -5,7 +5,6 @@ import {
   buildIconPrompt,
   type IconStyleId,
 } from "@/utils/server/iconPromptBuilder";
-import { MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
 import {
   authenticateRequest,
   checkUserRateLimit,
@@ -25,7 +24,6 @@ import { generateCacheKey, imageGenerationCache } from "@/utils/server/cache";
 export const runtime = "nodejs";
 
 const DEFAULT_MODEL = process.env.GEMINI_IMAGE_MODEL ?? "gemini-3.1-flash-lite-image";
-const MAX_IMAGE_COUNT = 3;
 
 export async function POST(request: Request) {
   const authResult = await authenticateRequest();
@@ -145,7 +143,6 @@ export async function POST(request: Request) {
       logger,
       "icon-generate",
       session.user?.email ?? "unknown",
-      "アイコン生成中に予期しないエラーが発生しました。",
     );
   }
 }

@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 import { checkRateLimit } from "@/utils/server/rateLimit";
 import {
   validateImageFile,
-  isAbortError,
   authenticateRequest,
   checkUserRateLimit,
   validateApiKey,
@@ -122,28 +121,6 @@ describe("api-helpers", () => {
 
       expect(result.valid).toBe(false);
       expect(result.error).toContain("2枚目の画像");
-    });
-  });
-
-  describe("isAbortError", () => {
-    it("should return true for AbortError", () => {
-      const error = new Error("Request aborted");
-      error.name = "AbortError";
-
-      expect(isAbortError(error)).toBe(true);
-    });
-
-    it("should return false for regular Error", () => {
-      const error = new Error("Regular error");
-
-      expect(isAbortError(error)).toBe(false);
-    });
-
-    it("should return false for non-Error values", () => {
-      expect(isAbortError("string error")).toBe(false);
-      expect(isAbortError(null)).toBe(false);
-      expect(isAbortError(undefined)).toBe(false);
-      expect(isAbortError(123)).toBe(false);
     });
   });
 

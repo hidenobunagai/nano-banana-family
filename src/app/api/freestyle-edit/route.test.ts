@@ -14,8 +14,8 @@ vi.mock("@/utils/server/api-helpers", () => ({
   authenticateRequest: vi.fn(),
   checkUserRateLimit: vi.fn(),
   validateApiKey: vi.fn(),
-  handleApiError: vi.fn((e, _l, _r, _u, fallback) =>
-    jsonResponse({ error: e instanceof Error ? e.message : String(e), fallback }, 500),
+  handleApiError: vi.fn((e) =>
+    jsonResponse({ error: e instanceof Error ? e.message : String(e) }, 500),
   ),
   validateImageFile: vi.fn(),
   validateFormData: vi.fn((schema, data) => {
@@ -100,8 +100,8 @@ describe("POST /api/freestyle-edit", () => {
     vi.mocked(checkUserRateLimit).mockReturnValue({ allowed: true });
     vi.mocked(validateApiKey).mockReturnValue({ key: "test-key" });
     vi.mocked(filesToParts).mockResolvedValue({ parts: [{ text: "processed" }] });
-    vi.mocked(handleApiError).mockImplementation((e, _l, _r, _u, fallback) =>
-      jsonResponse({ error: e instanceof Error ? e.message : String(e), fallback }, 500),
+    vi.mocked(handleApiError).mockImplementation((e) =>
+      jsonResponse({ error: e instanceof Error ? e.message : String(e) }, 500),
     );
     mockGenerateContent.mockResolvedValue({
       candidates: [{

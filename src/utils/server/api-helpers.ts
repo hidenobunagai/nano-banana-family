@@ -116,7 +116,6 @@ export function handleApiError(
   loggerInstance: { error: (message: string, err?: unknown, fields?: Record<string, unknown>) => void },
   routeName: string,
   userId: string,
-  fallbackMessage: string,
 ): NextResponse {
   const appError = toAppError(error);
   loggerInstance.error(`${routeName} error`, error, {
@@ -128,8 +127,4 @@ export function handleApiError(
     { error: getUserMessage(appError) },
     { status: appError.statusCode },
   );
-}
-
-export function isAbortError(error: unknown): boolean {
-  return error instanceof Error && error.name === "AbortError";
 }

@@ -15,8 +15,8 @@ vi.mock("@/utils/server/api-helpers", () => ({
   authenticateRequest: vi.fn(),
   checkUserRateLimit: vi.fn(),
   validateApiKey: vi.fn(),
-  handleApiError: vi.fn((e, _l, _r, _u, fallback) =>
-    jsonResponse({ error: e instanceof Error ? e.message : String(e), fallback }, 500),
+  handleApiError: vi.fn((e) =>
+    jsonResponse({ error: e instanceof Error ? e.message : String(e) }, 500),
   ),
   validateImageFile: vi.fn(),
   validateFormData: vi.fn((schema, data) => {

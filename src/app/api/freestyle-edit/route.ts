@@ -1,7 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
 
-import { MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
 import {
   authenticateRequest,
   checkUserRateLimit,
@@ -20,7 +19,6 @@ import { generateCacheKey, imageGenerationCache } from "@/utils/server/cache";
 export const runtime = "nodejs";
 
 const DEFAULT_MODEL = process.env.GEMINI_IMAGE_MODEL ?? "gemini-3.1-flash-lite-image";
-const MAX_IMAGE_COUNT = 5;
 
 export async function POST(request: Request) {
   const authResult = await authenticateRequest();
@@ -37,12 +35,8 @@ export async function POST(request: Request) {
   const formData = await request.formData();
   const prompt = (formData.get("prompt") as string | null) || "";
   const imageEntries = formData.getAll("images");
-  const additionalImage = formData.get("image");
 
   const files: File[] = imageEntries.filter((entry): entry is File => entry instanceof File);
-  if (files.length === 0 && additionalImage instanceof File) {
-    files.push(additionalImage);
-  }
 
   const parsed = validateFormData(FreestyleEditFormSchema, {
     prompt,
@@ -113,7 +107,6 @@ export async function POST(request: Request) {
       logger,
       "freestyle-edit",
       session.user?.email ?? "unknown",
-      "画像生成中に予期しないエラーが発生しました。",
     );
   }
 }
