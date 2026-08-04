@@ -18,7 +18,7 @@ class MemoryCache {
   }
 
   /**
-   * Get a cached value
+   * Get a cached value, lazily removing expired entries
    */
   get<T>(key: string): T | null {
     const entry = this.cache.get(key);
@@ -42,39 +42,6 @@ class MemoryCache {
     const expiresAt = Date.now() + (ttlMs ?? this.defaultTTL);
     this.cache.set(key, { data, expiresAt });
   }
-
-  /**
-   * Delete a cached value
-   */
-  delete(key: string): void {
-    this.cache.delete(key);
-  }
-
-  /**
-   * Clear all cached values
-   */
-  clear(): void {
-    this.cache.clear();
-  }
-
-  /**
-   * Clear expired entries
-   */
-  clearExpired(): void {
-    const now = Date.now();
-    for (const [key, entry] of this.cache.entries()) {
-      if (now > entry.expiresAt) {
-        this.cache.delete(key);
-      }
-    }
-  }
-
-  /**
-   * Get cache size
-   */
-  get size(): number {
-    return this.cache.size;
-  }
 }
 
 // Export singleton instance
@@ -85,28 +52,6 @@ export const imageGenerationCache = new MemoryCache(10 * 60 * 1000); // 10 minut
  */
 export function generateCacheKey(params: Record<string, unknown>): string {
   const sortedKeys = Object.keys(params).sort();
-  const keyParts = sortedKeys.map((key) => {
-    const value = params[key];
-    if (value instanceof File) {
-      return `${key}:${value.name}:${value.size}`;
-    }
-    return `${key}:${String(value)}`;
-  });
+  const keyParts = sortedKeys.map((key) => `${key}:${String(params[key])}`);
   return keyParts.join("|");
-}
-
-/**
- * Check if response is cacheable
- */
-export function isCacheableResponse(response: unknown): boolean {
-  if (typeof response !== "object" || response === null) {
-    return false;
-  }
-
-  // Don't cache error responses
-  if ("error" in response) {
-    return false;
-  }
-
-  return true;
 }

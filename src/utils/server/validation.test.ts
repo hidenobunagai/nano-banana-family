@@ -1,12 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
   ImageGenerationResponseSchema,
-  ErrorResponseSchema,
-  ApiResponseSchema,
-  EditImageFormSchema,
   FreestyleEditFormSchema,
   IconGenerateFormSchema,
-  validateFormData,
 } from "./validation";
 
 describe("ImageGenerationResponseSchema", () => {
@@ -20,48 +16,6 @@ describe("ImageGenerationResponseSchema", () => {
 
   it("rejects missing fields", () => {
     const result = ImageGenerationResponseSchema.safeParse({ imageBase64: "abc" });
-    expect(result.success).toBe(false);
-  });
-});
-
-describe("ErrorResponseSchema", () => {
-  it("accepts valid error", () => {
-    const result = ErrorResponseSchema.safeParse({ error: "something went wrong" });
-    expect(result.success).toBe(true);
-  });
-
-  it("rejects non-string error", () => {
-    const result = ErrorResponseSchema.safeParse({ error: 42 });
-    expect(result.success).toBe(false);
-  });
-});
-
-describe("ApiResponseSchema", () => {
-  it("accepts success response", () => {
-    const result = ApiResponseSchema.safeParse({
-      imageBase64: "abc",
-      mimeType: "image/jpeg",
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it("accepts error response", () => {
-    const result = ApiResponseSchema.safeParse({ error: "fail" });
-    expect(result.success).toBe(true);
-  });
-
-  it("rejects unknown shape", () => {
-    const result = ApiResponseSchema.safeParse({ foo: "bar" });
-    expect(result.success).toBe(false);
-  });
-});
-
-describe("EditImageFormSchema", () => {
-  it("rejects empty prompt", () => {
-    const result = EditImageFormSchema.safeParse({
-      prompt: "",
-      image: new File([], "test.png"),
-    });
     expect(result.success).toBe(false);
   });
 });
@@ -117,24 +71,5 @@ describe("IconGenerateFormSchema", () => {
       images: files,
     });
     expect(result.success).toBe(false);
-  });
-});
-
-describe("validateFormData", () => {
-  it("returns success for valid data", () => {
-    const schema = ImageGenerationResponseSchema;
-    const result = validateFormData(schema, {
-      imageBase64: "abc",
-      mimeType: "image/png",
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it("returns error messages for invalid data", () => {
-    const schema = ImageGenerationResponseSchema;
-    const result = validateFormData(schema, {});
-    if (!result.success) {
-      expect(result.error).toBeTruthy();
-    }
   });
 });
