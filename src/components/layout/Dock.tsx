@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/components/ui/Button";
-import { NAV_ITEMS } from "@/types/nav";
+import { NAV_ITEMS, type NavMode } from "@/types/nav";
 import { motion } from "framer-motion";
 
 interface DockProps {
