@@ -17,7 +17,7 @@ import { getRequestErrorMessage } from "@/utils/requestErrorMessage";
 import { BookOpen, ChevronLeft, ChevronRight, Download, Loader2, RefreshCw, RotateCcw, Wand2, X } from "lucide-react";
 import Image from "next/image";
 import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
-import { makeBrighterPrompt, makePopPrompt, makeStampPrompt, makeSepiaPrompt } from "@/utils/server/stylePrompts";
+import { STYLE_SUGGESTIONS } from "@/utils/server/stylePrompts";
 
 const FREESTYLE_PROGRESS_STEPS: ProgressStep[] = [
   { id: "gather", label: "参考画像を読み込み中...", estimatedDuration: 1600 },
@@ -31,12 +31,6 @@ const FREESTYLE_PROGRESS_STEPS: ProgressStep[] = [
 const MAX_FREESTYLE_UPLOADS = 5;
 const MAX_HISTORY = 4;
 const MAX_RECENT_PROMPTS = 6;
-const STYLE_SUGGESTIONS = [
-  { label: "明るく", prompt: makeBrighterPrompt() },
-  { label: "ポップ", prompt: makePopPrompt() },
-  { label: "スタンプ風", prompt: makeStampPrompt() },
-  { label: "セピア", prompt: makeSepiaPrompt() },
-];
 
 export function FreestyleEditor() {
   const [resultImage, setResultImage] = useState<string | null>(null);

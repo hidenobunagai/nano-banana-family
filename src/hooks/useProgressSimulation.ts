@@ -1,5 +1,5 @@
 import { ProgressStep } from "@/components/ProgressDisplay";
-import { useCallback, useEffect, useReducer, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export const PROGRESS_STEPS: ProgressStep[] = [
   {
@@ -55,20 +55,7 @@ interface ProgressState {
   timeRemaining: number;
 }
 
-type ProgressAction =
-  | { type: "TICK"; payload: { progress: number; currentStep: number; timeRemaining: number } }
-  | { type: "RESET" };
-
-function progressReducer(state: ProgressState, action: ProgressAction): ProgressState {
-  switch (action.type) {
-    case "TICK":
-      return action.payload;
-    case "RESET":
-      return { progress: 0, currentStep: 0, timeRemaining: 0 };
-    default:
-      return state;
-  }
-}
+const INITIAL_STATE: ProgressState = { progress: 0, currentStep: 0, timeRemaining: 0 };
 
 export function useProgressSimulation({
   isActive,
@@ -76,11 +63,7 @@ export function useProgressSimulation({
   steps = PROGRESS_STEPS,
   actualElapsedMs,
 }: UseProgressSimulationProps): UseProgressSimulationReturn {
-  const [state, dispatch] = useReducer(progressReducer, {
-    progress: 0,
-    currentStep: 0,
-    timeRemaining: 0,
-  });
+  const [state, setState] = useState<ProgressState>(INITIAL_STATE);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(0);
   const completionRequestedRef = useRef(false);
@@ -93,7 +76,7 @@ export function useProgressSimulation({
   const totalDuration = steps.reduce((sum, step) => sum + step.estimatedDuration, 0);
 
   const reset = useCallback(() => {
-    dispatch({ type: "RESET" });
+    setState(INITIAL_STATE);
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
@@ -109,7 +92,7 @@ export function useProgressSimulation({
       }
       completionRequestedRef.current = false;
       const resetTimeout = setTimeout(() => {
-        dispatch({ type: "RESET" });
+        setState(INITIAL_STATE);
       }, 0);
       return () => clearTimeout(resetTimeout);
     }
@@ -166,13 +149,10 @@ export function useProgressSimulation({
         stepIndex = Math.min(i + 1, steps.length - 1);
       }
 
-      dispatch({
-        type: "TICK",
-        payload: {
-          progress: progressPercent,
-          currentStep: stepIndex,
-          timeRemaining: remainingDuration / 1000,
-        },
+      setState({
+        progress: progressPercent,
+        currentStep: stepIndex,
+        timeRemaining: remainingDuration / 1000,
       });
 
       if (completionRequested && progressPercent >= 100) {
@@ -218,13 +198,10 @@ export function useProgressSimulation({
       const progressPercent =
         totalDuration > 0 ? Math.min(99, minimumElapsed / totalDuration * 100) : 100;
 
-      dispatch({
-        type: "TICK",
-        payload: {
-          progress: progressPercent,
-          currentStep: finalPhaseStartIndex,
-          timeRemaining: finalPhaseDuration / 1000,
-        },
+      setState({
+        progress: progressPercent,
+        currentStep: finalPhaseStartIndex,
+        timeRemaining: finalPhaseDuration / 1000,
       });
 
       if (finalPhaseDuration === 0) {

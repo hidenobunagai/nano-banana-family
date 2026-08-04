@@ -1,15 +1,10 @@
 "use client";
 
 import { Button, cn } from "@/components/ui/Button";
-import type { NavMode } from "@/types/nav";
+import { NAV_ITEMS } from "@/types/nav";
 import { motion } from "framer-motion";
-import { LogOut, Palette, UserCircle } from "lucide-react";
+import { LogOut } from "lucide-react";
 import * as React from "react";
-
-const HEADER_NAV_ITEMS = [
-  { id: "freestyle", label: "自由生成", icon: Palette },
-  { id: "icon", label: "アイコン", icon: UserCircle },
-] as const;
 
 interface ShellProps {
   children: React.ReactNode;
@@ -30,7 +25,7 @@ export function Shell({ children, onSignOut, navMode, onNavModeChange }: ShellPr
           </div>
 
           <nav className="hidden lg:flex items-center gap-1">
-            {HEADER_NAV_ITEMS.map((item) => {
+            {NAV_ITEMS.map((item) => {
               const Icon = item.icon;
               const active = navMode === item.id;
               return (

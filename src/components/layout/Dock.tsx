@@ -1,21 +1,13 @@
 "use client";
 
 import { cn } from "@/components/ui/Button";
-import type { NavMode } from "@/types/nav";
+import { NAV_ITEMS } from "@/types/nav";
 import { motion } from "framer-motion";
-import { Palette, UserCircle } from "lucide-react";
-
-export type { NavMode };
 
 interface DockProps {
   currentMode: NavMode;
   onModeChange: (mode: NavMode) => void;
 }
-
-const MENU_ITEMS = [
-  { id: "freestyle", label: "自由生成", icon: Palette },
-  { id: "icon", label: "アイコン", icon: UserCircle },
-] as const;
 
 export function Dock({ currentMode, onModeChange }: DockProps) {
   return (
@@ -26,7 +18,7 @@ export function Dock({ currentMode, onModeChange }: DockProps) {
       className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-[var(--color-neutral-200)] lg:hidden pb-[env(safe-area-inset-bottom)]"
     >
       <div className="flex items-stretch justify-around h-16">
-        {MENU_ITEMS.map((item) => (
+        {NAV_ITEMS.map((item) => (
           <NavItem
             key={item.id}
             active={currentMode === item.id}
