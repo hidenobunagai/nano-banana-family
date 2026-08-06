@@ -239,44 +239,48 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
               {displayedPrompts.map((ref, index) => {
                 const isFav = favorites.includes(ref.id);
                 return (
-                  <button
+                  <div
                     key={ref.id}
-                    type="button"
-                    onClick={() => handleSelect(ref)}
-                    className="w-full rounded-[var(--radius-md)] border border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)] p-4 text-left transition-colors hover:border-[var(--color-primary-200)] hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]"
+                    className="w-full rounded-[var(--radius-md)] border border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)] transition-colors hover:border-[var(--color-primary-200)] hover:bg-white"
                   >
-                    <div className="flex items-start gap-3">
-                      <div className="flex size-8 shrink-0 items-center justify-center rounded-[var(--radius-sm)] border border-[var(--color-neutral-200)] bg-white text-dns-14 font-bold text-[var(--color-neutral-400)]">
-                        {String(index + 1).padStart(2, "0")}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-oln-16 font-bold text-[var(--color-neutral-800)]">
-                            {ref.title}
-                          </span>
-                          <span className="rounded-[var(--radius-sm)] bg-[var(--color-neutral-100)] px-2 py-1 text-[10px] text-[var(--color-neutral-500)]">
-                            {ref.category}
-                          </span>
+                    <div className="flex items-start gap-3 p-4">
+                      <button
+                        type="button"
+                        onClick={() => handleSelect(ref)}
+                        className="flex min-w-0 flex-1 items-start gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)] rounded-[var(--radius-sm)]"
+                      >
+                        <div className="flex size-8 shrink-0 items-center justify-center rounded-[var(--radius-sm)] border border-[var(--color-neutral-200)] bg-white text-dns-14 font-bold text-[var(--color-neutral-400)]">
+                          {String(index + 1).padStart(2, "0")}
                         </div>
-                        <p className="mt-1 line-clamp-2 text-dns-14 leading-relaxed text-[var(--color-neutral-500)]">
-                          {getPromptPreview(ref)}
-                        </p>
-                        <div className="mt-2 flex flex-wrap gap-1.5">
-                          {ref.tags.slice(0, 2).map((tag) => (
-                            <span
-                              key={tag}
-                              className="rounded-[var(--radius-sm)] bg-[var(--color-neutral-100)] px-2 py-1 text-[10px] text-[var(--color-neutral-400)]"
-                            >
-                              #{tag}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-oln-16 font-bold text-[var(--color-neutral-800)]">
+                              {ref.title}
                             </span>
-                          ))}
+                            <span className="rounded-[var(--radius-sm)] bg-[var(--color-neutral-100)] px-2 py-1 text-[10px] text-[var(--color-neutral-500)]">
+                              {ref.category}
+                            </span>
+                          </div>
+                          <p className="mt-1 line-clamp-2 text-dns-14 leading-relaxed text-[var(--color-neutral-500)]">
+                            {getPromptPreview(ref)}
+                          </p>
+                          <div className="mt-2 flex flex-wrap gap-1.5">
+                            {ref.tags.slice(0, 2).map((tag) => (
+                              <span
+                                key={tag}
+                                className="rounded-[var(--radius-sm)] bg-[var(--color-neutral-100)] px-2 py-1 text-[10px] text-[var(--color-neutral-400)]"
+                              >
+                                #{tag}
+                              </span>
+                            ))}
+                          </div>
                         </div>
-                      </div>
+                      </button>
                       <button
                         type="button"
                         onClick={(event) => toggleFavorite(ref.id, event)}
                         className={cn(
-                          "flex size-9 items-center justify-center rounded-[var(--radius-md)] border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]",
+                          "flex size-9 shrink-0 items-center justify-center rounded-[var(--radius-md)] border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]",
                           isFav
                             ? "border-[var(--color-primary-200)] bg-[var(--color-primary-50)] text-[var(--color-primary-600)]"
                             : "border-transparent bg-transparent text-[var(--color-neutral-300)] hover:text-[var(--color-neutral-500)]",
@@ -287,7 +291,7 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
                         <Heart className={cn("w-4 h-4", isFav ? "fill-current" : "")} />
                       </button>
                     </div>
-                  </button>
+                  </div>
                 );
               })}
             </div>
