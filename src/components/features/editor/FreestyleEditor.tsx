@@ -163,14 +163,12 @@ export function FreestyleEditor() {
   }, [canGoForward, historyIndex, navigateHistory]);
 
   const toggleCompare = useCallback(() => {
-    setIsComparing((current) => {
-      const next = !current;
-      const previous = history[historyIndex - 1] ?? null;
-      const currentImage = history[historyIndex] ?? resultImage;
-      setResultImage(next ? previous : currentImage);
-      return next;
-    });
-  }, [history, historyIndex, resultImage, setResultImage]);
+    const next = !isComparing;
+    setIsComparing(next);
+    const previous = history[historyIndex - 1] ?? null;
+    const currentImage = history[historyIndex] ?? resultImage;
+    setResultImage(next ? previous : currentImage);
+  }, [history, historyIndex, resultImage, isComparing, setResultImage]);
 
   const resetEditor = useCallback(() => {
     resetUploads();
@@ -259,7 +257,7 @@ export function FreestyleEditor() {
                 disabled={!canGoBack}
                 aria-pressed={isComparing}
                 className="inline-flex items-center gap-1 text-oln-14 text-[var(--color-neutral-500)] hover:text-[var(--color-primary-600)] rounded-[var(--radius-md)] px-2 py-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)] disabled:opacity-40 disabled:pointer-events-none"
-                aria-label="前の結果と比較"
+                aria-label={isComparing ? "最新の結果に戻る" : "前の結果と比較"}
               >
                 <span className="text-dns-14">
                   {isComparing ? "最新の結果に戻る" : "前の結果と比較"}
