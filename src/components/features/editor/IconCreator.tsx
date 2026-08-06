@@ -1,10 +1,13 @@
 "use client";
 
 import { EditorLayout } from "@/components/layout/EditorLayout";
-import { ProgressDisplay, type ProgressStep } from "@/components/ProgressDisplay";
+import { ResultPane } from "@/components/features/editor/ResultPane";
+import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Button, cn } from "@/components/ui/Button";
 import { FileInput } from "@/components/ui/FileInput";
+import { PromptTextarea } from "@/components/ui/PromptTextarea";
 import { Section } from "@/components/ui/Section";
+import { useEditorSubmit } from "@/hooks/useEditorSubmit";
 import { useProgressSimulation } from "@/hooks/useProgressSimulation";
 import { useRecentPrompts } from "@/hooks/useRecentPrompts";
 import { useResultHistory } from "@/hooks/useResultHistory";
@@ -12,10 +15,10 @@ import { useTextUndoRedo } from "@/hooks/useTextUndoRedo";
 import { useUndoRedoShortcuts } from "@/hooks/useUndoRedoShortcuts";
 import { useUploadSlots } from "@/hooks/useUploadSlots";
 import { MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
-import { getRequestErrorMessage } from "@/utils/requestErrorMessage";
-import { ChevronLeft, ChevronRight, Download, Globe, Loader2, RefreshCw, RotateCcw, Sparkles, User, X } from "lucide-react";
+import { Globe, Loader2, Sparkles, User, X } from "lucide-react";
 import Image from "next/image";
-import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type FormEvent, useCallback, useMemo, useRef, useState } from "react";
+import type { ProgressStep } from "@/components/ProgressDisplay";
 
 const ICON_PROGRESS_STEPS: ProgressStep[] = [
   { id: "analyze", label: "連絡先情報を分析中...", estimatedDuration: 1200 },
@@ -84,11 +87,6 @@ export function IconCreator() {
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
   const [selectedStyle, setSelectedStyle] = useState("auto");
-  const [resultImage, setResultImage] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const requestStartTimeRef = useRef<number>(0);
   const customPromptTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   const { recentPrompts, pushRecent } = useRecentPrompts(
@@ -97,7 +95,6 @@ export function IconCreator() {
   );
   const {
     value: customPrompt,
-    setValue: setCustomPrompt,
     handleChange: handlePromptChange,
     undo: handleUndo,
     redo: handleRedo,
@@ -116,6 +113,40 @@ export function IconCreator() {
   } = useResultHistory(MAX_HISTORY);
 
   const {
+    submit,
+    isSubmitting,
+    errorMessage,
+    resultImage,
+    resultFilename,
+    setResultImage,
+    setErrorMessage,
+    setIsSubmitting,
+    reset,
+  } = useEditorSubmit({
+    validate: () => (name.trim() ? null : "連絡先名を入力してください。"),
+    buildFormData: () => {
+      const formData = new FormData();
+      formData.append("name", name.trim());
+      formData.append("style", selectedStyle);
+      if (url.trim()) formData.append("url", url.trim());
+      if (customPrompt.trim()) formData.append("customPrompt", customPrompt.trim());
+      activeUploads.forEach((upload) => {
+        if (upload.file) formData.append("images", upload.file);
+      });
+      return formData;
+    },
+    endpoint: "/api/icon-generate",
+    errorFallback: "アイコンの生成に失敗しました。情報を少し減らしてもう一度お試しください。",
+    downloadPrefix: "icon",
+      onBeforeSubmit: clearStacks,
+      onSuccess: (image) => {
+        if (customPrompt.trim()) pushRecent(customPrompt);
+        pushResult(image);
+      },
+      onFinished: (elapsedMs) => completeProgress(elapsedMs),
+    });
+
+  const {
     uploads,
     activeUploads,
     isOptimizingAny,
@@ -123,17 +154,13 @@ export function IconCreator() {
     addUploadSlot,
     removeUploadSlot,
     handleFileChange,
-    resetUploads,
   } = useUploadSlots({
     maxSlots: MAX_ICON_UPLOADS,
-    onBeforeChange: () => {
-      setErrorMessage(null);
-      setResultImage(null);
-    },
+    onBeforeChange: () => reset(),
     onFileError: setErrorMessage,
   });
 
-  const handleProgressComplete = useCallback(() => setIsSubmitting(false), []);
+  const handleProgressComplete = useCallback(() => setIsSubmitting(false), [setIsSubmitting]);
   const {
     progress,
     currentStep,
@@ -145,9 +172,11 @@ export function IconCreator() {
     steps: ICON_PROGRESS_STEPS,
   });
 
-  const isCustomPromptTooLong = customPrompt.length > MAX_PROMPT_LENGTH;
   const canSubmit =
-    name.trim().length > 0 && !isCustomPromptTooLong && !isSubmitting && !isOptimizingAny;
+    name.trim().length > 0 &&
+    customPrompt.length <= MAX_PROMPT_LENGTH &&
+    !isSubmitting &&
+    !isOptimizingAny;
   const selectedStyleOption = useMemo(
     () =>
       ICON_STYLE_OPTIONS.find((styleOption) => styleOption.id === selectedStyle) ??
@@ -165,7 +194,7 @@ export function IconCreator() {
       setResultImage(history[index]);
       window.scrollTo({ top: 0, behavior: "smooth" });
     },
-    [history, navigateTo],
+    [history, navigateTo, setResultImage],
   );
 
   const goBack = useCallback(() => {
@@ -183,21 +212,19 @@ export function IconCreator() {
     setUrl("");
     setSelectedStyle("auto");
     resetText();
-    setResultImage(null);
     resetHistory();
-    setErrorMessage(null);
+    reset();
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
-  }, [resetText, resetHistory]);
+  }, [resetText, resetHistory, reset]);
 
   const handleRemoveUploadSlot = useCallback(
     (id: string) => {
       removeUploadSlot(id);
-      setResultImage(null);
-      setErrorMessage(null);
+      reset();
     },
-    [removeUploadSlot],
+    [removeUploadSlot, reset],
   );
 
   const handleRecentSelect = useCallback(
@@ -208,220 +235,75 @@ export function IconCreator() {
     [handlePromptChange],
   );
 
-  const submitEdit = useCallback(async () => {
-    if (!name.trim()) {
-      setErrorMessage("連絡先名を入力してください。");
-      return;
-    }
-
-    setIsSubmitting(true);
-    setErrorMessage(null);
-    setResultImage(null);
-
-    if (typeof window !== "undefined" && window.innerWidth < 1280) {
-      setTimeout(() => {
-        const element = document.getElementById("result-pane");
-        element?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 50);
-    }
-
-    abortControllerRef.current?.abort();
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
-
-    try {
-      requestStartTimeRef.current = Date.now();
-      const formData = new FormData();
-      formData.append("name", name.trim());
-      formData.append("style", selectedStyle);
-
-      if (url.trim()) {
-        formData.append("url", url.trim());
-      }
-
-      if (customPrompt.trim()) {
-        formData.append("customPrompt", customPrompt.trim());
-        pushRecent(customPrompt);
-      }
-
-      activeUploads.forEach((upload) => {
-        if (upload.file) {
-          formData.append("images", upload.file);
-        }
-      });
-
-      const res = await fetch("/api/icon-generate", {
-        method: "POST",
-        body: formData,
-        signal: controller.signal,
-      });
-      const elapsedMs = Date.now() - requestStartTimeRef.current;
-      const data: unknown = await res.json();
-
-      if (!res.ok) {
-        throw new Error(
-          getRequestErrorMessage({
-            status: res.status,
-            payload: data,
-            fallback: "アイコンの生成に失敗しました。情報を少し減らしてもう一度お試しください。",
-          }),
-        );
-      }
-
-      if (
-        !data ||
-        typeof data !== "object" ||
-        !("imageBase64" in data) ||
-        typeof data.imageBase64 !== "string"
-      ) {
-        throw new Error("画像データを取得できませんでした。もう一度お試しください。");
-      }
-
-      const mimeType =
-        "mimeType" in data && typeof data.mimeType === "string" ? data.mimeType : "image/png";
-
-      const nextImage = `data:${mimeType};base64,${data.imageBase64}`;
-      pushResult(nextImage);
-      clearStacks();
-      setResultImage(nextImage);
-    } catch (error) {
-      if (error instanceof Error && error.name === "AbortError") return;
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "生成中にエラーが発生しました。しばらくしてからお試しください。",
-      );
-    } finally {
-      const elapsedMs =
-        typeof requestStartTimeRef.current === "number" && requestStartTimeRef.current > 0
-          ? Date.now() - requestStartTimeRef.current
-          : undefined;
-      if (elapsedMs !== undefined) {
-        completeProgress(elapsedMs);
-      } else {
-        completeProgress();
-      }
-    }
-  }, [
-    activeUploads,
-    clearStacks,
-    completeProgress,
-    customPrompt,
-    name,
-    pushRecent,
-    pushResult,
-    selectedStyle,
-    url,
-  ]);
-
-  const handleSubmit = async (event: FormEvent) => {
+  const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
-    await submitEdit();
+    void submit();
   };
 
   return (
     <EditorLayout
       resultPane={
-        <Section title="仕上がり">
-          {isSubmitting ? (
-            <ProgressDisplay
-              isVisible={true}
-              currentStep={currentStep}
-              progress={progress}
-              steps={ICON_PROGRESS_STEPS}
-              timeRemaining={timeRemaining}
-            />
-          ) : resultImage ? (
-            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-              <div className="flex items-center justify-between">
-                {history.length > 1 ? (
-                  <div className="flex items-center gap-2">
-                    <Button type="button" size="sm" variant="ghost" onClick={goBack} disabled={!canGoBack}>
-                      <ChevronLeft className="w-4 h-4 mr-1" />
-                      前の結果
-                    </Button>
-                    <Button type="button" size="sm" variant="ghost" onClick={goForward} disabled={!canGoForward}>
-                      次の結果
-                      <ChevronRight className="w-4 h-4 ml-1" />
-                    </Button>
-                    <span className="text-dns-14 text-[var(--color-neutral-400)] tabular-nums">
-                      {historyIndex + 1} / {history.length}
-                    </span>
-                  </div>
-                ) : null}
-                <div className="flex-1" />
-              </div>
-
-              <div className="flex flex-col items-center gap-4">
-                <div className="relative">
-                  <div className="w-48 h-48 rounded-[var(--radius-full)] overflow-hidden border-4 border-[var(--color-neutral-200)] shadow-[var(--shadow-level-3)]">
-                    <Image
-                      src={resultImage}
-                      alt={`${name} の生成アイコン`}
-                      width={512}
-                      height={512}
-                      className="w-full h-full object-cover"
-                      unoptimized
-                    />
-                  </div>
-                  <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-[var(--color-primary-600)] rounded-[var(--radius-full)] flex items-center justify-center shadow-[var(--shadow-level-2)]">
-                    <Sparkles className="w-5 h-5 text-white" />
-                  </div>
+        <ResultPane
+          isSubmitting={isSubmitting}
+          steps={ICON_PROGRESS_STEPS}
+          currentStep={currentStep}
+          progress={progress}
+          timeRemaining={timeRemaining}
+          resultImage={resultImage}
+          emptyIcon={<User className="w-6 h-6 text-[var(--color-neutral-300)]" />}
+          emptyText="アイコンがここに表示されます"
+          history={{
+            index: historyIndex,
+            total: history.length,
+            canBack: canGoBack,
+            canForward: canGoForward,
+          }}
+          onBack={goBack}
+          onForward={goForward}
+          downloadFilename={resultFilename}
+          downloadLabel="ダウンロード"
+          onRetry={() => void submit()}
+          retryLabel="同じ条件でもう一度"
+          canRetry={canSubmit}
+          onReset={resetEditor}
+        >
+          <div className="space-y-4">
+            <div className="flex flex-col items-center gap-4">
+              <div className="relative">
+                <div className="w-48 h-48 rounded-[var(--radius-full)] overflow-hidden border-4 border-[var(--color-neutral-200)] shadow-[var(--shadow-level-3)]">
+                  <Image
+                    src={resultImage!}
+                    alt={`${name} の生成アイコン`}
+                    width={512}
+                    height={512}
+                    className="w-full h-full object-cover"
+                    unoptimized
+                  />
                 </div>
-                <div className="text-center">
-                  <p className="text-std-16 font-medium text-[var(--color-neutral-700)]">{name}</p>
-                  <p className="text-dns-14 text-[var(--color-neutral-400)] mt-1">
-                    {selectedStyleOption.preview}
-                  </p>
+                <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-[var(--color-primary-600)] rounded-[var(--radius-full)] flex items-center justify-center shadow-[var(--shadow-level-2)]">
+                  <Sparkles className="w-5 h-5 text-white" />
                 </div>
               </div>
-
-              <div className="rounded-[var(--radius-lg)] overflow-hidden border border-[var(--color-neutral-200)] shadow-[var(--shadow-level-3)]">
-                <Image
-                  src={resultImage}
-                  alt={`${name} の四角いプレビュー`}
-                  width={512}
-                  height={512}
-                  className="w-full h-auto"
-                  unoptimized
-                />
+              <div className="text-center">
+                <p className="text-std-16 font-medium text-[var(--color-neutral-700)]">{name}</p>
+                <p className="text-dns-14 text-[var(--color-neutral-400)] mt-1">
+                  {selectedStyleOption.preview}
+                </p>
               </div>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Button asChild className="w-full" size="lg">
-                  <a href={resultImage} download={`icon-${Date.now()}.png`}>
-                    <Download className="w-5 h-5 mr-2" />
-                    ダウンロード
-                  </a>
-                </Button>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="lg"
-                  className="w-full"
-                  onClick={() => void submitEdit()}
-                  disabled={!canSubmit}
-                >
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  同じ条件でもう一度
-                </Button>
-              </div>
-              <Button type="button" variant="ghost" className="w-full" onClick={resetEditor}>
-                <RotateCcw className="w-4 h-4 mr-2" />
-                最初からやり直す
-              </Button>
             </div>
-          ) : (
-            <div className="h-64 flex flex-col items-center justify-center gap-3 text-[var(--color-neutral-400)] border-2 border-dashed border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)] rounded-[var(--radius-lg)] px-6 text-center">
-              <div className="w-16 h-16 rounded-full bg-[var(--color-neutral-100)] flex items-center justify-center">
-                <User className="w-8 h-8 text-[var(--color-neutral-300)]" />
-              </div>
-              <p className="font-medium text-[var(--color-neutral-500)]">
-                アイコンがここに表示されます
-              </p>
+
+            <div className="rounded-[var(--radius-lg)] overflow-hidden border border-[var(--color-neutral-200)] shadow-[var(--shadow-level-3)]">
+              <Image
+                src={resultImage!}
+                alt={`${name} の四角いプレビュー`}
+                width={512}
+                height={512}
+                className="w-full h-auto"
+                unoptimized
+              />
             </div>
-          )}
-        </Section>
+          </div>
+        </ResultPane>
       }
     >
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -538,43 +420,20 @@ export function IconCreator() {
         </Section>
 
         <Section title="5. 追加の指示（任意）">
-          <div className="relative">
-            <textarea
-              ref={customPromptTextareaRef}
-              name="customPrompt"
-              autoComplete="off"
-              spellCheck={false}
-              maxLength={MAX_PROMPT_LENGTH}
-              className="w-full h-24 rounded-[var(--radius-md)] bg-white border border-[var(--color-neutral-200)] p-4 pr-12 text-[var(--color-neutral-900)] placeholder:text-[var(--color-neutral-400)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30 focus:border-[var(--color-primary-500)] transition-shadow resize-none text-std-16"
-              placeholder="追加したい雰囲気があれば入力 (Ctrl+Z で元に戻せます)"
-              value={customPrompt}
-              onChange={(event) => handlePromptChange(event.target.value)}
-            />
-            <div className="absolute right-3 bottom-3 flex items-center gap-1">
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                onClick={handleUndo}
-                disabled={!canUndo || isSubmitting || isOptimizingAny}
-                className="h-8 w-8 p-0"
-                aria-label="元に戻す"
-              >
-                <span className="text-dns-15 font-bold text-[var(--color-neutral-500)]">↶</span>
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                onClick={handleRedo}
-                disabled={!canRedo || isSubmitting || isOptimizingAny}
-                className="h-8 w-8 p-0"
-                aria-label="やり直す"
-              >
-                <span className="text-dns-15 font-bold text-[var(--color-neutral-500)]">↷</span>
-              </Button>
-            </div>
-          </div>
+          <PromptTextarea
+            name="customPrompt"
+            value={customPrompt}
+            onValueChange={handlePromptChange}
+            onUndo={handleUndo}
+            onRedo={handleRedo}
+            canUndo={canUndo}
+            canRedo={canRedo}
+            disabled={isSubmitting || isOptimizingAny}
+            placeholder="追加したい雰囲気があれば入力 (Ctrl+Z で元に戻せます)"
+            textareaRef={customPromptTextareaRef}
+            textareaClassName="h-24 resize-none"
+            counterAlign="right"
+          />
           {recentPrompts.length > 0 && (
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <span className="text-oln-14 text-[var(--color-neutral-500)]">最近:</span>
@@ -593,11 +452,6 @@ export function IconCreator() {
               ))}
             </div>
           )}
-          <p
-            className={`mt-1 text-dns-14 text-right ${isCustomPromptTooLong ? "text-[var(--color-error-dark)]" : "text-[var(--color-neutral-400)]"}`}
-          >
-            {customPrompt.length} / {MAX_PROMPT_LENGTH}
-          </p>
         </Section>
 
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_200px]">
@@ -624,25 +478,14 @@ export function IconCreator() {
         </div>
 
         {errorMessage && (
-          <div className="dads-banner dads-banner--error text-dns-15" aria-live="polite">
-            <p className="font-bold">{errorMessage}</p>
-            <p className="mt-1 opacity-80">
-              URLや追加指示を短くすると改善することがあります。必要な情報だけ残して再試行してください。
-            </p>
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              <Button
-                type="button"
-                size="sm"
-                onClick={() => void submitEdit()}
-                disabled={!canSubmit}
-              >
-                同じ条件で再試行
-              </Button>
-              <Button type="button" size="sm" variant="secondary" onClick={resetEditor}>
-                最初からやり直す
-              </Button>
-            </div>
-          </div>
+          <ErrorBanner
+            message={errorMessage}
+            hint="URLや追加指示を短くすると改善することがあります。必要な情報だけ残して再試行してください。"
+            retryLabel="同じ条件で再試行"
+            onRetry={() => void submit()}
+            canRetry={canSubmit}
+            onReset={resetEditor}
+          />
         )}
       </form>
     </EditorLayout>
