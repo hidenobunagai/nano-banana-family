@@ -151,6 +151,7 @@ export function IconCreator() {
     addUploadSlot,
     removeUploadSlot,
     handleFileChange,
+    resetUploads,
   } = useUploadSlots({
     maxSlots: MAX_ICON_UPLOADS,
     onBeforeChange: () => reset(),
@@ -210,11 +211,12 @@ export function IconCreator() {
     setSelectedStyle("auto");
     resetText();
     resetHistory();
+    resetUploads();
     reset();
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
-  }, [resetText, resetHistory, reset]);
+  }, [resetText, resetHistory, resetUploads, reset]);
 
   const handleRemoveUploadSlot = useCallback(
     (id: string) => {

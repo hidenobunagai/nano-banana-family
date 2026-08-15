@@ -157,4 +157,22 @@ describe("IconCreator", () => {
     const body = init!.body as FormData;
     expect(body.getAll("images")).toHaveLength(1);
   });
+
+  it("clears uploaded reference images and the name when reset is clicked", async () => {
+    const { container } = render(<IconCreator />);
+
+    fireEvent.change(screen.getByPlaceholderText("例: 桜小学校児童クラブ"), {
+      target: { value: "テスト連絡先" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /画像を追加/ }));
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    fireEvent.change(fileInput, { target: { files: [makeFile("ref.png")] } });
+    await waitFor(() => expect(screen.getByAltText("Preview")).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole("button", { name: "入力をクリア" }));
+
+    expect(screen.getByPlaceholderText("例: 桜小学校児童クラブ")).toHaveValue("");
+    expect(screen.queryByAltText("Preview")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /画像を追加/ })).toBeInTheDocument();
+  });
 });
