@@ -192,13 +192,10 @@ export function FreestyleEditor() {
 
   const handleReferenceSelect = useCallback(
     (referencePrompt: string) => {
-      setPrompt((prev) => {
-        if (prev.trim()) return `${prev}\n\n${referencePrompt}`;
-        return referencePrompt;
-      });
+      handlePromptChange(prompt.trim() ? `${prompt}\n\n${referencePrompt}` : referencePrompt);
       textareaRef.current?.focus();
     },
-    [setPrompt],
+    [handlePromptChange, prompt],
   );
 
   const handleRecentSelect = useCallback(
@@ -211,11 +208,10 @@ export function FreestyleEditor() {
 
   const handleSuggestion = useCallback(
     (nextPrompt: string) => {
-      if (prompt.trim()) setPrompt(`${prompt.trim()}\n\n${nextPrompt}`);
-      else setPrompt(nextPrompt);
+      handlePromptChange(prompt.trim() ? `${prompt.trim()}\n\n${nextPrompt}` : nextPrompt);
       textareaRef.current?.focus();
     },
-    [prompt, setPrompt],
+    [handlePromptChange, prompt],
   );
 
   const handleSubmit = (event: FormEvent) => {
