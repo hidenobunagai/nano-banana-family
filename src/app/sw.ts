@@ -171,19 +171,6 @@ const serwist = new Serwist({
         ],
       }),
     },
-    {
-      matcher: ({ url }) => url.origin !== self.location.origin,
-      handler: new NetworkFirst({
-        cacheName: "cross-origin",
-        networkTimeoutSeconds: 10,
-        plugins: [
-          new ExpirationPlugin({
-            maxEntries: 32,
-            maxAgeSeconds: 60 * 60, // 1 hour
-          }),
-        ],
-      }),
-    },
   ],
 });
 
