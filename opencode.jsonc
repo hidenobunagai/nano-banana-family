@@ -8,8 +8,8 @@
         "code-review-graph",
         "serve",
         "--repo",
-        "/Users/hidenobunagai/Projects/nano-banana-family"
-      ]
-    }
-  }
+        "/Users/hidenobunagai/Projects/nano-banana-family",
+      ],
+    },
+  },
 }

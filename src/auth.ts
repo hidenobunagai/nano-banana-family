@@ -3,8 +3,7 @@ import type { GoogleProfile } from "next-auth/providers/google";
 import GoogleProvider from "next-auth/providers/google";
 
 const allowedEmails = new Set(
-  process.env.ALLOWED_EMAILS
-    ?.split(",")
+  process.env.ALLOWED_EMAILS?.split(",")
     .map((email) => email.trim().toLowerCase())
     .filter(Boolean),
 );
@@ -42,9 +41,7 @@ export const authOptions: NextAuthOptions = {
       const googleProfile = profile as GoogleProfile | undefined;
       const email = googleProfile?.email?.toLowerCase();
       const emailVerified =
-        typeof googleProfile?.email_verified === "boolean"
-          ? googleProfile.email_verified
-          : true;
+        typeof googleProfile?.email_verified === "boolean" ? googleProfile.email_verified : true;
 
       if (!email || !emailVerified) {
         return false;

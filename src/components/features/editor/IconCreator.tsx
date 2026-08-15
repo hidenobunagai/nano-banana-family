@@ -89,10 +89,7 @@ export function IconCreator() {
   const [selectedStyle, setSelectedStyle] = useState("auto");
   const customPromptTextareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const { recentPrompts, pushRecent } = useRecentPrompts(
-    "icon-recent-prompts",
-    MAX_RECENT_PROMPTS,
-  );
+  const { recentPrompts, pushRecent } = useRecentPrompts("icon-recent-prompts", MAX_RECENT_PROMPTS);
   const {
     value: customPrompt,
     handleChange: handlePromptChange,
@@ -138,13 +135,13 @@ export function IconCreator() {
     endpoint: "/api/icon-generate",
     errorFallback: "アイコンの生成に失敗しました。情報を少し減らしてもう一度お試しください。",
     downloadPrefix: "icon",
-      onBeforeSubmit: clearStacks,
-      onSuccess: (image) => {
-        if (customPrompt.trim()) pushRecent(customPrompt);
-        pushResult(image);
-      },
-      onFinished: (elapsedMs) => completeProgress(elapsedMs),
-    });
+    onBeforeSubmit: clearStacks,
+    onSuccess: (image) => {
+      if (customPrompt.trim()) pushRecent(customPrompt);
+      pushResult(image);
+    },
+    onFinished: (elapsedMs) => completeProgress(elapsedMs),
+  });
 
   const {
     uploads,

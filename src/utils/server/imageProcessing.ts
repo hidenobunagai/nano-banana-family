@@ -56,9 +56,7 @@ export async function fetchOgImage(
   baseUrl?: string,
 ): Promise<{ base64: string; mimeType: string } | null> {
   const resolvedUrl =
-    baseUrl && !/^https?:\/\//i.test(imageUrl)
-      ? new URL(imageUrl, baseUrl).toString()
-      : imageUrl;
+    baseUrl && !/^https?:\/\//i.test(imageUrl) ? new URL(imageUrl, baseUrl).toString() : imageUrl;
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);

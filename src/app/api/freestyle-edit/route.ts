@@ -38,10 +38,7 @@ export async function POST(request: Request) {
     images: files,
   });
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: parsed.error, field: "form" },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: parsed.error, field: "form" }, { status: 400 });
   }
   const { prompt: trimmedPrompt, images: validatedFiles } = parsed.data;
 
@@ -49,9 +46,7 @@ export async function POST(request: Request) {
     prompt: trimmedPrompt,
     images: validatedFiles.map((f) => `${f.name}:${f.size}:${f.type}`).sort(),
   });
-  const cached = imageGenerationCache.get<{ imageBase64: string; mimeType: string }>(
-    cacheKey,
-  );
+  const cached = imageGenerationCache.get<{ imageBase64: string; mimeType: string }>(cacheKey);
   if (cached) {
     return NextResponse.json(cached);
   }
@@ -86,11 +81,6 @@ export async function POST(request: Request) {
     imageGenerationCache.set(cacheKey, generationResult);
     return NextResponse.json(generationResult);
   } catch (error) {
-    return handleApiError(
-      error,
-      logger,
-      "freestyle-edit",
-      session.user?.email ?? "unknown",
-    );
+    return handleApiError(error, logger, "freestyle-edit", session.user?.email ?? "unknown");
   }
 }

@@ -119,9 +119,7 @@ export function useProgressSimulation({
       const completionRequested = completionRequestedRef.current;
 
       const latestActual = actualElapsedRef.current;
-      const effectiveElapsed = completionRequested
-        ? elapsed
-        : Math.max(elapsed, latestActual);
+      const effectiveElapsed = completionRequested ? elapsed : Math.max(elapsed, latestActual);
       const progressPercent =
         totalDuration > 0 ? Math.min(100, (effectiveElapsed / totalDuration) * 100) : 0;
 
@@ -196,7 +194,7 @@ export function useProgressSimulation({
       startTimeRef.current = now - (latest >= minimumElapsed ? latest : minimumElapsed);
 
       const progressPercent =
-        totalDuration > 0 ? Math.min(99, minimumElapsed / totalDuration * 100) : 100;
+        totalDuration > 0 ? Math.min(99, (minimumElapsed / totalDuration) * 100) : 100;
 
       setState({
         progress: progressPercent,

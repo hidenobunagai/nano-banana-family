@@ -23,14 +23,14 @@ export async function resizeImage(file: File, options: ResizeOptions = {}): Prom
   const opts = { ...DEFAULT_OPTIONS, ...options };
 
   // Check if file is an image
-  if (!file.type.startsWith('image/')) {
-    throw new Error('ファイルが画像ではありません。');
+  if (!file.type.startsWith("image/")) {
+    throw new Error("ファイルが画像ではありません。");
   }
 
   // Check for supported image types
-  const supportedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+  const supportedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
   if (!supportedTypes.includes(file.type.toLowerCase())) {
-    throw new Error('サポートされていない画像形式です。JPG、PNG、WebP形式をご利用ください。');
+    throw new Error("サポートされていない画像形式です。JPG、PNG、WebP形式をご利用ください。");
   }
 
   // For files from cloud storage (Google Drive, etc.) on Android,
@@ -40,16 +40,18 @@ export async function resizeImage(file: File, options: ResizeOptions = {}): Prom
     await file.arrayBuffer();
   } catch {
     // If reading fails, it might be a network/permission issue
-    throw new Error('ファイルの読み込みに失敗しました。ネットワーク接続とファイルへのアクセス許可を確認してください。');
+    throw new Error(
+      "ファイルの読み込みに失敗しました。ネットワーク接続とファイルへのアクセス許可を確認してください。",
+    );
   }
 
   return new Promise((resolve, reject) => {
     const img = new Image();
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
 
     if (!ctx) {
-      reject(new Error('Canvas context を取得できませんでした。'));
+      reject(new Error("Canvas context を取得できませんでした。"));
       return;
     }
 
@@ -66,7 +68,7 @@ export async function resizeImage(file: File, options: ResizeOptions = {}): Prom
 
     timeoutId = setTimeout(() => {
       clearResources();
-      reject(new Error('画像の読み込みがタイムアウトしました。'));
+      reject(new Error("画像の読み込みがタイムアウトしました。"));
     }, 10000); // 10 second timeout
 
     img.onload = () => {
@@ -78,11 +80,15 @@ export async function resizeImage(file: File, options: ResizeOptions = {}): Prom
           img.width,
           img.height,
           opts.maxWidth,
-          opts.maxHeight
+          opts.maxHeight,
         );
 
         // If no resizing is needed and file size is acceptable, return original
-        if (newWidth === img.width && newHeight === img.height && file.size <= opts.maxFileSizeMB * 1024 * 1024) {
+        if (
+          newWidth === img.width &&
+          newHeight === img.height &&
+          file.size <= opts.maxFileSizeMB * 1024 * 1024
+        ) {
           resolve(file);
           return;
         }
@@ -93,7 +99,7 @@ export async function resizeImage(file: File, options: ResizeOptions = {}): Prom
 
         // Use high-quality image smoothing
         ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
+        ctx.imageSmoothingQuality = "high";
 
         // Draw and resize the image
         ctx.drawImage(img, 0, 0, newWidth, newHeight);
@@ -102,7 +108,7 @@ export async function resizeImage(file: File, options: ResizeOptions = {}): Prom
         canvas.toBlob(
           (blob) => {
             if (!blob) {
-              reject(new Error('画像の圧縮に失敗しました。'));
+              reject(new Error("画像の圧縮に失敗しました。"));
               return;
             }
 
@@ -115,7 +121,7 @@ export async function resizeImage(file: File, options: ResizeOptions = {}): Prom
             resolve(optimizedFile);
           },
           file.type,
-          opts.quality
+          opts.quality,
         );
       } catch (error) {
         reject(error);
@@ -124,7 +130,7 @@ export async function resizeImage(file: File, options: ResizeOptions = {}): Prom
 
     img.onerror = () => {
       clearResources();
-      reject(new Error('画像の読み込みに失敗しました。'));
+      reject(new Error("画像の読み込みに失敗しました。"));
     };
 
     // Load the image
@@ -139,7 +145,7 @@ function calculateNewDimensions(
   originalWidth: number,
   originalHeight: number,
   maxWidth: number,
-  maxHeight: number
+  maxHeight: number,
 ): { width: number; height: number } {
   // If image is already smaller than max dimensions, keep original size
   if (originalWidth <= maxWidth && originalHeight <= maxHeight) {

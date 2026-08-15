@@ -17,16 +17,12 @@ describe("ProgressDisplay", () => {
   });
 
   it("renders progress percentage when visible", () => {
-    render(
-      <ProgressDisplay isVisible={true} currentStep={0} progress={25} steps={sampleSteps} />,
-    );
+    render(<ProgressDisplay isVisible={true} currentStep={0} progress={25} steps={sampleSteps} />);
     expect(screen.getByText("25%")).toBeInTheDocument();
   });
 
   it("shows current step label", () => {
-    render(
-      <ProgressDisplay isVisible={true} currentStep={0} progress={25} steps={sampleSteps} />,
-    );
+    render(<ProgressDisplay isVisible={true} currentStep={0} progress={25} steps={sampleSteps} />);
     const labels = screen.getAllByText("画像を解析中");
     expect(labels.length).toBeGreaterThanOrEqual(1);
   });
@@ -58,9 +54,7 @@ describe("ProgressDisplay", () => {
   });
 
   it("renders all step labels", () => {
-    render(
-      <ProgressDisplay isVisible={true} currentStep={1} progress={60} steps={sampleSteps} />,
-    );
+    render(<ProgressDisplay isVisible={true} currentStep={1} progress={60} steps={sampleSteps} />);
     expect(screen.getAllByText("画像を解析中").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("画像を生成中").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("最終調整中").length).toBeGreaterThanOrEqual(1);

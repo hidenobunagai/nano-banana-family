@@ -123,14 +123,19 @@ describe("useEditorSubmit", () => {
       await result.current.submit();
     });
 
-    expect(result.current.errorMessage).toBe("画像データを取得できませんでした。もう一度お試しください。");
+    expect(result.current.errorMessage).toBe(
+      "画像データを取得できませんでした。もう一度お試しください。",
+    );
     expect(onFinished).toHaveBeenCalled();
   });
 
   it("stays silent and skips onFinished when the request is aborted", async () => {
     const abortError = new Error("aborted");
     abortError.name = "AbortError";
-    vi.stubGlobal("fetch", vi.fn(async () => Promise.reject(abortError)));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => Promise.reject(abortError)),
+    );
     const { result, onFinished } = setup();
 
     await act(async () => {

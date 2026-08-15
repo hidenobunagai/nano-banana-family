@@ -29,9 +29,7 @@ export async function authenticateRequest(): Promise<
   return { session: session as { user: { email?: string | null } } };
 }
 
-export function checkUserRateLimit(
-  userId: string,
-): { allowed: true } | { response: NextResponse } {
+export function checkUserRateLimit(userId: string): { allowed: true } | { response: NextResponse } {
   const rateLimit = checkRateLimit(userId);
   if (!rateLimit.allowed) {
     return {
@@ -105,15 +103,15 @@ export function validateFormData<T>(
   if (result.success) {
     return { success: true, data: result.data };
   }
-  const errorMessage = result.error.issues
-    .map((issue: z.ZodIssue) => issue.message)
-    .join(", ");
+  const errorMessage = result.error.issues.map((issue: z.ZodIssue) => issue.message).join(", ");
   return { success: false, error: errorMessage };
 }
 
 export function handleApiError(
   error: unknown,
-  loggerInstance: { error: (message: string, err?: unknown, fields?: Record<string, unknown>) => void },
+  loggerInstance: {
+    error: (message: string, err?: unknown, fields?: Record<string, unknown>) => void;
+  },
   routeName: string,
   userId: string,
 ): NextResponse {
@@ -123,8 +121,5 @@ export function handleApiError(
     userId,
     status: appError.statusCode,
   });
-  return NextResponse.json(
-    { error: getUserMessage(appError) },
-    { status: appError.statusCode },
-  );
+  return NextResponse.json({ error: getUserMessage(appError) }, { status: appError.statusCode });
 }

@@ -123,9 +123,7 @@ export function useEditorSubmit({
       if (error instanceof Error && error.name === "AbortError") {
         aborted = true;
       } else {
-        setErrorMessage(
-          error instanceof Error ? error.message : GENERIC_ERROR,
-        );
+        setErrorMessage(error instanceof Error ? error.message : GENERIC_ERROR);
       }
     } finally {
       if (!aborted) onFinished?.(Date.now() - startTime);

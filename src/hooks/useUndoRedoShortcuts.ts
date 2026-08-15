@@ -10,14 +10,9 @@ export function useUndoRedoShortcuts(undo: () => void, redo: () => void): void {
       const target = event.target as HTMLElement | null;
       const isEditing =
         target &&
-        (target.tagName === "TEXTAREA" ||
-          target.getAttribute("contenteditable") === "true");
+        (target.tagName === "TEXTAREA" || target.getAttribute("contenteditable") === "true");
 
-      if (
-        (event.metaKey || event.ctrlKey) &&
-        event.shiftKey &&
-        event.key.toLowerCase() === "z"
-      ) {
+      if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key.toLowerCase() === "z") {
         event.preventDefault();
         if (isEditing) redo();
       } else if (
@@ -27,10 +22,7 @@ export function useUndoRedoShortcuts(undo: () => void, redo: () => void): void {
       ) {
         event.preventDefault();
         if (isEditing) undo();
-      } else if (
-        (event.metaKey || event.ctrlKey) &&
-        event.key.toLowerCase() === "y"
-      ) {
+      } else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "y") {
         event.preventDefault();
         if (isEditing) redo();
       }

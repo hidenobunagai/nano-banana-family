@@ -77,7 +77,8 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
     if (!normalizedQuery || showFavoritesOnly) return pool;
 
     return pool.filter((ref) => {
-      const haystack = `${ref.title} ${ref.prompt} ${ref.tags.join(" ")} ${ref.category}`.toLowerCase();
+      const haystack =
+        `${ref.title} ${ref.prompt} ${ref.tags.join(" ")} ${ref.category}`.toLowerCase();
       return haystack.includes(normalizedQuery);
     });
   }, [groups, activeTab, normalizedQuery, favorites, showFavoritesOnly]);
@@ -208,9 +209,7 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
                         }}
                         className={cn(
                           "dads-chip dads-chip--interactive border border-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]",
-                          isActive
-                            ? "dads-chip--active shadow-[var(--shadow-level-1)]"
-                            : "",
+                          isActive ? "dads-chip--active shadow-[var(--shadow-level-1)]" : "",
                         )}
                       >
                         {category}

@@ -22,7 +22,12 @@ describe("MemoryCache", () => {
 describe("generateCacheKey", () => {
   it("generates consistent key regardless of property order", () => {
     const key = generateCacheKey({ b: "2", a: "1" });
-    expect(key).toBe(JSON.stringify([["a", "1"], ["b", "2"]]));
+    expect(key).toBe(
+      JSON.stringify([
+        ["a", "1"],
+        ["b", "2"],
+      ]),
+    );
   });
 
   it("distinguishes delimiter-like values from separate keys", () => {

@@ -29,13 +29,11 @@ function makeFile(name = "test.png") {
 }
 
 function mockFetchSuccess() {
-  const fetchMock = vi.fn(
-    async (_url: string, _init?: RequestInit) => ({
-      ok: true,
-      status: 200,
-      json: async () => ({ imageBase64: "QUJD", mimeType: "image/png" }),
-    }),
-  );
+  const fetchMock = vi.fn(async (_url: string, _init?: RequestInit) => ({
+    ok: true,
+    status: 200,
+    json: async () => ({ imageBase64: "QUJD", mimeType: "image/png" }),
+  }));
   vi.stubGlobal("fetch", fetchMock);
   return fetchMock;
 }

@@ -12,15 +12,19 @@ function readStored(storageKey: string, maxItems: number): string[] {
     if (!raw) return [];
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return [
-      ...new Set(parsed.filter((item): item is string => typeof item === "string")),
-    ].slice(0, maxItems);
+    return [...new Set(parsed.filter((item): item is string => typeof item === "string"))].slice(
+      0,
+      maxItems,
+    );
   } catch {
     return [];
   }
 }
 
-export function useRecentPrompts(storageKey: string, maxItems: number): {
+export function useRecentPrompts(
+  storageKey: string,
+  maxItems: number,
+): {
   recentPrompts: readonly string[];
   pushRecent: (text: string) => void;
   clearRecent: () => void;
@@ -44,10 +48,7 @@ export function useRecentPrompts(storageKey: string, maxItems: number): {
       const trimmed = text.trim();
       if (!trimmed) return;
       setRecentPrompts((prev) => {
-        const next = [trimmed, ...prev.filter((item) => item !== trimmed)].slice(
-          0,
-          maxItems,
-        );
+        const next = [trimmed, ...prev.filter((item) => item !== trimmed)].slice(0, maxItems);
         try {
           window.localStorage.setItem(storageKey, JSON.stringify(next));
         } catch {

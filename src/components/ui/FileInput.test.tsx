@@ -47,12 +47,7 @@ describe("FileInput", () => {
 
   it("renders the upload placeholder when there is no preview", () => {
     render(
-      <FileInput
-        subLabel="参考画像 1"
-        previewUrl={null}
-        isOptimizing={false}
-        onChange={vi.fn()}
-      />,
+      <FileInput subLabel="参考画像 1" previewUrl={null} isOptimizing={false} onChange={vi.fn()} />,
     );
     expect(screen.getByText("クリックして追加")).toBeInTheDocument();
   });
@@ -83,13 +78,7 @@ describe("FileInput", () => {
   });
 
   it("renders a preview image when previewUrl is set", () => {
-    render(
-      <FileInput
-        previewUrl="blob:mock-preview"
-        isOptimizing={false}
-        onChange={vi.fn()}
-      />,
-    );
+    render(<FileInput previewUrl="blob:mock-preview" isOptimizing={false} onChange={vi.fn()} />);
     expect(screen.getByAltText("Preview")).toBeInTheDocument();
     expect(screen.getByText("画像を変更")).toBeInTheDocument();
   });

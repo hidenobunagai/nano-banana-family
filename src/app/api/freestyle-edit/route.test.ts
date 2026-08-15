@@ -60,7 +60,8 @@ describe("POST /api/freestyle-edit", () => {
   });
 
   it("returns 400 when prompt is missing", async () => {
-    const { authenticateRequest, checkUserRateLimit, validateApiKey } = await import("@/utils/server/api-helpers");
+    const { authenticateRequest, checkUserRateLimit, validateApiKey } =
+      await import("@/utils/server/api-helpers");
     vi.mocked(authenticateRequest).mockResolvedValue({
       session: { user: { email: "test@example.com" } },
     });
@@ -74,7 +75,8 @@ describe("POST /api/freestyle-edit", () => {
   });
 
   it("returns 400 when no images", async () => {
-    const { authenticateRequest, checkUserRateLimit, validateApiKey } = await import("@/utils/server/api-helpers");
+    const { authenticateRequest, checkUserRateLimit, validateApiKey } =
+      await import("@/utils/server/api-helpers");
     vi.mocked(authenticateRequest).mockResolvedValue({
       session: { user: { email: "test@example.com" } },
     });
@@ -88,7 +90,8 @@ describe("POST /api/freestyle-edit", () => {
   });
 
   it("returns 200 on successful generation", async () => {
-    const { authenticateRequest, checkUserRateLimit, validateApiKey, handleApiError } = await import("@/utils/server/api-helpers");
+    const { authenticateRequest, checkUserRateLimit, validateApiKey, handleApiError } =
+      await import("@/utils/server/api-helpers");
     const { filesToParts } = await import("@/utils/server/imageProcessing");
 
     vi.mocked(authenticateRequest).mockResolvedValue({
@@ -113,7 +116,8 @@ describe("POST /api/freestyle-edit", () => {
   });
 
   it("returns 502 when Gemini returns no image", async () => {
-    const { authenticateRequest, checkUserRateLimit, validateApiKey } = await import("@/utils/server/api-helpers");
+    const { authenticateRequest, checkUserRateLimit, validateApiKey } =
+      await import("@/utils/server/api-helpers");
     const { filesToParts } = await import("@/utils/server/imageProcessing");
 
     vi.mocked(authenticateRequest).mockResolvedValue({

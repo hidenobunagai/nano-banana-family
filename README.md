@@ -47,13 +47,13 @@ Local development now uses `dotenvx` with the Next.js env-file convention. Verce
 
 The app expects:
 
-| Variable                           | Description                                                        |
-| ---------------------------------- | ------------------------------------------------------------------ |
-| `AUTH_SECRET` or `NEXTAUTH_SECRET` | NextAuth secret (`openssl rand -base64 32`)                        |
-| `AUTH_GOOGLE_ID`                   | Google OAuth client ID                                             |
-| `AUTH_GOOGLE_SECRET`               | Google OAuth client secret                                         |
-| `ALLOWED_EMAILS`                   | Comma-separated list of emails allowed to sign in                  |
-| `GEMINI_API_KEY`                   | Google Gemini API key                                              |
+| Variable                           | Description                                                     |
+| ---------------------------------- | --------------------------------------------------------------- |
+| `AUTH_SECRET` or `NEXTAUTH_SECRET` | NextAuth secret (`openssl rand -base64 32`)                     |
+| `AUTH_GOOGLE_ID`                   | Google OAuth client ID                                          |
+| `AUTH_GOOGLE_SECRET`               | Google OAuth client secret                                      |
+| `ALLOWED_EMAILS`                   | Comma-separated list of emails allowed to sign in               |
+| `GEMINI_API_KEY`                   | Google Gemini API key                                           |
 | `GEMINI_IMAGE_MODEL`               | Optional model override (default `gemini-3.1-flash-lite-image`) |
 
 Set up local secrets with `dotenvx`:

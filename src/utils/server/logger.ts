@@ -26,9 +26,7 @@ function log(level: LogLevel, message: string, fields: LogFields = {}) {
     console[consoleMethod](entry);
   } else {
     const prefix = `[${level.toUpperCase()}]`;
-    const context = Object.keys(fields).length
-      ? ` ${JSON.stringify(fields)}`
-      : "";
+    const context = Object.keys(fields).length ? ` ${JSON.stringify(fields)}` : "";
     console[consoleMethod](`${prefix} ${message}${context}`);
   }
 }

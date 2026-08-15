@@ -51,7 +51,7 @@ describe("api-helpers", () => {
         file,
         mockResolveMimeType,
         MAX_FILE_SIZE_BYTES,
-        MAX_FILE_SIZE_MB
+        MAX_FILE_SIZE_MB,
       );
 
       expect(result.valid).toBe(true);
@@ -65,7 +65,7 @@ describe("api-helpers", () => {
         file,
         mockResolveMimeType,
         MAX_FILE_SIZE_BYTES,
-        MAX_FILE_SIZE_MB
+        MAX_FILE_SIZE_MB,
       );
 
       expect(result.valid).toBe(false);
@@ -81,7 +81,7 @@ describe("api-helpers", () => {
         file,
         mockResolveMimeType,
         MAX_FILE_SIZE_BYTES,
-        MAX_FILE_SIZE_MB
+        MAX_FILE_SIZE_MB,
       );
 
       expect(result.valid).toBe(false);
@@ -99,7 +99,7 @@ describe("api-helpers", () => {
         file,
         mockResolveMimeType,
         MAX_FILE_SIZE_BYTES,
-        MAX_FILE_SIZE_MB
+        MAX_FILE_SIZE_MB,
       );
 
       expect(result.valid).toBe(false);
@@ -116,7 +116,7 @@ describe("api-helpers", () => {
         mockResolveMimeType,
         MAX_FILE_SIZE_BYTES,
         MAX_FILE_SIZE_MB,
-        "2枚目の画像"
+        "2枚目の画像",
       );
 
       expect(result.valid).toBe(false);

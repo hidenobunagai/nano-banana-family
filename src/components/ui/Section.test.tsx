@@ -4,7 +4,11 @@ import { Section } from "./Section";
 
 describe("Section", () => {
   it("renders children", () => {
-    render(<Section><p>content</p></Section>);
+    render(
+      <Section>
+        <p>content</p>
+      </Section>,
+    );
     expect(screen.getByText("content")).toBeInTheDocument();
   });
 

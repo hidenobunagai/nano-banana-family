@@ -8,12 +8,7 @@ vi.mock("node:dns/promises", () => ({
   lookup: (...args: unknown[]) => mockLookup(...args),
 }));
 
-function createMockFile(
-  content: string,
-  name: string,
-  type: string,
-  size?: number,
-): File {
+function createMockFile(content: string, name: string, type: string, size?: number): File {
   const blob = new Blob([content], { type });
   const file = new File([blob], name, { type });
   if (size !== undefined) {
@@ -51,7 +46,12 @@ describe("filesToParts", () => {
   });
 
   it("returns error for oversized file", async () => {
-    const file = createMockFile("x".repeat(9 * 1024 * 1024), "big.png", "image/png", 9 * 1024 * 1024);
+    const file = createMockFile(
+      "x".repeat(9 * 1024 * 1024),
+      "big.png",
+      "image/png",
+      9 * 1024 * 1024,
+    );
     const result = await filesToParts([file]);
     expect("error" in result).toBe(true);
     if ("error" in result) {
@@ -92,9 +92,7 @@ describe("fetchOgImage", () => {
   });
 
   it("returns null for non-OK response", async () => {
-    vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(null, { status: 404 }),
-    );
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(null, { status: 404 }));
     const result = await fetchOgImage("https://example.com/404");
     expect(result).toBeNull();
   });

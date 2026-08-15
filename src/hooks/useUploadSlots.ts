@@ -87,9 +87,7 @@ export function useUploadSlots({
         if (currentSlot.previewUrl) URL.revokeObjectURL(currentSlot.previewUrl);
         setUploads((prev) =>
           prev.map((u) =>
-            u.id === id
-              ? { ...u, file: optimized, previewUrl: URL.createObjectURL(optimized) }
-              : u,
+            u.id === id ? { ...u, file: optimized, previewUrl: URL.createObjectURL(optimized) } : u,
           ),
         );
       } catch (error) {

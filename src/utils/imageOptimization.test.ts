@@ -96,9 +96,7 @@ describe("resizeImage", () => {
   it("rejects when the canvas context is unavailable", async () => {
     vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(null);
     const file = createImageFile();
-    await expect(resizeImage(file)).rejects.toThrow(
-      "Canvas context を取得できませんでした。",
-    );
+    await expect(resizeImage(file)).rejects.toThrow("Canvas context を取得できませんでした。");
   });
 
   it("rejects when the image fails to load", async () => {

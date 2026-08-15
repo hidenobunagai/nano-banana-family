@@ -67,11 +67,23 @@ export function ResultPane({
             <div className="flex items-center justify-between gap-2">
               {history.total > 1 ? (
                 <div className="flex items-center gap-2">
-                  <Button type="button" size="sm" variant="ghost" onClick={onBack} disabled={!history.canBack}>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={onBack}
+                    disabled={!history.canBack}
+                  >
                     <ChevronLeft className="w-4 h-4 mr-1" />
                     前の結果
                   </Button>
-                  <Button type="button" size="sm" variant="ghost" onClick={onForward} disabled={!history.canForward}>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={onForward}
+                    disabled={!history.canForward}
+                  >
                     次の結果
                     <ChevronRight className="w-4 h-4 ml-1" />
                   </Button>

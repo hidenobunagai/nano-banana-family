@@ -72,7 +72,8 @@ describe("POST /api/icon-generate", () => {
   });
 
   it("returns 400 when name is missing", async () => {
-    const { authenticateRequest, checkUserRateLimit, validateApiKey } = await import("@/utils/server/api-helpers");
+    const { authenticateRequest, checkUserRateLimit, validateApiKey } =
+      await import("@/utils/server/api-helpers");
     vi.mocked(authenticateRequest).mockResolvedValue({
       session: { user: { email: "test@example.com" } },
     });
@@ -88,7 +89,8 @@ describe("POST /api/icon-generate", () => {
   });
 
   it("returns 200 on successful generation", async () => {
-    const { authenticateRequest, checkUserRateLimit, validateApiKey, handleApiError } = await import("@/utils/server/api-helpers");
+    const { authenticateRequest, checkUserRateLimit, validateApiKey, handleApiError } =
+      await import("@/utils/server/api-helpers");
     const { filesToParts, fetchOgImage } = await import("@/utils/server/imageProcessing");
 
     vi.mocked(authenticateRequest).mockResolvedValue({
@@ -111,7 +113,8 @@ describe("POST /api/icon-generate", () => {
   });
 
   it("includes OG image when URL metadata has one", async () => {
-    const { authenticateRequest, checkUserRateLimit, validateApiKey } = await import("@/utils/server/api-helpers");
+    const { authenticateRequest, checkUserRateLimit, validateApiKey } =
+      await import("@/utils/server/api-helpers");
     const { filesToParts, fetchOgImage } = await import("@/utils/server/imageProcessing");
 
     vi.mocked(authenticateRequest).mockResolvedValue({
@@ -146,7 +149,8 @@ describe("POST /api/icon-generate", () => {
   });
 
   it("returns 502 when Gemini returns no image", async () => {
-    const { authenticateRequest, checkUserRateLimit, validateApiKey } = await import("@/utils/server/api-helpers");
+    const { authenticateRequest, checkUserRateLimit, validateApiKey } =
+      await import("@/utils/server/api-helpers");
     const { filesToParts } = await import("@/utils/server/imageProcessing");
 
     vi.mocked(authenticateRequest).mockResolvedValue({

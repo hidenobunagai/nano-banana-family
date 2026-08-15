@@ -24,11 +24,7 @@ const htmlTemplate = ({
 </html>
 `;
 
-function mockFetch(response: {
-  ok?: boolean;
-  contentType?: string;
-  body?: string;
-}): void {
+function mockFetch(response: { ok?: boolean; contentType?: string; body?: string }): void {
   const { ok = true, contentType = "text/html; charset=utf-8", body = "" } = response;
   vi.spyOn(globalThis, "fetch").mockResolvedValue(
     new Response(body, {

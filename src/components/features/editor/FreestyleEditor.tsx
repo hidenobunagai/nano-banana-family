@@ -75,32 +75,32 @@ export function FreestyleEditor() {
     setIsSubmitting,
     reset,
   } = useEditorSubmit({
-      validate: () => {
-        if (!prompt.trim()) return "仕上がりのイメージを入力してください。";
-        if (!hasActiveFiles) return "少なくとも1枚の参考画像を追加してください。";
-        return null;
-      },
-      buildFormData: () => {
-        const formData = new FormData();
-        formData.append("prompt", prompt.trim());
-        activeUploads.forEach((upload) => {
-          if (upload.file) formData.append("images", upload.file);
-        });
-        return formData;
-      },
-      endpoint: "/api/freestyle-edit",
-      errorFallback: "画像の生成に失敗しました。内容を少し変えてもう一度お試しください。",
-      downloadPrefix: "freestyle",
-      onBeforeSubmit: () => {
-        clearStacks();
-        setIsComparing(false);
-      },
-      onSuccess: (image) => {
-        pushRecent(prompt);
-        pushResult(image);
-      },
-      onFinished: (elapsedMs) => completeProgress(elapsedMs),
-    });
+    validate: () => {
+      if (!prompt.trim()) return "仕上がりのイメージを入力してください。";
+      if (!hasActiveFiles) return "少なくとも1枚の参考画像を追加してください。";
+      return null;
+    },
+    buildFormData: () => {
+      const formData = new FormData();
+      formData.append("prompt", prompt.trim());
+      activeUploads.forEach((upload) => {
+        if (upload.file) formData.append("images", upload.file);
+      });
+      return formData;
+    },
+    endpoint: "/api/freestyle-edit",
+    errorFallback: "画像の生成に失敗しました。内容を少し変えてもう一度お試しください。",
+    downloadPrefix: "freestyle",
+    onBeforeSubmit: () => {
+      clearStacks();
+      setIsComparing(false);
+    },
+    onSuccess: (image) => {
+      pushRecent(prompt);
+      pushResult(image);
+    },
+    onFinished: (elapsedMs) => completeProgress(elapsedMs),
+  });
 
   const {
     uploads,

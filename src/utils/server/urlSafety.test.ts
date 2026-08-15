@@ -28,9 +28,7 @@ describe("assertSafeUrl", () => {
   });
 
   it("rejects URLs with credentials", async () => {
-    await expect(assertSafeUrl("https://user:pass@example.com/")).rejects.toThrow(
-      UnsafeUrlError,
-    );
+    await expect(assertSafeUrl("https://user:pass@example.com/")).rejects.toThrow(UnsafeUrlError);
   });
 
   it("rejects non-standard ports", async () => {
@@ -39,12 +37,8 @@ describe("assertSafeUrl", () => {
   });
 
   it("allows default ports 80 and 443", async () => {
-    await expect(assertSafeUrl("http://example.com:80/")).resolves.toBe(
-      "http://example.com/",
-    );
-    await expect(assertSafeUrl("https://example.com:443/")).resolves.toBe(
-      "https://example.com/",
-    );
+    await expect(assertSafeUrl("http://example.com:80/")).resolves.toBe("http://example.com/");
+    await expect(assertSafeUrl("https://example.com:443/")).resolves.toBe("https://example.com/");
   });
 
   it("rejects private IPv4 literals", async () => {
@@ -92,12 +86,7 @@ describe("fetchWithRedirects", () => {
   function mockFetchChain(...responses: { status: number; location?: string }[]) {
     const calls: { url: string; init: RequestInit }[] = [];
     vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
-      const url =
-        typeof input === "string"
-          ? input
-          : input instanceof URL
-            ? input.href
-            : input.url;
+      const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
       calls.push({ url, init: init ?? {} });
       const current = responses[Math.min(calls.length - 1, responses.length - 1)];
       const headers = new Headers();
@@ -137,17 +126,13 @@ describe("fetchWithRedirects", () => {
       { status: 302, location: "https://example.com/4" },
     );
 
-    await expect(fetchWithRedirects("https://example.com/start")).rejects.toThrow(
-      UnsafeUrlError,
-    );
+    await expect(fetchWithRedirects("https://example.com/start")).rejects.toThrow(UnsafeUrlError);
     expect(calls.length).toBeGreaterThanOrEqual(3);
   });
 
   it("blocks redirects to private addresses", async () => {
     mockFetchChain({ status: 302, location: "http://127.0.0.1/admin" });
 
-    await expect(fetchWithRedirects("https://example.com/start")).rejects.toThrow(
-      UnsafeUrlError,
-    );
+    await expect(fetchWithRedirects("https://example.com/start")).rejects.toThrow(UnsafeUrlError);
   });
 });

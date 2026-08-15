@@ -5,7 +5,7 @@
  */
 
 const WINDOW_MS = 60_000; // 1 minute
-const MAX_REQUESTS = 10;  // per user per window
+const MAX_REQUESTS = 10; // per user per window
 const PRUNE_THRESHOLD = 1000; // prune expired entries above this size
 
 interface RateLimitEntry {

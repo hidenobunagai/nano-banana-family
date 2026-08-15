@@ -13,7 +13,7 @@ describe("logger", () => {
 
       logger.info("hello", { route: "/test" });
 
-      expect(spy).toHaveBeenCalledWith("[INFO] hello {\"route\":\"/test\"}");
+      expect(spy).toHaveBeenCalledWith('[INFO] hello {"route":"/test"}');
     });
 
     it("logs JSON in production", () => {

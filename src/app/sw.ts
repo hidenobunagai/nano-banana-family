@@ -1,7 +1,14 @@
 /// <reference lib="esnext" />
 /// <reference lib="webworker" />
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
-import { CacheFirst, ExpirationPlugin, NetworkFirst, NetworkOnly, Serwist, StaleWhileRevalidate } from "serwist";
+import {
+  CacheFirst,
+  ExpirationPlugin,
+  NetworkFirst,
+  NetworkOnly,
+  Serwist,
+  StaleWhileRevalidate,
+} from "serwist";
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -130,8 +137,7 @@ const serwist = new Serwist({
       // Image generation API routes - always use network, no caching
       matcher: ({ url }) =>
         url.origin === self.location.origin &&
-        (url.pathname === "/api/freestyle-edit" ||
-          url.pathname === "/api/icon-generate"),
+        (url.pathname === "/api/freestyle-edit" || url.pathname === "/api/icon-generate"),
       handler: new NetworkOnly(),
     },
     {
