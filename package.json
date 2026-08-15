@@ -12,8 +12,8 @@
     "test:watch": "dotenvx run --convention=nextjs --ignore=MISSING_ENV_FILE -- cross-env VITE_CJS_IGNORE_WARNING=1 vitest",
     "test:ci": "dotenvx run --convention=nextjs --ignore=MISSING_ENV_FILE -- cross-env VITE_CJS_IGNORE_WARNING=1 vitest run --passWithNoTests",
     "test:coverage": "dotenvx run --convention=nextjs --ignore=MISSING_ENV_FILE -- cross-env VITE_CJS_IGNORE_WARNING=1 vitest run --coverage --passWithNoTests",
-    "format": "prettier --write . --ignore-path .gitignore",
-    "format:check": "prettier --check . --ignore-path .gitignore",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "env:encrypt": "dotenvx encrypt -f .env.local",
     "env:ls": "dotenvx ls"
   },
