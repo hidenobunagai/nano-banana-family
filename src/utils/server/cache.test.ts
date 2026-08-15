@@ -20,13 +20,19 @@ describe("MemoryCache", () => {
 });
 
 describe("generateCacheKey", () => {
-  it("generates consistent key", () => {
+  it("generates consistent key regardless of property order", () => {
     const key = generateCacheKey({ b: "2", a: "1" });
-    expect(key).toBe("a:1|b:2");
+    expect(key).toBe(JSON.stringify([["a", "1"], ["b", "2"]]));
   });
 
-  it("handles single values", () => {
-    const key = generateCacheKey({ a: "1" });
-    expect(key).toBe("a:1");
+  it("distinguishes delimiter-like values from separate keys", () => {
+    const combined = generateCacheKey({ prompt: "a|b", images: [] });
+    const separate = generateCacheKey({ prompt: "a", images: ["b"] });
+    expect(combined).not.toBe(separate);
+  });
+
+  it("serializes array values", () => {
+    const key = generateCacheKey({ images: ["x.png:1:image/png"] });
+    expect(key).toBe(JSON.stringify([["images", ["x.png:1:image/png"]]]));
   });
 });

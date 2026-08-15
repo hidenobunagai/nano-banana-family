@@ -48,10 +48,11 @@ class MemoryCache {
 export const imageGenerationCache = new MemoryCache(10 * 60 * 1000); // 10 minutes for image generation
 
 /**
- * Generate a cache key from request parameters
+ * Generate a collision-free cache key from request parameters.
+ * Keys are sorted and serialized as JSON so distinct parameter sets
+ * can never produce the same key (unlike naive string concatenation).
  */
 export function generateCacheKey(params: Record<string, unknown>): string {
   const sortedKeys = Object.keys(params).sort();
-  const keyParts = sortedKeys.map((key) => `${key}:${String(params[key])}`);
-  return keyParts.join("|");
+  return JSON.stringify(sortedKeys.map((key) => [key, params[key]]));
 }
