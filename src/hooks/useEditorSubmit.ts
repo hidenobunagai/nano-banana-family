@@ -51,9 +51,15 @@ export function useEditorSubmit({
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [resultFilename, setResultFilename] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    return () => abortControllerRef.current?.abort();
+    return () => {
+      abortControllerRef.current?.abort();
+      if (scrollTimeoutRef.current !== null) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
   }, []);
 
   const submit = useCallback(async () => {
@@ -69,8 +75,12 @@ export function useEditorSubmit({
     onBeforeSubmit?.();
 
     if (typeof window !== "undefined" && window.innerWidth < 1280) {
-      setTimeout(() => {
-        document.getElementById("result-pane")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      scrollTimeoutRef.current = setTimeout(() => {
+        if (typeof document !== "undefined") {
+          document
+            .getElementById("result-pane")
+            ?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
       }, 50);
     }
 
