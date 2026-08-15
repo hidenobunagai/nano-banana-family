@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
 import {
   ImageGenerationResponseSchema,
   FreestyleEditFormSchema,
@@ -45,6 +46,14 @@ describe("FreestyleEditFormSchema", () => {
     });
     expect(result.success).toBe(false);
   });
+
+  it("rejects prompts longer than the client limit", () => {
+    const result = FreestyleEditFormSchema.safeParse({
+      prompt: "a".repeat(MAX_PROMPT_LENGTH + 1),
+      images: [new File(["a"], "img.png")],
+    });
+    expect(result.success).toBe(false);
+  });
 });
 
 describe("IconGenerateFormSchema", () => {
@@ -69,6 +78,15 @@ describe("IconGenerateFormSchema", () => {
     const result = IconGenerateFormSchema.safeParse({
       name: "John",
       images: files,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects custom prompts longer than the client limit", () => {
+    const result = IconGenerateFormSchema.safeParse({
+      name: "John",
+      customPrompt: "a".repeat(MAX_PROMPT_LENGTH + 1),
+      images: [],
     });
     expect(result.success).toBe(false);
   });
