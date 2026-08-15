@@ -60,6 +60,18 @@ API 直接呼び出し時の整合性が取れる。
 - 自動生成ファイル `src/promptReferences.ts` は `.prettierignore` に追加
 - CI に `format:check` ステップを追加し、フォーマット逸脱を検知
 
+### 9. IconCreator の「入力をクリア」が参考画像を残すバグを修正
+
+`FreestyleEditor` はリセット時に `resetUploads()` を呼ぶが、`IconCreator` は
+呼んでいなかったため、参考画像がクリアされず次の生成に残っていた。
+`resetUploads()` を呼ぶよう統一し、リセットで画像が消えるテストを追加。
+
+### 10. Service Worker のクロスオリジン一律キャッシュを削除
+
+`sw.ts` の「同一オリジン以外の GET すべて」を NetworkFirst でキャッシュする
+ルールを削除。Google フォント等は専用ルールでカバー済みのため、オフライン
+体験を損なわずにクロスオリジン応答のキャッシュ(プライバシー懸念)を排除。
+
 ## 保留中の提案(要判断)
 
 ### A. CSP と GTM の整合
@@ -72,32 +84,25 @@ API 直接呼び出し時の整合性が取れる。
 → GTM を実際に使うか確認し、使うなら `script-src` / `connect-src` に
 `https://*.google-analytics.com` 等を追加、使わないなら GTM コード削除。
 
-### B. Service Worker のクロスオリジン全般キャッシュ
-
-`sw.ts` の最後のルールが「同一オリジン以外の GET すべて」を NetworkFirst で
-キャッシュする。Google フォント等は専用ルールがあるため、実質的に対象外。
-クロスオリジン応答のキャッシュはプライバシー上の懸念があるため、
-削除してフォントのみのキャッシュに絞る案。
-
-### C. next-auth v4 → v5 移行
+### B. next-auth v4 → v5 移行
 
 現在 v4.24.11。App Router と組み合わせても動作しているが、v5 は
 `Auth()` ベースの新 API になり、セキュリティ修正も v5 に集中しつつある。
 移行は `src/auth.ts` と API ルートの改修が必要なため、時期を見て実施。
 
-### D. 作業ツリー上の未コミット削除ファイル
+### C. 作業ツリー上の未コミット削除ファイル
 
 `AGENTS.md` / `CLAUDE.md` / `.cursor/mcp.json` / `.qoder/mcp.json` /
 `.vscode/mcp.json` / `.github/code-review-graph.instruction.md` が
 作業ツリーで削除されたまま。エージェント設定の整理と思われるが、
 意図した削除か確認の上、コミットするか判断が必要。
 
-### E. モデル名の確認
+### D. モデル名の確認
 
 `GEMINI_IMAGE_MODEL` のデフォルト `gemini-3.1-flash-lite-image` は
 将来モデル名のため、API 提供開始後に実機確認が必要。
 
-### F. 細かい UI 改善
+### E. 細かい UI 改善
 
 - `FreestyleEditor` の「画像を追加」ボタン位置合わせ用の不可視
   "Placeholder" テキストは脆弱。FileInput のラベル高さを固定化して置き換え可能。
