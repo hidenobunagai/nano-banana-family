@@ -23,6 +23,9 @@
 - `Shell.tsx` / `Dock.tsx`(layout): 0% → ナビゲーション切替・サインアウトをテスト
 - `useUndoRedoShortcuts.ts`: キーボードショートカット(⌘Z / ⌘⇧Z / ⌘Y、textarea 限定、クリーンアップ)をテスト
 - `imageOptimization.ts`: 0% → 非画像・非対応形式の拒否、リサイズ不要時のオリジナル返却、リサイズ時の Canvas パスをモックでテスト
+- `FileInput.tsx`: ドロップ時の `onChange` 発火をテスト
+- テスト追加の過程で `useEditorSubmit` のスクロール用 `setTimeout` がアンマウント後に
+  発火して未処理エラーになるタイマーリークを発見し、タイムアウト追跡 + クリーンアップで修正
 
 ### 4. API ルートの重複排除
 
