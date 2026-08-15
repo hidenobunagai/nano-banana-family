@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { NextResponse } from "next/server";
 
-const mockGenerateContent = vi.hoisted(() => vi.fn());
+const mockGenerateImage = vi.hoisted(() => vi.fn());
 
 function jsonResponse(data: Record<string, unknown>, status: number): NextResponse {
   return new Response(JSON.stringify(data), {
@@ -31,12 +31,9 @@ vi.mock("@/utils/server/imageProcessing", () => ({
   filesToParts: vi.fn(),
 }));
 
-vi.mock("@google/genai", () => {
-  const MockGenAI = class {
-    models = { generateContent: mockGenerateContent };
-  };
-  return { GoogleGenAI: MockGenAI };
-});
+vi.mock("@/utils/server/imageGeneration", () => ({
+  generateImage: mockGenerateImage,
+}));
 
 import { POST } from "./route";
 
@@ -103,12 +100,9 @@ describe("POST /api/freestyle-edit", () => {
     vi.mocked(handleApiError).mockImplementation((e) =>
       jsonResponse({ error: e instanceof Error ? e.message : String(e) }, 500),
     );
-    mockGenerateContent.mockResolvedValue({
-      candidates: [{
-        content: {
-          parts: [{ inlineData: { data: "base64-data", mimeType: "image/png" } }],
-        },
-      }],
+    mockGenerateImage.mockResolvedValue({
+      imageBase64: "base64-data",
+      mimeType: "image/png",
     });
 
     const res = await POST(createRequest("make it blue", [new File(["a"], "a.png")]));
@@ -128,9 +122,7 @@ describe("POST /api/freestyle-edit", () => {
     vi.mocked(checkUserRateLimit).mockReturnValue({ allowed: true });
     vi.mocked(validateApiKey).mockReturnValue({ key: "test-key" });
     vi.mocked(filesToParts).mockResolvedValue({ parts: [{ text: "processed" }] });
-    mockGenerateContent.mockResolvedValue({
-      candidates: [{ content: { parts: [{ text: "sorry" }] } }],
-    });
+    mockGenerateImage.mockResolvedValue({ error: "画像の生成に失敗しました。", status: 502 });
 
     const res = await POST(createRequest("edit", [new File(["a"], "a.png")]));
     expect(res.status).toBe(502);

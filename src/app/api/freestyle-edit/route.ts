@@ -1,4 +1,3 @@
-import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
 
 import {
@@ -9,16 +8,12 @@ import {
   validateFormData,
 } from "@/utils/server/api-helpers";
 import { filesToParts } from "@/utils/server/imageProcessing";
+import { generateImage } from "@/utils/server/imageGeneration";
 import { logger } from "@/utils/server/logger";
-import {
-  FreestyleEditFormSchema,
-  ImageGenerationResponseSchema,
-} from "@/utils/server/validation";
+import { FreestyleEditFormSchema } from "@/utils/server/validation";
 import { generateCacheKey, imageGenerationCache } from "@/utils/server/cache";
 
 export const runtime = "nodejs";
-
-const DEFAULT_MODEL = process.env.GEMINI_IMAGE_MODEL ?? "gemini-3.1-flash-lite-image";
 
 export async function POST(request: Request) {
   const authResult = await authenticateRequest();
@@ -68,8 +63,6 @@ export async function POST(request: Request) {
     }
     const parts = partsResult.parts;
 
-    const client = new GoogleGenAI({ apiKey });
-
     parts.push({
       text: [
         "あなたはHide NB Studioファミリーアプリのクリエイティブな画像編集アシスタントです。",
@@ -82,25 +75,16 @@ export async function POST(request: Request) {
       ].join("\n"),
     });
 
-    const response = await client.models.generateContent({
-      model: DEFAULT_MODEL,
-      contents: [{ role: "user", parts }],
-    });
-
-    const responseParts = response.candidates?.[0]?.content?.parts ?? [];
-    const imageResult = responseParts.find((part) => part.inlineData?.data);
-    const base64Data = imageResult?.inlineData?.data;
-    const resultMime = imageResult?.inlineData?.mimeType ?? "image/png";
-
-    if (!base64Data) {
-      return NextResponse.json({ error: "画像の生成に失敗しました。" }, { status: 502 });
+    const generationResult = await generateImage(apiKey, parts, "画像の生成に失敗しました。");
+    if ("error" in generationResult) {
+      return NextResponse.json(
+        { error: generationResult.error },
+        { status: generationResult.status },
+      );
     }
 
-    const result = { imageBase64: base64Data, mimeType: resultMime };
-    const validated = ImageGenerationResponseSchema.parse(result);
-    imageGenerationCache.set(cacheKey, validated);
-
-    return NextResponse.json(validated);
+    imageGenerationCache.set(cacheKey, generationResult);
+    return NextResponse.json(generationResult);
   } catch (error) {
     return handleApiError(
       error,

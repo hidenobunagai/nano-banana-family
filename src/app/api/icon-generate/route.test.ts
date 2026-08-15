@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { NextResponse } from "next/server";
 
-const mockGenerateContent = vi.hoisted(() => vi.fn());
+const mockGenerateImage = vi.hoisted(() => vi.fn());
 const mockFetchUrlMetadata = vi.hoisted(() => vi.fn());
 
 function jsonResponse(data: Record<string, unknown>, status: number): NextResponse {
@@ -37,12 +37,9 @@ vi.mock("@/utils/server/urlMetadata", () => ({
   fetchUrlMetadata: mockFetchUrlMetadata,
 }));
 
-vi.mock("@google/genai", () => {
-  const MockGenAI = class {
-    models = { generateContent: mockGenerateContent };
-  };
-  return { GoogleGenAI: MockGenAI };
-});
+vi.mock("@/utils/server/imageGeneration", () => ({
+  generateImage: mockGenerateImage,
+}));
 
 import { POST } from "./route";
 
@@ -101,12 +98,9 @@ describe("POST /api/icon-generate", () => {
     vi.mocked(validateApiKey).mockReturnValue({ key: "test-key" });
     vi.mocked(filesToParts).mockResolvedValue({ parts: [{ text: "processed" }] });
     vi.mocked(fetchOgImage).mockResolvedValue(null);
-    mockGenerateContent.mockResolvedValue({
-      candidates: [{
-        content: {
-          parts: [{ inlineData: { data: "base64-icon", mimeType: "image/png" } }],
-        },
-      }],
+    mockGenerateImage.mockResolvedValue({
+      imageBase64: "base64-icon",
+      mimeType: "image/png",
     });
 
     const res = await POST(createRequest({ name: "John Doe", style: "flat-minimal" }));
@@ -135,12 +129,9 @@ describe("POST /api/icon-generate", () => {
       base64: "og-image-base64",
       mimeType: "image/jpeg",
     });
-    mockGenerateContent.mockResolvedValue({
-      candidates: [{
-        content: {
-          parts: [{ inlineData: { data: "final-icon", mimeType: "image/png" } }],
-        },
-      }],
+    mockGenerateImage.mockResolvedValue({
+      imageBase64: "final-icon",
+      mimeType: "image/png",
     });
 
     const res = await POST(createRequest({ name: "Test", url: "https://example.com" }));
@@ -164,9 +155,7 @@ describe("POST /api/icon-generate", () => {
     vi.mocked(checkUserRateLimit).mockReturnValue({ allowed: true });
     vi.mocked(validateApiKey).mockReturnValue({ key: "test-key" });
     vi.mocked(filesToParts).mockResolvedValue({ parts: [{ text: "processed" }] });
-    mockGenerateContent.mockResolvedValue({
-      candidates: [{ content: { parts: [{ text: "sorry" }] } }],
-    });
+    mockGenerateImage.mockResolvedValue({ error: "アイコンの生成に失敗しました。", status: 502 });
 
     const res = await POST(createRequest({ name: "Test" }));
     expect(res.status).toBe(502);
