@@ -5,7 +5,7 @@ import { ResultPane } from "@/components/features/editor/ResultPane";
 import { PromptReferencePicker } from "@/components/PromptReferencePicker";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Button } from "@/components/ui/Button";
-import { FileInput } from "@/components/ui/FileInput";
+import { FileInput, FileInputLabel } from "@/components/ui/FileInput";
 import { PromptTextarea } from "@/components/ui/PromptTextarea";
 import { Section } from "@/components/ui/Section";
 import { useEditorSubmit } from "@/hooks/useEditorSubmit";
@@ -297,8 +297,8 @@ export function FreestyleEditor() {
             ))}
             {uploads.length < MAX_FREESTYLE_UPLOADS && (
               <div className="flex flex-col">
-                <div className="flex flex-col mb-2 invisible select-none" aria-hidden="true">
-                  <span className="text-dns-14">Placeholder</span>
+                <div aria-hidden="true" className="invisible select-none">
+                  <FileInputLabel subLabel={`参考画像 ${uploads.length + 1}`} />
                 </div>
                 <button
                   type="button"

@@ -106,11 +106,7 @@ export function validateFormData<T>(
   return { success: false, error: errorMessage };
 }
 
-export function handleApiError(
-  error: unknown,
-  routeName: string,
-  userId: string,
-): NextResponse {
+export function handleApiError(error: unknown, routeName: string, userId: string): NextResponse {
   const appError = toAppError(error);
   logger.error(`${routeName} error`, error, {
     route: routeName,

@@ -116,10 +116,7 @@ export async function assertSafeUrl(rawUrl: string): Promise<string> {
  * Fetch a URL following redirects manually, re-validating every hop
  * against the same safety rules.
  */
-export async function fetchWithRedirects(
-  url: string,
-  init: RequestInit = {},
-): Promise<Response> {
+export async function fetchWithRedirects(url: string, init: RequestInit = {}): Promise<Response> {
   let currentUrl = await assertSafeUrl(url);
 
   for (let hop = 0; ; hop += 1) {

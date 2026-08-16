@@ -141,10 +141,7 @@ describe("POST /api/icon-generate", () => {
     expect(res.status).toBe(200);
 
     expect(mockFetchUrlMetadata).toHaveBeenCalledWith("https://example.com");
-    expect(fetchOgImage).toHaveBeenCalledWith(
-      "https://example.com/og.jpg",
-      "https://example.com",
-    );
+    expect(fetchOgImage).toHaveBeenCalledWith("https://example.com/og.jpg", "https://example.com");
   });
 
   it("returns 502 when Gemini returns no image", async () => {

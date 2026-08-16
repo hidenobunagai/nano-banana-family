@@ -131,9 +131,7 @@ export function IconCreator() {
     !isSubmitting &&
     !isOptimizingAny;
   const selectedStyleOption = useMemo(
-    () =>
-      ICON_STYLES.find((styleOption) => styleOption.id === selectedStyle) ??
-      ICON_STYLES[0],
+    () => ICON_STYLES.find((styleOption) => styleOption.id === selectedStyle) ?? ICON_STYLES[0],
     [selectedStyle],
   );
 

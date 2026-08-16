@@ -14,6 +14,19 @@ interface FileInputProps {
   accept?: string;
 }
 
+/** Label block above an upload slot; shared so columns align without hacks. */
+export function FileInputLabel({ label, subLabel }: { label?: string; subLabel?: string }) {
+  if (!label && !subLabel) return null;
+  return (
+    <div className="flex flex-col mb-2">
+      {label && (
+        <span className="text-std-16 font-bold text-[var(--color-neutral-700)]">{label}</span>
+      )}
+      {subLabel && <span className="text-dns-14 text-[var(--color-neutral-400)]">{subLabel}</span>}
+    </div>
+  );
+}
+
 export function FileInput({
   label,
   subLabel,
@@ -48,16 +61,7 @@ export function FileInput({
 
   return (
     <div>
-      {(label || subLabel) && (
-        <div className="flex flex-col mb-2">
-          {label && (
-            <span className="text-std-16 font-bold text-[var(--color-neutral-700)]">{label}</span>
-          )}
-          {subLabel && (
-            <span className="text-dns-14 text-[var(--color-neutral-400)]">{subLabel}</span>
-          )}
-        </div>
-      )}
+      <FileInputLabel label={label} subLabel={subLabel} />
 
       <AnimatePresence mode="wait">
         {!previewUrl ? (
