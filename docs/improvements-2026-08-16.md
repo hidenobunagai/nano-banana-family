@@ -72,6 +72,22 @@ API 直接呼び出し時の整合性が取れる。
 ルールを削除。Google フォント等は専用ルールでカバー済みのため、オフライン
 体験を損なわずにクロスオリジン応答のキャッシュ(プライバシー懸念)を排除。
 
+## ponytail-audit 対応(2026-08-16 追記)
+
+過剰設計監査(ponytail-audit)の指摘14件をすべて実装済み:
+
+- アイコンスタイル定義の重複(UI とプロンプトビルダー)を `src/utils/iconStyles.ts` に一元化
+- `useProgressSimulation` から未使用 `actualElapsedMs` prop / `reset` 戻り値 / デフォルト `PROGRESS_STEPS` を削除
+- `package.json` から重複 `test:ci` と無意味な `--passWithNoTests` を削除
+- `useResultHistory` の `goBack`/`goForward`、`useTextUndoRedo` の `setValue`、
+  `useRecentPrompts` の `clearRecent`(いずれも本番未使用)を削除
+- `filesToParts` の `startLabelIndex`、`fetchOgImage` の `timeoutMs`、
+  `fetchWithRedirects` の `maxRedirects`、`handleApiError` の `loggerInstance`
+  パラメータを削除(全て常にデフォルト値で呼ばれていた)
+- `validateImageFile` の5引数シグネチャを `(file, label?)` に簡素化
+- `FileInput` のラベルを `FileInputLabel` として共有化し、`FreestyleEditor` の
+  不可視 "Placeholder" 高さ合わせハックを解消
+
 ## 保留中の提案(要判断)
 
 ### A. CSP と GTM の整合
