@@ -5,6 +5,11 @@ import { z } from "zod";
 import { authOptions } from "@/auth";
 import { checkRateLimit } from "@/utils/server/rateLimit";
 import { logger } from "@/utils/server/logger";
+import {
+  MAX_FILE_SIZE_BYTES,
+  MAX_FILE_SIZE_MB,
+  resolveMimeType,
+} from "@/utils/server/imageValidation";
 import { toAppError, getUserMessage } from "@/utils/errors";
 
 export interface ApiRouteConfig {
@@ -57,13 +62,7 @@ export function validateApiKey(): { key: string } | { response: NextResponse } {
   return { key: apiKey };
 }
 
-export function validateImageFile(
-  file: File,
-  resolveMimeType: (file: File) => string | null,
-  MAX_FILE_SIZE_BYTES: number,
-  MAX_FILE_SIZE_MB: number,
-  label?: string,
-): ValidationResult {
+export function validateImageFile(file: File, label?: string): ValidationResult {
   if (file.size === 0) {
     return {
       valid: false,
@@ -109,14 +108,11 @@ export function validateFormData<T>(
 
 export function handleApiError(
   error: unknown,
-  loggerInstance: {
-    error: (message: string, err?: unknown, fields?: Record<string, unknown>) => void;
-  },
   routeName: string,
   userId: string,
 ): NextResponse {
   const appError = toAppError(error);
-  loggerInstance.error(`${routeName} error`, error, {
+  logger.error(`${routeName} error`, error, {
     route: routeName,
     userId,
     status: appError.statusCode,

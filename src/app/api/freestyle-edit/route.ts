@@ -9,7 +9,6 @@ import {
 } from "@/utils/server/api-helpers";
 import { filesToParts } from "@/utils/server/imageProcessing";
 import { generateImage } from "@/utils/server/imageGeneration";
-import { logger } from "@/utils/server/logger";
 import { FreestyleEditFormSchema } from "@/utils/server/validation";
 import { generateCacheKey, imageGenerationCache } from "@/utils/server/cache";
 
@@ -81,6 +80,6 @@ export async function POST(request: Request) {
     imageGenerationCache.set(cacheKey, generationResult);
     return NextResponse.json(generationResult);
   } catch (error) {
-    return handleApiError(error, logger, "freestyle-edit", session.user?.email ?? "unknown");
+    return handleApiError(error, "freestyle-edit", session.user?.email ?? "unknown");
   }
 }

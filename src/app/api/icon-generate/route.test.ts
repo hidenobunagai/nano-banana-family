@@ -143,7 +143,6 @@ describe("POST /api/icon-generate", () => {
     expect(mockFetchUrlMetadata).toHaveBeenCalledWith("https://example.com");
     expect(fetchOgImage).toHaveBeenCalledWith(
       "https://example.com/og.jpg",
-      5000,
       "https://example.com",
     );
   });

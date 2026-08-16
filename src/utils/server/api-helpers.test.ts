@@ -37,22 +37,11 @@ describe("api-helpers", () => {
   });
 
   describe("validateImageFile", () => {
-    const mockResolveMimeType = vi.fn();
-    const MAX_FILE_SIZE_BYTES = 8 * 1024 * 1024; // 8MB
-    const MAX_FILE_SIZE_MB = 8;
-
     it("should return valid for a valid image file", () => {
       const file = new File(["test"], "test.jpg", { type: "image/jpeg" });
       Object.defineProperty(file, "size", { value: 1024 * 1024 }); // 1MB
 
-      mockResolveMimeType.mockReturnValue("image/jpeg");
-
-      const result = validateImageFile(
-        file,
-        mockResolveMimeType,
-        MAX_FILE_SIZE_BYTES,
-        MAX_FILE_SIZE_MB,
-      );
+      const result = validateImageFile(file);
 
       expect(result.valid).toBe(true);
     });
@@ -61,12 +50,7 @@ describe("api-helpers", () => {
       const file = new File([""], "test.jpg", { type: "image/jpeg" });
       Object.defineProperty(file, "size", { value: 0 });
 
-      const result = validateImageFile(
-        file,
-        mockResolveMimeType,
-        MAX_FILE_SIZE_BYTES,
-        MAX_FILE_SIZE_MB,
-      );
+      const result = validateImageFile(file);
 
       expect(result.valid).toBe(false);
       expect(result.error).toBe("空の画像ファイルは処理できません。");
@@ -77,12 +61,7 @@ describe("api-helpers", () => {
       const file = new File(["test"], "test.jpg", { type: "image/jpeg" });
       Object.defineProperty(file, "size", { value: 10 * 1024 * 1024 }); // 10MB
 
-      const result = validateImageFile(
-        file,
-        mockResolveMimeType,
-        MAX_FILE_SIZE_BYTES,
-        MAX_FILE_SIZE_MB,
-      );
+      const result = validateImageFile(file);
 
       expect(result.valid).toBe(false);
       expect(result.error).toContain("サイズが大きすぎます");
@@ -93,14 +72,7 @@ describe("api-helpers", () => {
       const file = new File(["test"], "test.gif", { type: "image/gif" });
       Object.defineProperty(file, "size", { value: 1024 * 1024 });
 
-      mockResolveMimeType.mockReturnValue(null);
-
-      const result = validateImageFile(
-        file,
-        mockResolveMimeType,
-        MAX_FILE_SIZE_BYTES,
-        MAX_FILE_SIZE_MB,
-      );
+      const result = validateImageFile(file);
 
       expect(result.valid).toBe(false);
       expect(result.error).toContain("サポートされていない画像形式");
@@ -111,13 +83,7 @@ describe("api-helpers", () => {
       const file = new File([""], "test.jpg", { type: "image/jpeg" });
       Object.defineProperty(file, "size", { value: 0 });
 
-      const result = validateImageFile(
-        file,
-        mockResolveMimeType,
-        MAX_FILE_SIZE_BYTES,
-        MAX_FILE_SIZE_MB,
-        "2枚目の画像",
-      );
+      const result = validateImageFile(file, "2枚目の画像");
 
       expect(result.valid).toBe(false);
       expect(result.error).toContain("2枚目の画像");

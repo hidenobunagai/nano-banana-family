@@ -11,7 +11,6 @@ import {
 } from "@/utils/server/api-helpers";
 import { filesToParts, fetchOgImage } from "@/utils/server/imageProcessing";
 import { generateImage } from "@/utils/server/imageGeneration";
-import { logger } from "@/utils/server/logger";
 import { fetchUrlMetadata } from "@/utils/server/urlMetadata";
 import { IconGenerateFormSchema } from "@/utils/server/validation";
 import { generateCacheKey, imageGenerationCache } from "@/utils/server/cache";
@@ -89,7 +88,7 @@ export async function POST(request: Request) {
 
     if (urlMeta?.ogImage) {
       try {
-        const ogImageData = await fetchOgImage(urlMeta.ogImage, 5000, trimmedUrl);
+        const ogImageData = await fetchOgImage(urlMeta.ogImage, trimmedUrl);
         if (ogImageData) {
           parts.push({
             inlineData: {
@@ -116,6 +115,6 @@ export async function POST(request: Request) {
     imageGenerationCache.set(cacheKey, generationResult);
     return NextResponse.json(generationResult);
   } catch (error) {
-    return handleApiError(error, logger, "icon-generate", session.user?.email ?? "unknown");
+    return handleApiError(error, "icon-generate", session.user?.email ?? "unknown");
   }
 }

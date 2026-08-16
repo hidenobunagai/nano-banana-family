@@ -1,11 +1,9 @@
 import { type Part } from "@google/genai";
-import {
-  MAX_FILE_SIZE_BYTES,
-  MAX_FILE_SIZE_MB,
-  resolveMimeType,
-} from "@/utils/server/imageValidation";
+import { resolveMimeType } from "@/utils/server/imageValidation";
 import { validateImageFile } from "@/utils/server/api-helpers";
 import { fetchWithRedirects } from "@/utils/server/urlSafety";
+
+const OG_IMAGE_FETCH_TIMEOUT_MS = 5000;
 
 /**
  * Convert files to Gemini API inline data parts with validation.
@@ -13,21 +11,14 @@ import { fetchWithRedirects } from "@/utils/server/urlSafety";
  */
 export async function filesToParts(
   files: File[],
-  startLabelIndex: number = 1,
 ): Promise<{ parts: Part[] } | { error: string; status: number }> {
   const parts: Part[] = [];
 
   for (let index = 0; index < files.length; index += 1) {
     const file = files[index];
-    const label = `画像${startLabelIndex + index}`;
+    const label = `画像${index + 1}`;
 
-    const validation = validateImageFile(
-      file,
-      resolveMimeType,
-      MAX_FILE_SIZE_BYTES,
-      MAX_FILE_SIZE_MB,
-      label,
-    );
+    const validation = validateImageFile(file, label);
     if (!validation.valid) {
       return { error: validation.error!, status: validation.status! };
     }
@@ -52,14 +43,13 @@ export async function filesToParts(
  */
 export async function fetchOgImage(
   imageUrl: string,
-  timeoutMs: number = 5000,
   baseUrl?: string,
 ): Promise<{ base64: string; mimeType: string } | null> {
   const resolvedUrl =
     baseUrl && !/^https?:\/\//i.test(imageUrl) ? new URL(imageUrl, baseUrl).toString() : imageUrl;
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  const timeout = setTimeout(() => controller.abort(), OG_IMAGE_FETCH_TIMEOUT_MS);
 
   try {
     const response = await fetchWithRedirects(resolvedUrl, {

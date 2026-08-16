@@ -119,7 +119,6 @@ export async function assertSafeUrl(rawUrl: string): Promise<string> {
 export async function fetchWithRedirects(
   url: string,
   init: RequestInit = {},
-  maxRedirects: number = MAX_REDIRECTS,
 ): Promise<Response> {
   let currentUrl = await assertSafeUrl(url);
 
@@ -137,7 +136,7 @@ export async function fetchWithRedirects(
       return new Response(null, { status: 502 });
     }
 
-    if (hop >= maxRedirects) {
+    if (hop >= MAX_REDIRECTS) {
       throw new UnsafeUrlError("リダイレクトが多すぎます。");
     }
 
