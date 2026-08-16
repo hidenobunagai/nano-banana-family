@@ -65,7 +65,6 @@ export function useTextUndoRedo(initialValue: string = "") {
 
   return {
     value,
-    setValue,
     handleChange,
     undo,
     redo,

@@ -27,7 +27,6 @@ export function useRecentPrompts(
 ): {
   recentPrompts: readonly string[];
   pushRecent: (text: string) => void;
-  clearRecent: () => void;
 } {
   const [recentPrompts, setRecentPrompts] = useState<readonly string[]>(() =>
     readStored(storageKey, maxItems),
@@ -60,14 +59,5 @@ export function useRecentPrompts(
     [storageKey, maxItems],
   );
 
-  const clearRecent = useCallback(() => {
-    setRecentPrompts([]);
-    try {
-      window.localStorage.removeItem(storageKey);
-    } catch {
-      // ignore
-    }
-  }, [storageKey]);
-
-  return { recentPrompts, pushRecent, clearRecent };
+  return { recentPrompts, pushRecent };
 }

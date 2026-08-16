@@ -47,15 +47,6 @@ describe("useTextUndoRedo", () => {
     expect(result.current.canRedo).toBe(false);
   });
 
-  it("setValue applies without recording history", () => {
-    const { result } = renderHook(() => useTextUndoRedo(""));
-
-    act(() => result.current.setValue("direct"));
-
-    expect(result.current.value).toBe("direct");
-    expect(result.current.canUndo).toBe(false);
-  });
-
   it("clearStacks resets undo/redo without touching the value", () => {
     const { result } = renderHook(() => useTextUndoRedo(""));
 

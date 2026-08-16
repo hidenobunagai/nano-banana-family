@@ -46,7 +46,6 @@ export function FreestyleEditor() {
   );
   const {
     value: prompt,
-    setValue: setPrompt,
     handleChange: handlePromptChange,
     undo: handleUndo,
     redo: handleRedo,

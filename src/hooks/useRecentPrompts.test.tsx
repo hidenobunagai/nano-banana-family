@@ -67,16 +67,6 @@ describe("useRecentPrompts", () => {
     expect(result.current.recentPrompts).toEqual(["dup", "other", "extra"]);
   });
 
-  it("clears the list and localStorage", () => {
-    const { result } = renderHook(() => useRecentPrompts(STORAGE_KEY, 6));
-
-    act(() => result.current.pushRecent("keep me?"));
-    act(() => result.current.clearRecent());
-
-    expect(result.current.recentPrompts).toEqual([]);
-    expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull();
-  });
-
   it("recovers from corrupt stored JSON", () => {
     window.localStorage.setItem(STORAGE_KEY, "{not json");
 

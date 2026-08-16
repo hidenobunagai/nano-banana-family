@@ -29,14 +29,6 @@ export function useResultHistory(maxItems: number) {
     [history.length],
   );
 
-  const goBack = useCallback(() => {
-    setHistoryIndex((prev) => (prev > 0 ? prev - 1 : prev));
-  }, []);
-
-  const goForward = useCallback(() => {
-    setHistoryIndex((prev) => (prev < history.length - 1 ? prev + 1 : prev));
-  }, [history.length]);
-
   const reset = useCallback(() => {
     setHistory([]);
     setHistoryIndex(-1);
@@ -47,8 +39,6 @@ export function useResultHistory(maxItems: number) {
     historyIndex,
     pushResult,
     navigateTo,
-    goBack,
-    goForward,
     canGoBack: historyIndex > 0,
     canGoForward: historyIndex < history.length - 1,
     reset,

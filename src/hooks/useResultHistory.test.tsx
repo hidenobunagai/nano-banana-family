@@ -33,18 +33,17 @@ describe("useResultHistory", () => {
     act(() => result.current.pushResult("img2"));
     act(() => result.current.pushResult("img3"));
 
-    act(() => result.current.goBack());
+    act(() => result.current.navigateTo(1));
     expect(result.current.historyIndex).toBe(1);
 
-    act(() => result.current.goBack());
+    act(() => result.current.navigateTo(0));
     expect(result.current.historyIndex).toBe(0);
     expect(result.current.canGoBack).toBe(false);
 
-    act(() => result.current.goForward());
+    act(() => result.current.navigateTo(1));
     expect(result.current.historyIndex).toBe(1);
 
-    act(() => result.current.goBack());
-    act(() => result.current.goBack());
+    act(() => result.current.navigateTo(0));
     expect(result.current.historyIndex).toBe(0);
   });
 
