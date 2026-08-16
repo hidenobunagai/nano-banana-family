@@ -1,51 +1,16 @@
-import { ProgressStep } from "@/components/ProgressDisplay";
+import type { ProgressStep } from "@/components/ProgressDisplay";
 import { useCallback, useEffect, useRef, useState } from "react";
-
-export const PROGRESS_STEPS: ProgressStep[] = [
-  {
-    id: "upload",
-    label: "画像をアップロード中...",
-    estimatedDuration: 1500,
-  },
-  {
-    id: "analyze",
-    label: "画像を解析中...",
-    estimatedDuration: 1800,
-  },
-  {
-    id: "prompt",
-    label: "プロンプトを処理中...",
-    estimatedDuration: 1200,
-  },
-  {
-    id: "generate",
-    label: "Gemini で画像を生成中...",
-    estimatedDuration: 6500,
-  },
-  {
-    id: "optimize",
-    label: "結果を最適化中...",
-    estimatedDuration: 1200,
-  },
-  {
-    id: "complete",
-    label: "完了",
-    estimatedDuration: 400,
-  },
-];
 
 export interface UseProgressSimulationProps {
   isActive: boolean;
   onComplete?: () => void;
-  steps?: ProgressStep[];
-  actualElapsedMs?: number;
+  steps: ProgressStep[];
 }
 
 export interface UseProgressSimulationReturn {
   progress: number;
   currentStep: number;
   timeRemaining: number;
-  reset: () => void;
   complete: (elapsedMs?: number) => void;
 }
 
@@ -60,29 +25,15 @@ const INITIAL_STATE: ProgressState = { progress: 0, currentStep: 0, timeRemainin
 export function useProgressSimulation({
   isActive,
   onComplete,
-  steps = PROGRESS_STEPS,
-  actualElapsedMs,
+  steps,
 }: UseProgressSimulationProps): UseProgressSimulationReturn {
   const [state, setState] = useState<ProgressState>(INITIAL_STATE);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(0);
   const completionRequestedRef = useRef(false);
-  const actualElapsedRef = useRef(actualElapsedMs ?? 0);
-
-  useEffect(() => {
-    actualElapsedRef.current = actualElapsedMs ?? 0;
-  }, [actualElapsedMs]);
+  const actualElapsedRef = useRef(0);
 
   const totalDuration = steps.reduce((sum, step) => sum + step.estimatedDuration, 0);
-
-  const reset = useCallback(() => {
-    setState(INITIAL_STATE);
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    completionRequestedRef.current = false;
-  }, []);
 
   useEffect(() => {
     if (!isActive) {
@@ -213,7 +164,6 @@ export function useProgressSimulation({
     progress: state.progress,
     currentStep: state.currentStep,
     timeRemaining: state.timeRemaining,
-    reset,
     complete,
   };
 }
