@@ -1,4 +1,5 @@
-import { buildIconPrompt, ICON_STYLES } from "./iconPromptBuilder";
+import { ICON_STYLES } from "@/utils/iconStyles";
+import { buildIconPrompt } from "./iconPromptBuilder";
 
 describe("ICON_STYLES", () => {
   it("has 5 styles", () => {

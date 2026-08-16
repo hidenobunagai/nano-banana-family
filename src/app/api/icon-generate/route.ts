@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { buildIconPrompt, type IconStyleId } from "@/utils/server/iconPromptBuilder";
+import { buildIconPrompt } from "@/utils/server/iconPromptBuilder";
+import type { IconStyleId } from "@/utils/iconStyles";
 import {
   authenticateRequest,
   checkUserRateLimit,
@@ -75,7 +76,7 @@ export async function POST(request: Request) {
 
     const prompt = buildIconPrompt({
       name: trimmedName,
-      style: resolvedStyle as import("@/utils/server/iconPromptBuilder").IconStyleId,
+      style: resolvedStyle as IconStyleId,
       urlMeta,
       customPrompt: trimmedCustomPrompt,
     });

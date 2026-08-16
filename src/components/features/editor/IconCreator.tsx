@@ -14,6 +14,7 @@ import { useResultHistory } from "@/hooks/useResultHistory";
 import { useTextUndoRedo } from "@/hooks/useTextUndoRedo";
 import { useUndoRedoShortcuts } from "@/hooks/useUndoRedoShortcuts";
 import { useUploadSlots } from "@/hooks/useUploadSlots";
+import { ICON_STYLES } from "@/utils/iconStyles";
 import { MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
 import { Globe, Loader2, Sparkles, User, X } from "lucide-react";
 import Image from "next/image";
@@ -36,52 +37,6 @@ const ICON_PROGRESS_STEPS: ProgressStep[] = [
 const MAX_ICON_UPLOADS = 3;
 const MAX_HISTORY = 4;
 const MAX_RECENT_PROMPTS = 6;
-
-interface IconStyleOption {
-  id: string;
-  label: string;
-  description: string;
-  preview: string;
-  colorClass: string;
-}
-
-const ICON_STYLE_OPTIONS: IconStyleOption[] = [
-  {
-    id: "auto",
-    label: "おまかせ",
-    description: "情報から最適スタイルを自動選択",
-    preview: "学校・教室・家族連絡先におすすめ",
-    colorClass: "bg-[var(--color-primary-600)]",
-  },
-  {
-    id: "flat-minimal",
-    label: "フラット・ミニマル",
-    description: "シンプルな色面とシンボル",
-    preview: "見やすさ重視・通知アイコン向け",
-    colorClass: "bg-[var(--color-neutral-700)]",
-  },
-  {
-    id: "gradient-modern",
-    label: "グラデーション",
-    description: "鮮やかなグラデーション",
-    preview: "明るく親しみやすい雰囲気",
-    colorClass: "bg-[var(--color-secondary-600)]",
-  },
-  {
-    id: "illustrated",
-    label: "イラスト風",
-    description: "手描き感のある温かいスタイル",
-    preview: "子ども向け・やわらかい印象に最適",
-    colorClass: "bg-[var(--color-neutral-500)]",
-  },
-  {
-    id: "photo-circle",
-    label: "写真加工",
-    description: "写真ベースの丸型アイコン",
-    preview: "人物やロゴを活かしたいときに便利",
-    colorClass: "bg-[var(--color-primary-700)]",
-  },
-];
 
 export function IconCreator() {
   const [name, setName] = useState("");
@@ -177,8 +132,8 @@ export function IconCreator() {
     !isOptimizingAny;
   const selectedStyleOption = useMemo(
     () =>
-      ICON_STYLE_OPTIONS.find((styleOption) => styleOption.id === selectedStyle) ??
-      ICON_STYLE_OPTIONS[0],
+      ICON_STYLES.find((styleOption) => styleOption.id === selectedStyle) ??
+      ICON_STYLES[0],
     [selectedStyle],
   );
 
@@ -373,7 +328,7 @@ export function IconCreator() {
 
         <Section title="4. スタイル">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {ICON_STYLE_OPTIONS.map((styleOption) => (
+            {ICON_STYLES.map((styleOption) => (
               <button
                 key={styleOption.id}
                 type="button"
