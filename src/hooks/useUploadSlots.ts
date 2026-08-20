@@ -42,6 +42,8 @@ export function useUploadSlots({
   );
   const [optimizingIds, setOptimizingIds] = useState<string[]>([]);
   const previewUrlsRef = useRef<string[]>([]);
+  const uploadsRef = useRef(uploads);
+  uploadsRef.current = uploads;
 
   useEffect(() => {
     previewUrlsRef.current = uploads
@@ -68,7 +70,7 @@ export function useUploadSlots({
   const handleFileChange = useCallback(
     async (event: ChangeEvent<HTMLInputElement>, id: string) => {
       const file = event.target.files?.[0];
-      const currentSlot = uploads.find((u) => u.id === id);
+      const currentSlot = uploadsRef.current.find((u) => u.id === id);
       if (!currentSlot) return;
 
       if (!file) {
@@ -100,32 +102,27 @@ export function useUploadSlots({
         setOptimizing(id, false);
       }
     },
-    [uploads, onBeforeChange, onFileError, setOptimizing],
+    [onBeforeChange, onFileError, setOptimizing],
   );
 
   const addUploadSlot = useCallback(() => {
-    if (uploads.length < maxSlots) {
-      setUploads((prev) => [...prev, createUploadSlot()]);
-    }
-  }, [uploads.length, maxSlots]);
+    setUploads((prev) => (prev.length < maxSlots ? [...prev, createUploadSlot()] : prev));
+  }, [maxSlots]);
 
-  const removeUploadSlot = useCallback(
-    (id: string) => {
-      const slot = uploads.find((u) => u.id === id);
-      if (slot?.previewUrl) URL.revokeObjectURL(slot.previewUrl);
-      setUploads((prev) => prev.filter((u) => u.id !== id));
-      setOptimizingIds((prev) => prev.filter((item) => item !== id));
-    },
-    [uploads],
-  );
+  const removeUploadSlot = useCallback((id: string) => {
+    const slot = uploadsRef.current.find((u) => u.id === id);
+    if (slot?.previewUrl) URL.revokeObjectURL(slot.previewUrl);
+    setUploads((prev) => prev.filter((u) => u.id !== id));
+    setOptimizingIds((prev) => prev.filter((item) => item !== id));
+  }, []);
 
   const resetUploads = useCallback(() => {
-    uploads.forEach((u) => {
+    uploadsRef.current.forEach((u) => {
       if (u.previewUrl) URL.revokeObjectURL(u.previewUrl);
     });
     setUploads(Array.from({ length: initialSlots }, createUploadSlot));
     setOptimizingIds([]);
-  }, [uploads, initialSlots]);
+  }, [initialSlots]);
 
   return {
     uploads,
