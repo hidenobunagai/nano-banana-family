@@ -283,7 +283,6 @@ function parseReadme(markdown) {
   while ((match = caseRegex.exec(markdown)) !== null) {
     const caseNum = parseInt(match[1], 10);
     const title = (match[2] || match[3] || "").trim();
-    const author = match[4] ? `@${match[4].trim()}` : "";
 
     if (!title) continue;
 
@@ -312,9 +311,6 @@ function parseReadme(markdown) {
       category,
       prompt: neutralizeGender(prompt),
       tags,
-      author,
-      caseNumber: caseNum,
-      isPro: isProCase,
     });
   }
 
@@ -331,9 +327,6 @@ export type PromptReference = {
   category: string;
   prompt: string;
   tags: string[];
-  author: string;
-  caseNumber: number;
-  isPro: boolean;
 };
 
 export const PROMPT_REFERENCES: PromptReference[] = ${JSON.stringify(entries, null, 2)};
