@@ -24,9 +24,7 @@ export function toAppError(error: unknown): AppError {
     // 500-level internal messages (SDK errors, model names, URLs) must not
     // reach the client; getUserMessage would otherwise pass them through.
     const message =
-      process.env.NODE_ENV === "production"
-        ? "予期しないエラーが発生しました。"
-        : error.message;
+      process.env.NODE_ENV === "production" ? "予期しないエラーが発生しました。" : error.message;
     return new AppError(message, 500);
   }
 

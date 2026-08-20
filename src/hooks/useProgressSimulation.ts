@@ -57,9 +57,7 @@ export function useProgressSimulation({
       const elapsed = Date.now() - startedAtRef.current;
       const done = completionRequestedRef.current;
       const progress =
-        totalDuration > 0
-          ? Math.min(done ? 100 : RUN_CAP, (elapsed / totalDuration) * 100)
-          : 100;
+        totalDuration > 0 ? Math.min(done ? 100 : RUN_CAP, (elapsed / totalDuration) * 100) : 100;
 
       let cumulative = 0;
       let stepIndex = steps.length - 1;

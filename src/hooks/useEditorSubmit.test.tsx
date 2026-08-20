@@ -24,15 +24,7 @@ describe("useEditorSubmit", () => {
     return { result, onSuccess, onFinished };
   }
 
-  function mockFetchResponse({
-    ok,
-    status,
-    body,
-  }: {
-    ok: boolean;
-    status: number;
-    body: unknown;
-  }) {
+  function mockFetchResponse({ ok, status, body }: { ok: boolean; status: number; body: unknown }) {
     vi.stubGlobal(
       "fetch",
       vi.fn(
@@ -40,8 +32,7 @@ describe("useEditorSubmit", () => {
           ({
             ok,
             status,
-            text: async () =>
-              typeof body === "string" ? body : JSON.stringify(body),
+            text: async () => (typeof body === "string" ? body : JSON.stringify(body)),
           }) as Response,
       ),
     );
@@ -175,7 +166,10 @@ describe("useEditorSubmit", () => {
   });
 
   it("reports a friendly message on a network failure", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => Promise.reject(new TypeError("Failed to fetch"))));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => Promise.reject(new TypeError("Failed to fetch"))),
+    );
     const { result, onFinished } = setup();
 
     await act(async () => {
@@ -195,7 +189,10 @@ describe("useEditorSubmit", () => {
     });
     const abortError = new Error("aborted");
     abortError.name = "AbortError";
-    vi.stubGlobal("fetch", vi.fn(async () => Promise.reject(abortError)));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => Promise.reject(abortError)),
+    );
     const { result, onFinished } = setup();
 
     await act(async () => {

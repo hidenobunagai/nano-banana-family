@@ -33,16 +33,18 @@ export async function generateImage(
   abortSignal?: AbortSignal,
 ): Promise<GeneratedImage | { error: string; status: number }> {
   const client = new GoogleGenAI({ apiKey });
-  const response = await client.models.generateContent({
-    model: getDefaultModel(),
-    contents: [{ role: "user", parts }],
-    config: abortSignal ? { abortSignal } : undefined,
-  }).catch((error: unknown) => {
-    if (abortSignal?.aborted) {
-      return null;
-    }
-    throw error;
-  });
+  const response = await client.models
+    .generateContent({
+      model: getDefaultModel(),
+      contents: [{ role: "user", parts }],
+      config: abortSignal ? { abortSignal } : undefined,
+    })
+    .catch((error: unknown) => {
+      if (abortSignal?.aborted) {
+        return null;
+      }
+      throw error;
+    });
 
   if (!response) {
     return { error: "生成がタイムアウトしました。時間をおいて再度お試しください。", status: 504 };

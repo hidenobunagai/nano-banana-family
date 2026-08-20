@@ -16,8 +16,11 @@
 ### P0-1 turbopack.root 警告解消 — `next.config.ts:4`
 
 ```ts
-turbopack: { root: __dirname }
+turbopack: {
+  root: __dirname;
+}
 ```
+
 `bun.lock` を持つ本リポジトリを明示的に root 指定。親ディレクトリの `package-lock.json` 誤検知を止める。
 → skipped: 親の lock 削除 / add when: monorepo 化で root を上げる時
 
