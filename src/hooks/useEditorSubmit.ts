@@ -79,11 +79,12 @@ export function useEditorSubmit({
     onBeforeSubmit?.();
 
     if (typeof window !== "undefined" && window.innerWidth < 1280) {
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       scrollTimeoutRef.current = setTimeout(() => {
         if (typeof document !== "undefined") {
           document
             .getElementById("result-pane")
-            ?.scrollIntoView({ behavior: "smooth", block: "start" });
+            ?.scrollIntoView({ behavior: prefersReducedMotion ? "auto" : "smooth", block: "start" });
         }
       }, 50);
     }
@@ -129,7 +130,7 @@ export function useEditorSubmit({
       const mimeType =
         "mimeType" in data && typeof data.mimeType === "string" ? data.mimeType : "image/png";
       const image = `data:${mimeType};base64,${data.imageBase64}`;
-      setResultFilename(`${downloadPrefix}-${Date.now()}.png`);
+      setResultFilename(`${downloadPrefix}-${Date.now()}.${mimeType.replace("image/", "") || "png"}`);
       onSuccess(image);
       setResultImage(image);
     } catch (error) {

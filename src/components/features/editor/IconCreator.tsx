@@ -143,7 +143,10 @@ export function IconCreator() {
       if (index < 0 || index >= history.length) return;
       navigateTo(index);
       setResultImage(history[index]);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      window.scrollTo({
+        top: 0,
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      });
     },
     [history, navigateTo, setResultImage],
   );
@@ -331,6 +334,7 @@ export function IconCreator() {
                 key={styleOption.id}
                 type="button"
                 onClick={() => setSelectedStyle(styleOption.id)}
+                aria-pressed={selectedStyle === styleOption.id}
                 className={cn(
                   "relative flex flex-col items-start gap-2 rounded-[var(--radius-md)] border-2 p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]",
                   selectedStyle === styleOption.id
@@ -424,7 +428,13 @@ export function IconCreator() {
               </>
             )}
           </Button>
-          <Button type="button" size="lg" variant="secondary" onClick={resetEditor}>
+          <Button
+            type="button"
+            size="lg"
+            variant="secondary"
+            onClick={resetEditor}
+            disabled={isSubmitting}
+          >
             入力をクリア
           </Button>
         </div>

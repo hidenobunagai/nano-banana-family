@@ -73,7 +73,7 @@ describe("useEditorSubmit", () => {
     });
 
     expect(result.current.resultImage).toBe("data:image/webp;base64,QUJD");
-    expect(result.current.resultFilename).toMatch(/^test-\d+\.png$/);
+    expect(result.current.resultFilename).toMatch(/^test-\d+\.webp$/);
     expect(onSuccess).toHaveBeenCalledWith("data:image/webp;base64,QUJD");
     expect(onFinished).toHaveBeenCalledWith(expect.any(Number));
     expect(result.current.errorMessage).toBeNull();

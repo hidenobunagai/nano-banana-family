@@ -22,142 +22,87 @@ interface ProgressState {
 
 const INITIAL_STATE: ProgressState = { progress: 0, currentStep: 0, timeRemaining: 0 };
 
+// ponytail: single 100ms interval ramping 0→90% while running, then to 100%
+// after complete(). The old phase-pacing math (minimumElapsed, final-phase
+// clamps, elapsed re-basing across restarts) added ~90 lines for the same
+// visible behavior.
+const RUN_CAP = 90;
+
 export function useProgressSimulation({
   isActive,
   onComplete,
   steps,
 }: UseProgressSimulationProps): UseProgressSimulationReturn {
   const [state, setState] = useState<ProgressState>(INITIAL_STATE);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const startTimeRef = useRef<number>(0);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const startedAtRef = useRef(0);
   const completionRequestedRef = useRef(false);
-  const actualElapsedRef = useRef(0);
 
   const totalDuration = steps.reduce((sum, step) => sum + step.estimatedDuration, 0);
 
   useEffect(() => {
     if (!isActive) {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
+      if (intervalRef.current !== null) clearInterval(intervalRef.current);
+      intervalRef.current = null;
       completionRequestedRef.current = false;
+      // Deferred so the reset never triggers a synchronous setState-in-effect.
       const resetTimeout = setTimeout(() => {
         setState(INITIAL_STATE);
       }, 0);
       return () => clearTimeout(resetTimeout);
     }
 
-    const finalPhaseStepCount = Math.min(2, steps.length);
-    const finalPhaseStartIndex = Math.max(steps.length - finalPhaseStepCount, 0);
-    const finalPhaseDuration = steps
-      .slice(finalPhaseStartIndex)
-      .reduce((sum, step) => sum + step.estimatedDuration, 0);
-    const minimumElapsed = Math.max(0, totalDuration - finalPhaseDuration);
-
-    if (completionRequestedRef.current) {
-      const base = minimumElapsed;
-      const latest = actualElapsedRef.current;
-      startTimeRef.current = Date.now() - (latest >= base ? latest : base);
-    } else {
-      const latest = actualElapsedRef.current;
-      startTimeRef.current = Date.now() - (latest >= minimumElapsed ? latest : 0);
-    }
-
+    startedAtRef.current = Date.now();
     intervalRef.current = setInterval(() => {
-      const now = Date.now();
-      const elapsed = now - startTimeRef.current;
-      const completionRequested = completionRequestedRef.current;
+      const elapsed = Date.now() - startedAtRef.current;
+      const done = completionRequestedRef.current;
+      const progress =
+        totalDuration > 0
+          ? Math.min(done ? 100 : RUN_CAP, (elapsed / totalDuration) * 100)
+          : 100;
 
-      const latestActual = actualElapsedRef.current;
-      const effectiveElapsed = completionRequested ? elapsed : Math.max(elapsed, latestActual);
-      const progressPercent =
-        totalDuration > 0 ? Math.min(100, (effectiveElapsed / totalDuration) * 100) : 0;
-
-      const baseRemaining = Math.max(0, minimumElapsed - effectiveElapsed);
-      const remainingDuration = completionRequested
-        ? Math.max(0, totalDuration - effectiveElapsed)
-        : baseRemaining + finalPhaseDuration;
-
-      let cumulativeDuration = 0;
+      let cumulative = 0;
       let stepIndex = steps.length - 1;
-
       for (let i = 0; i < steps.length; i++) {
-        if (!completionRequested && i >= finalPhaseStartIndex) {
-          stepIndex = Math.max(finalPhaseStartIndex - 1, 0);
-          break;
-        }
-
-        cumulativeDuration += steps[i].estimatedDuration;
-
-        if (effectiveElapsed < cumulativeDuration) {
+        cumulative += steps[i].estimatedDuration;
+        if (elapsed < cumulative) {
           stepIndex = i;
           break;
         }
-
-        stepIndex = Math.min(i + 1, steps.length - 1);
       }
 
       setState({
-        progress: progressPercent,
-        currentStep: stepIndex,
-        timeRemaining: remainingDuration / 1000,
+        progress,
+        currentStep: done ? stepIndex : 0,
+        timeRemaining: Math.max(0, (totalDuration - elapsed) / 1000),
       });
 
-      if (completionRequested && progressPercent >= 100) {
-        if (intervalRef.current) {
-          clearInterval(intervalRef.current);
-          intervalRef.current = null;
-        }
+      if (done && progress >= 100) {
+        if (intervalRef.current !== null) clearInterval(intervalRef.current);
+        intervalRef.current = null;
         onComplete?.();
       }
     }, 100);
 
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
+      if (intervalRef.current !== null) clearInterval(intervalRef.current);
     };
-  }, [isActive, totalDuration, onComplete, steps]);
+  }, [isActive, onComplete, steps, totalDuration]);
 
   const complete = useCallback(
     (elapsedMs?: number) => {
-      if (typeof elapsedMs === "number") {
-        actualElapsedRef.current = elapsedMs;
-      }
-
-      const finalPhaseStepCount = Math.min(2, steps.length);
-      if (finalPhaseStepCount === 0) {
-        onComplete?.();
-        return;
-      }
-
-      const finalPhaseStartIndex = Math.max(steps.length - finalPhaseStepCount, 0);
+      // Re-base the clock so the remaining countdown is at most the final
+      // phases: a slow fetch keeps its pace, a fast one still finishes.
+      const finalPhaseStartIndex = Math.max(steps.length - 2, 0);
       const finalPhaseDuration = steps
         .slice(finalPhaseStartIndex)
         .reduce((sum, step) => sum + step.estimatedDuration, 0);
-
       const minimumElapsed = Math.max(0, totalDuration - finalPhaseDuration);
-      const now = Date.now();
-      const latest = actualElapsedRef.current;
 
       completionRequestedRef.current = true;
-      startTimeRef.current = now - (latest >= minimumElapsed ? latest : minimumElapsed);
-
-      const progressPercent =
-        totalDuration > 0 ? Math.min(99, (minimumElapsed / totalDuration) * 100) : 100;
-
-      setState({
-        progress: progressPercent,
-        currentStep: finalPhaseStartIndex,
-        timeRemaining: finalPhaseDuration / 1000,
-      });
-
-      if (finalPhaseDuration === 0) {
-        onComplete?.();
-      }
+      startedAtRef.current = Date.now() - Math.max(elapsedMs ?? 0, minimumElapsed);
     },
-    [onComplete, steps, totalDuration],
+    [steps, totalDuration],
   );
 
   return {

@@ -317,3 +317,9 @@ body {
 .animate-float {
   animation: float-pulse 8s ease-in-out infinite;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float {
+    animation: none;
+  }
+}

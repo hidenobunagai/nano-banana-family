@@ -87,6 +87,20 @@ describe("useProgressSimulation", () => {
     vi.useRealTimers();
   });
 
+  it("caps progress at 90% and never auto-completes while running", () => {
+    act(() => {
+      harnessRef.current?.start();
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+
+    expect(harnessRef.current?.getSnapshot().completionCount).toBe(0);
+    expect(harnessRef.current?.getSnapshot().isActive).toBe(true);
+    expect(harnessRef.current?.getSnapshot().progress).toBeLessThan(100);
+  });
+
   it("does not auto-complete a new run before complete is called again", () => {
     act(() => {
       harnessRef.current?.start();

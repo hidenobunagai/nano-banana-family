@@ -63,7 +63,11 @@ export function Shell({ children, onSignOut, navMode, onNavModeChange }: ShellPr
           </Button>
         </header>
 
-        <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 sm:px-6 lg:px-12 py-6 lg:py-8 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-8 scroll-smooth relative">
+        <div
+          id="main-content"
+          tabIndex={-1}
+          className="flex-1 overflow-y-auto overflow-x-hidden px-4 sm:px-6 lg:px-12 py-6 lg:py-8 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-8 scroll-smooth relative"
+        >
           <div className="max-w-[1400px] mx-auto w-full animate-in fade-in slide-in-from-bottom-8 duration-700">
             {children}
           </div>

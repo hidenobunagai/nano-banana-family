@@ -12,19 +12,23 @@ export function useUndoRedoShortcuts(undo: () => void, redo: () => void): void {
         target &&
         (target.tagName === "TEXTAREA" || target.getAttribute("contenteditable") === "true");
 
+      // Outside textareas/contenteditable (single-line inputs), let the
+      // browser run its native undo instead of swallowing the key.
+      if (!isEditing) return;
+
       if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key.toLowerCase() === "z") {
         event.preventDefault();
-        if (isEditing) redo();
+        redo();
       } else if (
         (event.metaKey || event.ctrlKey) &&
         event.key.toLowerCase() === "z" &&
         !event.shiftKey
       ) {
         event.preventDefault();
-        if (isEditing) undo();
+        undo();
       } else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "y") {
         event.preventDefault();
-        if (isEditing) redo();
+        redo();
       }
     };
     window.addEventListener("keydown", handleKey);

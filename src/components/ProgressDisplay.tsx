@@ -33,10 +33,7 @@ export function ProgressDisplay({
     typeof timeRemaining === "number" ? Math.max(1, Math.ceil(timeRemaining)) : null;
 
   return (
-    <div
-      className="bg-white border border-[var(--color-neutral-200)] rounded-[var(--radius-lg)] p-6 shadow-[var(--shadow-level-1)] space-y-6"
-      aria-live="polite"
-    >
+    <div className="bg-white border border-[var(--color-neutral-200)] rounded-[var(--radius-lg)] p-6 shadow-[var(--shadow-level-1)] space-y-6">
       <div className="space-y-4">
         <div className="flex items-center justify-between gap-4 text-dns-14">
           <h3 className="font-bold text-[var(--color-primary-600)]">
@@ -54,7 +51,14 @@ export function ProgressDisplay({
           )}
         </div>
 
-        <div className="h-2.5 bg-[var(--color-neutral-100)] rounded-[var(--radius-full)] overflow-hidden">
+        <div
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(progress)}
+          aria-label="生成進捗"
+          className="h-2.5 bg-[var(--color-neutral-100)] rounded-[var(--radius-full)] overflow-hidden"
+        >
           <div
             className="h-full bg-gradient-to-r from-[var(--color-primary-400)] to-[var(--color-primary-600)] transition-all duration-300 ease-out rounded-full"
             style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}

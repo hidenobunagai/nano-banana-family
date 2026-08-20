@@ -146,7 +146,10 @@ export function FreestyleEditor() {
       navigateTo(index);
       setResultImage(history[index]);
       setIsComparing(false);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      window.scrollTo({
+        top: 0,
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      });
     },
     [history, navigateTo, setResultImage],
   );
@@ -389,7 +392,13 @@ export function FreestyleEditor() {
               "Gemini に生成を依頼"
             )}
           </Button>
-          <Button type="button" size="lg" variant="secondary" onClick={resetEditor}>
+          <Button
+            type="button"
+            size="lg"
+            variant="secondary"
+            onClick={resetEditor}
+            disabled={isSubmitting}
+          >
             入力をクリア
           </Button>
         </div>

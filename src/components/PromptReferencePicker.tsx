@@ -34,6 +34,7 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
   const [favorites, setFavorites] = useState<string[]>(loadFavorites);
   const legendId = useId();
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   const persistFavorites = useCallback((next: string[]) => {
     setFavorites(next);
@@ -109,14 +110,36 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
   );
 
   useEffect(() => {
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    document.body.style.overflow = "hidden";
+
     const handleGlobalKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
         onClose();
       }
+      if (event.key === "Tab" && dialogRef.current) {
+        const focusables = dialogRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        );
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
     };
     window.addEventListener("keydown", handleGlobalKeyDown);
-    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleGlobalKeyDown);
+      document.body.style.overflow = "";
+      previouslyFocused?.focus();
+    };
   }, [onClose]);
 
   const isFavoritesActive = showFavoritesOnly && !normalizedQuery;
@@ -126,6 +149,7 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
       <div className="dads-modal-backdrop" onClick={onClose} aria-hidden="true" />
 
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={legendId}
