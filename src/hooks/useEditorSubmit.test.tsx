@@ -24,10 +24,26 @@ describe("useEditorSubmit", () => {
     return { result, onSuccess, onFinished };
   }
 
-  function mockFetchResponse(response: Partial<Response>) {
+  function mockFetchResponse({
+    ok,
+    status,
+    body,
+  }: {
+    ok: boolean;
+    status: number;
+    body: unknown;
+  }) {
     vi.stubGlobal(
       "fetch",
-      vi.fn(async () => response as Response),
+      vi.fn(
+        async () =>
+          ({
+            ok,
+            status,
+            text: async () =>
+              typeof body === "string" ? body : JSON.stringify(body),
+          }) as Response,
+      ),
     );
   }
 
@@ -48,7 +64,7 @@ describe("useEditorSubmit", () => {
     mockFetchResponse({
       ok: true,
       status: 200,
-      json: async () => ({ imageBase64: "QUJD", mimeType: "image/webp" }),
+      body: { imageBase64: "QUJD", mimeType: "image/webp" },
     });
     const { result, onSuccess, onFinished } = setup();
 
@@ -67,7 +83,7 @@ describe("useEditorSubmit", () => {
     mockFetchResponse({
       ok: true,
       status: 200,
-      json: async () => ({ imageBase64: "QUJD" }),
+      body: { imageBase64: "QUJD" },
     });
     const { result } = setup();
 
@@ -82,7 +98,7 @@ describe("useEditorSubmit", () => {
     mockFetchResponse({
       ok: false,
       status: 500,
-      json: async () => ({ error: "サーバーエラー" }),
+      body: { error: "サーバーエラー" },
     });
     const { result, onSuccess, onFinished } = setup();
 
@@ -100,7 +116,7 @@ describe("useEditorSubmit", () => {
     mockFetchResponse({
       ok: false,
       status: 400,
-      json: async () => ({}),
+      body: {},
     });
     const { result } = setup();
 
@@ -115,7 +131,7 @@ describe("useEditorSubmit", () => {
     mockFetchResponse({
       ok: true,
       status: 200,
-      json: async () => ({ foo: "bar" }),
+      body: { foo: "bar" },
     });
     const { result, onFinished } = setup();
 
@@ -125,6 +141,69 @@ describe("useEditorSubmit", () => {
 
     expect(result.current.errorMessage).toBe(
       "画像データを取得できませんでした。もう一度お試しください。",
+    );
+    expect(onFinished).toHaveBeenCalled();
+  });
+
+  it("maps a 413 with a non-JSON body to the friendly size message", async () => {
+    mockFetchResponse({
+      ok: false,
+      status: 413,
+      body: "<html>Request Entity Too Large</html>",
+    });
+    const { result, onFinished } = setup();
+
+    await act(async () => {
+      await result.current.submit();
+    });
+
+    expect(result.current.errorMessage).toBe(
+      "画像サイズが大きすぎる可能性があります。別の画像に変えるか、そのままでもう一度お試しください。",
+    );
+    expect(onFinished).toHaveBeenCalled();
+  });
+
+  it("falls back on a non-JSON 500 body", async () => {
+    mockFetchResponse({ ok: false, status: 500, body: "<html>Internal Server Error</html>" });
+    const { result } = setup();
+
+    await act(async () => {
+      await result.current.submit();
+    });
+
+    expect(result.current.errorMessage).toBe("fallback error message");
+  });
+
+  it("reports a friendly message on a network failure", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => Promise.reject(new TypeError("Failed to fetch"))));
+    const { result, onFinished } = setup();
+
+    await act(async () => {
+      await result.current.submit();
+    });
+
+    expect(result.current.errorMessage).toBe(
+      "通信に失敗しました。ネットワーク接続を確認してもう一度お試しください。",
+    );
+    expect(onFinished).toHaveBeenCalled();
+  });
+
+  it("reports a timeout and still finishes when the request exceeds the deadline", async () => {
+    vi.stubGlobal("AbortSignal", {
+      ...AbortSignal,
+      timeout: () => AbortSignal.abort(),
+    });
+    const abortError = new Error("aborted");
+    abortError.name = "AbortError";
+    vi.stubGlobal("fetch", vi.fn(async () => Promise.reject(abortError)));
+    const { result, onFinished } = setup();
+
+    await act(async () => {
+      await result.current.submit();
+    });
+
+    expect(result.current.errorMessage).toBe(
+      "生成に時間がかかっています。時間をおいてもう一度お試しください。",
     );
     expect(onFinished).toHaveBeenCalled();
   });

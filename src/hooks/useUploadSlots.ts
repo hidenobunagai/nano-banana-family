@@ -73,13 +73,9 @@ export function useUploadSlots({
       const currentSlot = uploadsRef.current.find((u) => u.id === id);
       if (!currentSlot) return;
 
-      if (!file) {
-        if (currentSlot.previewUrl) URL.revokeObjectURL(currentSlot.previewUrl);
-        setUploads((prev) =>
-          prev.map((u) => (u.id === id ? { ...u, file: null, previewUrl: null } : u)),
-        );
-        return;
-      }
+      // Browsers fire change with an empty FileList when the picker is
+      // cancelled; treat that as a no-op instead of wiping the current image.
+      if (!file) return;
 
       onBeforeChange?.();
       setOptimizing(id, true);

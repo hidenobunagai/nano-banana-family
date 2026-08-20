@@ -23,17 +23,30 @@ export interface GeneratedImage {
  * Returns the validated image payload, or an error response descriptor
  * when Gemini returns no image (mirrors the `filesToParts` result shape).
  * Unexpected errors (network, API) propagate to the caller's error handling.
+ * When `abortSignal` fires (caller-side deadline), returns a 504 descriptor
+ * instead of letting the request run until the platform timeout.
  */
 export async function generateImage(
   apiKey: string,
   parts: Part[],
   failureMessage: string,
+  abortSignal?: AbortSignal,
 ): Promise<GeneratedImage | { error: string; status: number }> {
   const client = new GoogleGenAI({ apiKey });
   const response = await client.models.generateContent({
     model: getDefaultModel(),
     contents: [{ role: "user", parts }],
+    config: abortSignal ? { abortSignal } : undefined,
+  }).catch((error: unknown) => {
+    if (abortSignal?.aborted) {
+      return null;
+    }
+    throw error;
   });
+
+  if (!response) {
+    return { error: "生成がタイムアウトしました。時間をおいて再度お試しください。", status: 504 };
+  }
 
   const responseParts = response.candidates?.[0]?.content?.parts ?? [];
   const imageResult = responseParts.find((part) => part.inlineData?.data);

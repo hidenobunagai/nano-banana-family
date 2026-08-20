@@ -31,6 +31,10 @@ export interface UseEditorSubmitReturn {
 
 const RESULT_SHAPE_ERROR = "画像データを取得できませんでした。もう一度お試しください。";
 const GENERIC_ERROR = "生成中にエラーが発生しました。しばらくしてからお試しください。";
+const NETWORK_ERROR = "通信に失敗しました。ネットワーク接続を確認してもう一度お試しください。";
+const TIMEOUT_ERROR = "生成に時間がかかっています。時間をおいてもう一度お試しください。";
+// Wall-clock deadline so isSubmitting can never stick when the server hangs.
+const REQUEST_TIMEOUT_MS = 120_000;
 
 /**
  * Shared submit flow for the editors: validation, AbortController, fetch,
@@ -87,6 +91,7 @@ export function useEditorSubmit({
     abortControllerRef.current?.abort();
     const controller = new AbortController();
     abortControllerRef.current = controller;
+    const timeoutSignal = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
 
     const startTime = Date.now();
     let aborted = false;
@@ -94,9 +99,17 @@ export function useEditorSubmit({
       const res = await fetch(endpoint, {
         method: "POST",
         body: buildFormData(),
-        signal: controller.signal,
+        signal: AbortSignal.any([controller.signal, timeoutSignal]),
       });
-      const data: unknown = await res.json();
+      // Non-JSON bodies (platform error pages, empty 500s) used to throw a raw
+      // SyntaxError and make the status-specific messages unreachable.
+      const text = await res.text();
+      let data: unknown = null;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        // keep null; status-based message still applies
+      }
 
       if (!res.ok) {
         throw new Error(
@@ -121,7 +134,14 @@ export function useEditorSubmit({
       setResultImage(image);
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") {
-        aborted = true;
+        if (timeoutSignal.aborted) {
+          // Deadline hit, not a user abort: surface it and let progress finish.
+          setErrorMessage(TIMEOUT_ERROR);
+        } else {
+          aborted = true;
+        }
+      } else if (error instanceof TypeError) {
+        setErrorMessage(NETWORK_ERROR);
       } else {
         setErrorMessage(error instanceof Error ? error.message : GENERIC_ERROR);
       }

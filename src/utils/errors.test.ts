@@ -26,6 +26,13 @@ describe("toAppError", () => {
     expect(error.statusCode).toBe(500);
   });
 
+  it("sanitizes internal messages in production", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    const error = toAppError(new Error("model gemini-x internal detail"));
+    expect(error.message).toBe("予期しないエラーが発生しました。");
+    vi.unstubAllEnvs();
+  });
+
   it("wraps unknown values", () => {
     const error = toAppError("string error");
     expect(error).toBeInstanceOf(AppError);

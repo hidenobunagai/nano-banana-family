@@ -66,6 +66,28 @@ describe("useUploadSlots", () => {
     expect(result.current.isOptimizingAny).toBe(false);
   });
 
+  it("keeps the current upload when the file picker is cancelled (empty FileList)", async () => {
+    const { result } = renderHook(() => useUploadSlots({ maxSlots: 3, initialSlots: 1 }));
+    const id = result.current.uploads[0].id;
+
+    await act(async () => {
+      await result.current.handleFileChange(
+        { target: { files: [makeFile()] } } as unknown as React.ChangeEvent<HTMLInputElement>,
+        id,
+      );
+    });
+
+    await act(async () => {
+      await result.current.handleFileChange(
+        { target: { files: [] } } as unknown as React.ChangeEvent<HTMLInputElement>,
+        id,
+      );
+    });
+
+    expect(result.current.uploads[0].file).not.toBeNull();
+    expect(result.current.uploads[0].previewUrl).toBeTruthy();
+  });
+
   it("reports an error and keeps the slot when optimization fails", async () => {
     const { resizeImage } = await import("@/utils/imageOptimization");
     vi.mocked(resizeImage).mockRejectedValueOnce(new Error("画像の読み込みに失敗しました。"));

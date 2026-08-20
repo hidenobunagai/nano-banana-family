@@ -3,6 +3,8 @@
  * Useful for caching repeated requests with same parameters
  */
 
+import { createHash } from "node:crypto";
+
 interface CacheEntry<T> {
   data: T;
   expiresAt: number;
@@ -62,4 +64,14 @@ export const imageGenerationCache = new MemoryCache(10 * 60 * 1000); // 10 minut
 export function generateCacheKey(params: Record<string, unknown>): string {
   const sortedKeys = Object.keys(params).sort();
   return JSON.stringify(sortedKeys.map((key) => [key, params[key]]));
+}
+
+/**
+ * Content-based fingerprint for an uploaded file.
+ * name:size:type can collide for different bytes (and the cache is global
+ * across users), so the bytes themselves must be part of the key.
+ */
+export async function fileFingerprint(file: File): Promise<string> {
+  const buffer = Buffer.from(await file.arrayBuffer());
+  return `${file.type}:${createHash("sha1").update(buffer).digest("hex")}`;
 }

@@ -32,7 +32,7 @@ function mockFetchSuccess() {
   const fetchMock = vi.fn(async () => ({
     ok: true,
     status: 200,
-    json: async () => ({ imageBase64: "QUJD", mimeType: "image/png" }),
+    text: async () => JSON.stringify({ imageBase64: "QUJD", mimeType: "image/png" }),
   }));
   vi.stubGlobal("fetch", fetchMock);
   return fetchMock;
@@ -113,7 +113,7 @@ describe("FreestyleEditor", () => {
       vi.fn(async () => ({
         ok: false,
         status: 500,
-        json: async () => ({ error: "テスト用エラー" }),
+        text: async () => JSON.stringify({ error: "テスト用エラー" }),
       })),
     );
     const { container } = render(<FreestyleEditor />);

@@ -13,9 +13,11 @@ import { filesToParts, fetchOgImage } from "@/utils/server/imageProcessing";
 import { generateImage } from "@/utils/server/imageGeneration";
 import { fetchUrlMetadata } from "@/utils/server/urlMetadata";
 import { IconGenerateFormSchema } from "@/utils/server/validation";
-import { generateCacheKey, imageGenerationCache } from "@/utils/server/cache";
+import { fileFingerprint, generateCacheKey, imageGenerationCache } from "@/utils/server/cache";
 
 export const runtime = "nodejs";
+// Image generation takes 10-40s; the Vercel hobby default (10s) kills every call.
+export const maxDuration = 300;
 
 export async function POST(request: Request) {
   const authResult = await authenticateRequest();
@@ -63,7 +65,7 @@ export async function POST(request: Request) {
     url: trimmedUrl ?? "",
     style: resolvedStyle,
     customPrompt: trimmedCustomPrompt ?? "",
-    images: validatedFiles.map((f) => `${f.name}:${f.size}:${f.type}`).sort(),
+    images: (await Promise.all(validatedFiles.map(fileFingerprint))).sort(),
   });
   const cached = imageGenerationCache.get<{ imageBase64: string; mimeType: string }>(cacheKey);
   if (cached) {
@@ -71,7 +73,10 @@ export async function POST(request: Request) {
   }
 
   try {
-    const urlMeta = trimmedUrl ? await fetchUrlMetadata(trimmedUrl) : null;
+    const [urlMeta, partsResult] = await Promise.all([
+      trimmedUrl ? fetchUrlMetadata(trimmedUrl) : Promise.resolve(null),
+      filesToParts(validatedFiles),
+    ]);
 
     const prompt = buildIconPrompt({
       name: trimmedName,
@@ -80,7 +85,6 @@ export async function POST(request: Request) {
       customPrompt: trimmedCustomPrompt,
     });
 
-    const partsResult = await filesToParts(validatedFiles);
     if ("error" in partsResult) {
       return NextResponse.json({ error: partsResult.error }, { status: partsResult.status });
     }
@@ -104,7 +108,12 @@ export async function POST(request: Request) {
 
     parts.push({ text: prompt });
 
-    const generationResult = await generateImage(apiKey, parts, "アイコンの生成に失敗しました。");
+    const generationResult = await generateImage(
+      apiKey,
+      parts,
+      "アイコンの生成に失敗しました。",
+      AbortSignal.timeout(90_000),
+    );
     if ("error" in generationResult) {
       return NextResponse.json(
         { error: generationResult.error },

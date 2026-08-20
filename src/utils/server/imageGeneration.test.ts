@@ -75,4 +75,33 @@ describe("generateImage", () => {
       "network down",
     );
   });
+
+  it("passes the abort signal to the client config", async () => {
+    mockGenerateContent.mockResolvedValue(imageResponse("base64-data"));
+    const signal = new AbortController().signal;
+
+    await generateImage("test-key", [{ text: "prompt" }], "失敗メッセージ", signal);
+
+    expect(mockGenerateContent).toHaveBeenCalledWith(
+      expect.objectContaining({ config: { abortSignal: signal } }),
+    );
+  });
+
+  it("returns a 504 timeout error when the signal aborts", async () => {
+    const controller = new AbortController();
+    mockGenerateContent.mockRejectedValueOnce(new Error("aborted"));
+
+    const promise = generateImage(
+      "test-key",
+      [{ text: "prompt" }],
+      "失敗メッセージ",
+      controller.signal,
+    );
+    controller.abort();
+
+    await expect(promise).resolves.toEqual({
+      error: "生成がタイムアウトしました。時間をおいて再度お試しください。",
+      status: 504,
+    });
+  });
 });
