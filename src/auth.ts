@@ -25,6 +25,12 @@ if (!hasGoogleAuthConfig) {
   console.warn("Google OAuth のクライアントID/シークレットが設定されていません。");
 }
 
+if (allowedEmails.size === 0) {
+  console.warn(
+    "ALLOWED_EMAILS が未設定のため全認証ユーザーを許可します。家族以外をブロックする場合は ALLOWED_EMAILS を設定してください。",
+  );
+}
+
 export const authOptions: NextAuthOptions = {
   secret: authSecret,
   providers:
