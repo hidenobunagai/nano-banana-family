@@ -251,11 +251,25 @@ bun run build      # PASS (CSS 変更の妥当性を含む)
   `dads-chip` / `custom-scrollbar` / `glass-panel` は実使用があるため残した
   (エージェントの誤検出を grep で裏取りして除外)
 
+## 実装済み (2026-08-21 追記)
+
+- `42c4845 fix(ui,a11y): P2 batch` — 過剰設計 #3(useProgressSimulation 169→~90行、
+  単一 interval、可視挙動は同一)+ P2-1〜P2-9 の大部分:
+  - reduced-motion(MotionConfig `reducedMotion="user"`、smooth scroll 条件化、
+    `.animate-float` の CSS ガード)— 08-19 持ち越し P2 も解消
+  - モーダルのフォーカストラップ・フォーカス復元・スクロールロック
+  - スキップリンク有効化(`#main-content`)、input ではネイティブ Ctrl+Z を通す
+  - `role="progressbar"` + aria-valuenow(100ms 連射の aria-live は除去)
+  - スタイル選択 `aria-pressed`、生成中は「入力をクリア」無効化
+  - ダウンロード拡張子を実 mimeType から導出
+  - プロンプトインジェクション対策: 外部メタデータを untrusted 宣言で囲み 200 字
+    切り詰め
+  - `test-setup.ts` に jsdom 用 `window.matchMedia` スタブ
+
 ## 次のステップ
 
-- [x] P0-1〜P0-3 / P1-6 / P1-1 / P1-3 / 過剰設計 #1 / #2 — 実装済み
-- [ ] 過剰設計 #3: useProgressSimulation の簡素化(169→~30行)
+- [x] P0-1〜P0-3 / P1-6 / P1-1 / P1-3 / 過剰設計 #1 / #2 / #3、P2 系 — 実装済み
 - [ ] 過剰設計 #4: useTextUndoRedo の非制御化 — 挙動変更のためユーザー確認してから
 - [ ] 過剰設計 #6: rateLimit 削除 — 家族専用が前提なら削除で妥当(要判断)
-- [ ] P2 系(a11y: スキップリンク・モーダルフォーカストラップ・FileInput
-      キーボード到達性・reduced-motion)は未着手
+- [ ] P2 未対応残: FileInput のキーボード到達性(hidden input を sr-only 化)、
+      P2-2 系の残り、manifest theme_color(P3-2)

@@ -98,7 +98,7 @@ export function FileInput({
             <input
               ref={inputRef}
               type="file"
-              className="hidden"
+              className="sr-only"
               accept={accept}
               onChange={onChange}
               disabled={isOptimizing}
@@ -120,13 +120,19 @@ export function FileInput({
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               unoptimized
             />
-            <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-all duration-300 flex items-center justify-center">
               <label className="cursor-pointer">
                 <div className="px-5 py-2.5 bg-white/90 backdrop-blur-md rounded-[var(--radius-full)] text-[var(--color-neutral-900)] hover:bg-white hover:scale-105 active:scale-95 transition-all font-medium text-oln-14 flex items-center gap-2 shadow-[var(--shadow-level-2)]">
                   <RefreshCw className="w-4 h-4" />
                   画像を変更
                 </div>
-                <input type="file" className="hidden" accept={accept} onChange={onChange} />
+                <input
+                  type="file"
+                  className="sr-only"
+                  accept={accept}
+                  onChange={onChange}
+                  aria-label="画像を変更"
+                />
               </label>
             </div>
           </motion.div>
