@@ -265,11 +265,13 @@ bun run build      # PASS (CSS 変更の妥当性を含む)
   - プロンプトインジェクション対策: 外部メタデータを untrusted 宣言で囲み 200 字
     切り詰め
   - `test-setup.ts` に jsdom 用 `window.matchMedia` スタブ
+- `14c42d8 fix(a11y): make file inputs keyboard-reachable (P1-5)` —
+  `hidden`→`sr-only` でタブ順序に復帰、置換オーバーレイは `focus-within` で
+  キーボードフォーカス時にも表示
 
 ## 次のステップ
 
-- [x] P0-1〜P0-3 / P1-6 / P1-1 / P1-3 / 過剰設計 #1 / #2 / #3、P2 系 — 実装済み
+- [x] P0-1〜P0-3 / P1-1 / P1-3 / P1-5 / P1-6 / 過剰設計 #1 / #2 / #3、P2 系 — 実装済み
 - [ ] 過剰設計 #4: useTextUndoRedo の非制御化 — 挙動変更のためユーザー確認してから
 - [ ] 過剰設計 #6: rateLimit 削除 — 家族専用が前提なら削除で妥当(要判断)
-- [ ] P2 未対応残: FileInput のキーボード到達性(hidden input を sr-only 化)、
-      P2-2 系の残り、manifest theme_color(P3-2)
+- [ ] P3 系: manifest theme_color(P3-2)、sw.ts POST ルール(P3-3)は未着手
