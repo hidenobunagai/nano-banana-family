@@ -1,3 +1,5 @@
+import { resolveMimeType } from "@/utils/server/imageValidation";
+
 /**
  * Image optimization utilities for automatic resizing
  */
@@ -22,14 +24,11 @@ const DEFAULT_OPTIONS: Required<ResizeOptions> = {
 export async function resizeImage(file: File, options: ResizeOptions = {}): Promise<File> {
   const opts = { ...DEFAULT_OPTIONS, ...options };
 
-  // Check if file is an image
-  if (!file.type.startsWith("image/")) {
-    throw new Error("ファイルが画像ではありません。");
-  }
-
-  // Check for supported image types
-  const supportedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-  if (!supportedTypes.includes(file.type.toLowerCase())) {
+  if (!resolveMimeType(file)) {
+    // Keep original messages: non-image vs unsupported format
+    if (!file.type.startsWith("image/")) {
+      throw new Error("ファイルが画像ではありません。");
+    }
     throw new Error("サポートされていない画像形式です。JPG、PNG、WebP形式をご利用ください。");
   }
 
