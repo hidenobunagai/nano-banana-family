@@ -225,17 +225,37 @@
 ## 検証
 
 ```
+bun run lint       # PASS
 bun run typecheck  # PASS (tsc --noEmit)
-bun run test       # PASS — 207 passed / 33 files (08-19 から同数、回帰なし)
+bun run test       # PASS — 217 passed / 33 files
+bun run build      # PASS (CSS 変更の妥当性を含む)
 ```
 
-コード変更なしの調査ドキュメントのため、実装時は lint/typecheck/test/coverage を
-再実行すること。P0 の修正は cache.test / useEditorSubmit.test への追記が必要。
+## 実装済み (2026-08-21)
+
+推奨順に従い P0/P1 と過剰設計 #1/#2 を実装・コミット済み:
+
+- `8fef3f9 fix(api,client): P0/P1 hardening from 2026-08-20 review`
+  - P0-2: `fileFingerprint`(sha1) をキャッシュキーに採用(`cache.ts`、両ルート)
+  - P0-1: 両ルートに `maxDuration = 300`、`generateImage` に `abortSignal`
+    (90s)→ 504 JSON(`config.abortSignal` は SDK の正式オプションとして確認済み)
+  - P0-3: `AbortSignal.any` + 120s デッドライン、`res.text()`→安全パース、
+    TypeError/タイムアウトの日本語メッセージ
+  - P1-6: icon-generate で metadata fetch と filesToParts を `Promise.all` 化
+  - P1-1: 空 FileList は no-op(`useUploadSlots` の 1 ガード)
+  - P1-3: `toAppError` が本番で 500 系メッセージを秘匿化
+- `promptReferences` 削減: `scripts/extract-prompts.mjs` から未使用3フィールド
+  を除去して再生成(1488→1321 行、140 レコードの内容は不変)
+- `abd2d43 style(css): remove unused DADS styles and tokens` — 約200行削除。
+  ※ 監査エージェントの指摘のうち `dads-banner--error` / `dads-modal-*` /
+  `dads-chip` / `custom-scrollbar` / `glass-panel` は実使用があるため残した
+  (エージェントの誤検出を grep で裏取りして除外)
 
 ## 次のステップ
 
-- [ ] P0-1〜P0-3 を最小差分で実装(推奨順: P0-2 → P0-1 → P0-3)
-- [ ] P1 の 1 行系(P1-6、P1-1、P1-3)は P0 と同時に
-- [ ] 過剰設計 #1(promptReferences 削減)と #2(DADS CSS 削除)は機械的で低リスク — 先にやる
-- [ ] useTextUndoRedo の非制御化(#4)は挙動変更のためユーザー確認してから
-- [ ] rateLimit(#6)は削除すると DoS 耐性がなくなる — 家族専用が前提なら削除で妥当
+- [x] P0-1〜P0-3 / P1-6 / P1-1 / P1-3 / 過剰設計 #1 / #2 — 実装済み
+- [ ] 過剰設計 #3: useProgressSimulation の簡素化(169→~30行)
+- [ ] 過剰設計 #4: useTextUndoRedo の非制御化 — 挙動変更のためユーザー確認してから
+- [ ] 過剰設計 #6: rateLimit 削除 — 家族専用が前提なら削除で妥当(要判断)
+- [ ] P2 系(a11y: スキップリンク・モーダルフォーカストラップ・FileInput
+      キーボード到達性・reduced-motion)は未着手
