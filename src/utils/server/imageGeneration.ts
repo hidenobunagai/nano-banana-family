@@ -8,7 +8,10 @@
 import { GoogleGenAI, type Part } from "@google/genai";
 import { ImageGenerationResponseSchema } from "@/utils/server/validation";
 
-const DEFAULT_MODEL = process.env.GEMINI_IMAGE_MODEL ?? "gemini-3.1-flash-lite-image";
+const FALLBACK_MODEL = "gemini-3.1-flash-lite-image";
+function getDefaultModel(): string {
+  return process.env.GEMINI_IMAGE_MODEL ?? FALLBACK_MODEL;
+}
 
 export interface GeneratedImage {
   imageBase64: string;
@@ -28,7 +31,7 @@ export async function generateImage(
 ): Promise<GeneratedImage | { error: string; status: number }> {
   const client = new GoogleGenAI({ apiKey });
   const response = await client.models.generateContent({
-    model: DEFAULT_MODEL,
+    model: getDefaultModel(),
     contents: [{ role: "user", parts }],
   });
 
