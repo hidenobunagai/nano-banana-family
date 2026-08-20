@@ -11,10 +11,12 @@ interface CacheEntry<T> {
 class MemoryCache {
   private cache = new Map<string, CacheEntry<unknown>>();
   private defaultTTL: number;
+  private maxEntries: number;
 
-  constructor(defaultTTLMs: number = 5 * 60 * 1000) {
+  constructor(defaultTTLMs: number = 5 * 60 * 1000, maxEntries = 100) {
     // Default: 5 minutes
     this.defaultTTL = defaultTTLMs;
+    this.maxEntries = maxEntries;
   }
 
   /**
@@ -40,6 +42,11 @@ class MemoryCache {
    */
   set<T>(key: string, data: T, ttlMs?: number): void {
     const expiresAt = Date.now() + (ttlMs ?? this.defaultTTL);
+    // ponytail: LRU風に最古エントリを1件削除（100件超時のみ）。Mapは挿入順保持。
+    if (!this.cache.has(key) && this.cache.size >= this.maxEntries) {
+      const oldestKey = this.cache.keys().next().value as string | undefined;
+      if (oldestKey !== undefined) this.cache.delete(oldestKey);
+    }
     this.cache.set(key, { data, expiresAt });
   }
 }
