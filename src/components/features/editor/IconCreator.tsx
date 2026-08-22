@@ -225,7 +225,7 @@ export function IconCreator() {
           <div className="space-y-4">
             <div className="flex flex-col items-center gap-4">
               <div className="relative">
-                <div className="w-48 h-48 rounded-[var(--radius-full)] overflow-hidden border-4 border-[var(--color-neutral-200)] shadow-[var(--shadow-level-3)]">
+                <div className="w-48 h-48 rounded-[var(--radius-full)] overflow-hidden border-4 border-[var(--color-neutral-300)] shadow-[var(--shadow-level-3)]">
                   <Image
                     src={resultImage!}
                     alt={`${name} の生成アイコン`}
@@ -241,13 +241,13 @@ export function IconCreator() {
               </div>
               <div className="text-center">
                 <p className="text-std-16 font-medium text-[var(--color-neutral-700)]">{name}</p>
-                <p className="text-dns-14 text-[var(--color-neutral-400)] mt-1">
+                <p className="text-dns-14 text-[var(--color-neutral-500)] mt-1">
                   {selectedStyleOption.preview}
                 </p>
               </div>
             </div>
 
-            <div className="rounded-[var(--radius-lg)] overflow-hidden border border-[var(--color-neutral-200)] shadow-[var(--shadow-level-3)]">
+            <div className="rounded-[var(--radius-lg)] overflow-hidden border border-[var(--color-neutral-300)] shadow-[var(--shadow-level-3)]">
               <Image
                 src={resultImage!}
                 alt={`${name} の四角いプレビュー`}
@@ -267,7 +267,7 @@ export function IconCreator() {
             name="contactName"
             autoComplete="off"
             type="text"
-            className="w-full rounded-[var(--radius-md)] bg-white border border-[var(--color-neutral-200)] px-4 py-3 text-[var(--color-neutral-900)] placeholder:text-[var(--color-neutral-400)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30 focus:border-[var(--color-primary-500)] transition-shadow text-std-20"
+            className="w-full rounded-[var(--radius-md)] bg-white border border-[var(--color-neutral-300)] px-4 py-3 text-[var(--color-neutral-900)] placeholder:text-[var(--color-neutral-500)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30 focus:border-[var(--color-primary-500)] transition-shadow text-std-20"
             placeholder="例: 桜小学校児童クラブ"
             value={name}
             onChange={(event) => setName(event.target.value)}
@@ -276,13 +276,13 @@ export function IconCreator() {
 
         <Section title="2. 参考URL（任意）">
           <div className="relative">
-            <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-neutral-400)]" />
+            <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-neutral-500)]" />
             <input
               name="referenceUrl"
               autoComplete="off"
               spellCheck={false}
               type="url"
-              className="w-full rounded-[var(--radius-md)] bg-white border border-[var(--color-neutral-200)] pl-12 pr-4 py-3 text-[var(--color-neutral-900)] placeholder:text-[var(--color-neutral-400)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30 focus:border-[var(--color-primary-500)] transition-shadow text-std-16"
+              className="w-full rounded-[var(--radius-md)] bg-white border border-[var(--color-neutral-300)] pl-12 pr-4 py-3 text-[var(--color-neutral-900)] placeholder:text-[var(--color-neutral-500)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30 focus:border-[var(--color-primary-500)] transition-shadow text-std-16"
               placeholder="https://example.com"
               value={url}
               onChange={(event) => setUrl(event.target.value)}
@@ -317,7 +317,7 @@ export function IconCreator() {
             <button
               type="button"
               onClick={addUploadSlot}
-              className="w-full h-20 rounded-[var(--radius-lg)] border-2 border-dashed border-[var(--color-neutral-200)] hover:border-[var(--color-primary-400)] hover:bg-[var(--color-primary-50)] transition-colors flex items-center justify-center text-[var(--color-neutral-500)] hover:text-[var(--color-primary-600)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]"
+              className="w-full h-20 rounded-[var(--radius-lg)] border-2 border-dashed border-[var(--color-neutral-300)] hover:border-[var(--color-primary-400)] hover:bg-[var(--color-primary-50)] transition-colors flex items-center justify-center text-[var(--color-neutral-500)] hover:text-[var(--color-primary-600)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]"
             >
               <span className="text-2xl mr-2">+</span>
               <span className="text-oln-14 font-medium">
@@ -339,7 +339,7 @@ export function IconCreator() {
                   "relative flex flex-col items-start gap-2 rounded-[var(--radius-md)] border-2 p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]",
                   selectedStyle === styleOption.id
                     ? "border-[var(--color-primary-600)] bg-[var(--color-primary-50)] shadow-[var(--shadow-level-1)]"
-                    : "border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)] hover:border-[var(--color-neutral-300)] hover:bg-[var(--color-neutral-100)]",
+                    : "border-[var(--color-neutral-300)] bg-[var(--color-neutral-50)] hover:border-[var(--color-neutral-400)] hover:bg-[var(--color-neutral-100)]",
                 )}
               >
                 <div className="flex items-center gap-3 w-full">
@@ -362,7 +362,7 @@ export function IconCreator() {
                     >
                       {styleOption.label}
                     </span>
-                    <span className="block text-dns-14 text-[var(--color-neutral-400)]">
+                    <span className="block text-dns-14 text-[var(--color-neutral-500)]">
                       {styleOption.preview}
                     </span>
                   </div>
@@ -399,7 +399,7 @@ export function IconCreator() {
                   type="button"
                   size="sm"
                   variant="ghost"
-                  className="h-7 rounded-full border border-[var(--color-neutral-200)] px-2 text-dns-14"
+                  className="h-7 rounded-full border border-[var(--color-neutral-300)] px-2 text-dns-14"
                   onClick={() => handleRecentSelect(recent)}
                   disabled={isSubmitting || isOptimizingAny}
                 >

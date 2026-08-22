@@ -33,18 +33,18 @@ export function ProgressDisplay({
     typeof timeRemaining === "number" ? Math.max(1, Math.ceil(timeRemaining)) : null;
 
   return (
-    <div className="bg-white border border-[var(--color-neutral-200)] rounded-[var(--radius-lg)] p-6 shadow-[var(--shadow-level-1)] space-y-6">
+    <div className="bg-white border border-[var(--color-neutral-300)] rounded-[var(--radius-lg)] p-6 shadow-[var(--shadow-level-1)] space-y-6">
       <div className="space-y-4">
         <div className="flex items-center justify-between gap-4 text-dns-14">
           <h3 className="font-bold text-[var(--color-primary-600)]">
             {title ?? "Gemini が画像を生成中..."}
           </h3>
-          <span className="font-mono text-[var(--color-neutral-400)] tabular-nums">
+          <span className="font-mono text-[var(--color-neutral-500)] tabular-nums">
             {Math.round(progress)}%
           </span>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-2 text-dns-14 text-[var(--color-neutral-400)]">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-dns-14 text-[var(--color-neutral-500)]">
           <span>{currentStepInfo?.label ?? "処理を準備中…"}</span>
           {roundedTimeRemaining && (
             <span className="font-mono tabular-nums">残り約 {roundedTimeRemaining} 秒</span>
@@ -101,7 +101,7 @@ export function ProgressDisplay({
               <span
                 className={cn(
                   "text-oln-14 font-medium transition-colors",
-                  isActive ? "text-[var(--color-neutral-800)]" : "text-[var(--color-neutral-400)]",
+                  isActive ? "text-[var(--color-neutral-800)]" : "text-[var(--color-neutral-500)]",
                 )}
               >
                 {step.label}

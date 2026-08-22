@@ -44,7 +44,7 @@ export function PromptTextarea({
           autoComplete="off"
           spellCheck={false}
           maxLength={MAX_PROMPT_LENGTH}
-          className={`w-full rounded-[var(--radius-md)] bg-white border border-[var(--color-neutral-200)] p-4 pr-12 text-[var(--color-neutral-900)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30 focus:border-[var(--color-primary-500)] transition-shadow text-std-16 ${textareaClassName}`}
+          className={`w-full rounded-[var(--radius-md)] bg-white border border-[var(--color-neutral-300)] p-4 pr-12 text-[var(--color-neutral-900)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30 focus:border-[var(--color-primary-500)] transition-shadow text-std-16 ${textareaClassName}`}
           placeholder={placeholder}
           value={value}
           onChange={(event) => onValueChange(event.target.value)}
@@ -75,7 +75,7 @@ export function PromptTextarea({
         </div>
       </div>
       <p
-        className={`mt-2 text-dns-14 ${counterAlign === "right" ? "text-right" : ""} ${isTooLong ? "text-[var(--color-error-dark)]" : "text-[var(--color-neutral-400)]"}`}
+        className={`mt-2 text-dns-14 ${counterAlign === "right" ? "text-right" : ""} ${isTooLong ? "text-[var(--color-error-dark)]" : "text-[var(--color-neutral-500)]"}`}
       >
         {value.length} / {MAX_PROMPT_LENGTH}
       </p>

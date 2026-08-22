@@ -22,7 +22,7 @@ export function FileInputLabel({ label, subLabel }: { label?: string; subLabel?:
       {label && (
         <span className="text-std-16 font-bold text-[var(--color-neutral-700)]">{label}</span>
       )}
-      {subLabel && <span className="text-dns-14 text-[var(--color-neutral-400)]">{subLabel}</span>}
+      {subLabel && <span className="text-dns-14 text-[var(--color-neutral-500)]">{subLabel}</span>}
     </div>
   );
 }
@@ -77,10 +77,10 @@ export function FileInput({
               "relative flex flex-col items-center justify-center w-full h-48 rounded-[var(--radius-lg)] border-2 border-dashed transition-all cursor-pointer group overflow-hidden",
               isDragging
                 ? "border-[var(--color-primary-600)] bg-[var(--color-primary-50)] scale-[1.02]"
-                : "border-[var(--color-neutral-200)] hover:border-[var(--color-neutral-300)] bg-[var(--color-neutral-50)]",
+                : "border-[var(--color-neutral-300)] hover:border-[var(--color-neutral-400)] bg-[var(--color-neutral-50)]",
             )}
           >
-            <div className="flex flex-col items-center justify-center text-[var(--color-neutral-400)] group-hover:text-[var(--color-primary-600)] transition-colors z-10">
+            <div className="flex flex-col items-center justify-center text-[var(--color-neutral-500)] group-hover:text-[var(--color-primary-600)] transition-colors z-10">
               {isOptimizing ? (
                 <Loader2 className="w-8 h-8 mb-2 animate-spin text-[var(--color-primary-600)]" />
               ) : (
@@ -110,11 +110,11 @@ export function FileInput({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             key="preview-image"
-            className="relative h-48 rounded-[var(--radius-lg)] overflow-hidden border border-[var(--color-neutral-200)] group shadow-[var(--shadow-level-1)]"
+            className="relative h-48 rounded-[var(--radius-lg)] overflow-hidden border border-[var(--color-neutral-300)] group shadow-[var(--shadow-level-1)]"
           >
             <Image
               src={previewUrl}
-              alt="Preview"
+              alt="選択した参考画像のプレビュー"
               width={800}
               height={600}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"

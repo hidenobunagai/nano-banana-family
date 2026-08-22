@@ -269,7 +269,7 @@ export function FreestyleEditor() {
             alt="自由生成の結果画像"
             width={900}
             height={600}
-            className="rounded-[var(--radius-lg)] w-full border border-[var(--color-neutral-200)] shadow-[var(--shadow-level-3)]"
+            className="rounded-[var(--radius-lg)] w-full border border-[var(--color-neutral-300)] shadow-[var(--shadow-level-3)]"
             unoptimized
           />
         </ResultPane>
@@ -306,7 +306,7 @@ export function FreestyleEditor() {
                 <button
                   type="button"
                   onClick={addUploadSlot}
-                  className="h-48 w-full rounded-[var(--radius-lg)] border-2 border-dashed border-[var(--color-neutral-200)] bg-white text-[var(--color-neutral-500)] transition-colors hover:border-[var(--color-primary-400)] hover:bg-[var(--color-primary-50)] hover:text-[var(--color-primary-600)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)] flex flex-col items-center justify-center"
+                  className="h-48 w-full rounded-[var(--radius-lg)] border-2 border-dashed border-[var(--color-neutral-300)] bg-white text-[var(--color-neutral-500)] transition-colors hover:border-[var(--color-primary-400)] hover:bg-[var(--color-primary-50)] hover:text-[var(--color-primary-600)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)] flex flex-col items-center justify-center"
                 >
                   <span className="block text-3xl">+</span>
                   <span className="mt-2 block text-oln-14 font-medium">
@@ -343,7 +343,7 @@ export function FreestyleEditor() {
                     type="button"
                     size="sm"
                     variant="ghost"
-                    className="h-8 rounded-full border border-[var(--color-neutral-200)] px-3 text-dns-14"
+                    className="h-8 rounded-full border border-[var(--color-neutral-300)] px-3 text-dns-14"
                     onClick={() => handleRecentSelect(recent)}
                   >
                     {recent.length > 24 ? `${recent.slice(0, 24)}…` : recent}

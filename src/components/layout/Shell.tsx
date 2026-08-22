@@ -17,14 +17,14 @@ export function Shell({ children, onSignOut, navMode, onNavModeChange }: ShellPr
   return (
     <div className="flex h-dvh w-full overflow-hidden text-[var(--color-neutral-900)] selection:bg-[var(--color-primary-600)]/20">
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-        <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-4 sm:px-8 bg-white/95 backdrop-blur-xl border-b border-[var(--color-neutral-200)]">
+        <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-4 sm:px-8 bg-white/95 backdrop-blur-xl border-b border-[var(--color-neutral-300)]">
           <div>
             <h1 className="text-std-20 font-bold text-[var(--color-neutral-900)] tracking-tight">
               Hide NB Studio
             </h1>
           </div>
 
-          <nav className="hidden lg:flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-1">
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon;
               const active = navMode === item.id;

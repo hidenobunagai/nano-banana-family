@@ -5,9 +5,11 @@
   --font-mono: "Noto Sans Mono", monospace;
   --font-display: "Noto Sans JP", -apple-system, BlinkMacSystemFont, sans-serif;
 
-  /* DADS Spacing Scale (8px base) */
+  /* DADS Spacing Scale (8px base, 3-5 steps) */
+  --spacing-xs: 8px;
   --spacing-sm: 16px;
   --spacing-md: 24px;
+  --spacing-lg: 64px;
 
   /* DADS Corner Radius Tokens */
   --radius-none: 0;
@@ -63,9 +65,23 @@
   --color-neutral-800: #1f2937;
   --color-neutral-900: #111827;
 
-  /* Semantic Colors */
+  /* Semantic Colors — hue must not change (DADS) */
+  --color-success-light: #f0fdf4;
+  --color-success-dark: #15803d;
+  --color-warning-light: #fffbeb;
+  --color-warning-dark: #b45309;
   --color-error-light: #fef2f2;
   --color-error-dark: #991b1b;
+
+  /* Tertiary — same hue as Secondary, opposite brightness */
+  --color-tertiary-50: #eef2ff;
+  --color-tertiary-100: #e0e7ff;
+  --color-tertiary-200: #c7d2fe;
+  --color-tertiary-300: #a5b4fc;
+  --color-tertiary-400: #818cf8;
+  --color-tertiary-500: #6366f1;
+  --color-tertiary-600: #4f46e5;
+  --color-tertiary-700: #4338ca;
 
   /* Text */
   --color-text: var(--color-neutral-900);

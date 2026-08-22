@@ -79,7 +79,7 @@ describe("FileInput", () => {
 
   it("renders a preview image when previewUrl is set", () => {
     render(<FileInput previewUrl="blob:mock-preview" isOptimizing={false} onChange={vi.fn()} />);
-    expect(screen.getByAltText("Preview")).toBeInTheDocument();
+    expect(screen.getByAltText("選択した参考画像のプレビュー")).toBeInTheDocument();
     expect(screen.getByText("画像を変更")).toBeInTheDocument();
   });
 });

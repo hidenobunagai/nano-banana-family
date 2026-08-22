@@ -9,7 +9,7 @@ interface SectionProps {
 export function Section({ title, children, className = "" }: SectionProps) {
   return (
     <section
-      className={`bg-white border border-[var(--color-neutral-200)] rounded-[var(--radius-lg)] p-4 sm:p-6 shadow-[var(--shadow-level-1)] ${className}`}
+      className={`bg-white border border-[var(--color-neutral-300)] rounded-[var(--radius-lg)] p-4 sm:p-6 shadow-[var(--shadow-level-1)] hover:shadow-[var(--shadow-level-2)] transition-shadow ${className}`}
     >
       {title && (
         <h3 className="text-std-20 font-bold text-[var(--color-neutral-900)] mb-4 pb-3 border-b border-[var(--color-neutral-100)] flex items-center gap-2.5">

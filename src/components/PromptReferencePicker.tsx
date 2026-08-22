@@ -155,7 +155,7 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
         aria-labelledby={legendId}
         className="dads-modal-content max-w-3xl"
       >
-        <div className="flex-shrink-0 border-b border-[var(--color-neutral-200)] px-6 py-5">
+        <div className="flex-shrink-0 border-b border-[var(--color-neutral-300)] px-6 py-5">
           <div className="mb-4 flex items-center justify-between gap-4">
             <h2 id={legendId} className="text-std-24 font-bold text-[var(--color-neutral-900)]">
               参考プロンプト
@@ -164,7 +164,7 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
               ref={closeButtonRef}
               type="button"
               onClick={onClose}
-              className="flex size-10 items-center justify-center rounded-[var(--radius-full)] text-[var(--color-neutral-400)] transition-colors hover:bg-[var(--color-neutral-100)] hover:text-[var(--color-neutral-700)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]"
+              className="flex size-10 items-center justify-center rounded-[var(--radius-full)] text-[var(--color-neutral-500)] transition-colors hover:bg-[var(--color-neutral-100)] hover:text-[var(--color-neutral-700)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]"
               aria-label="閉じる"
             >
               <X className="w-5 h-5" />
@@ -172,12 +172,12 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
           </div>
 
           <div className="relative w-full">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-[var(--color-neutral-400)]">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-[var(--color-neutral-500)]">
               <Search className="w-4 h-4" />
             </div>
             <input
               type="search"
-              className="w-full rounded-[var(--radius-md)] border border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)] py-2.5 pl-9 pr-9 text-dns-14 text-[var(--color-neutral-700)] placeholder:text-[var(--color-neutral-400)] transition-all focus:border-[var(--color-primary-500)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30"
+              className="w-full rounded-[var(--radius-md)] border border-[var(--color-neutral-300)] bg-[var(--color-neutral-50)] py-2.5 pl-9 pr-9 text-dns-14 text-[var(--color-neutral-700)] placeholder:text-[var(--color-neutral-500)] transition-all focus:border-[var(--color-primary-500)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30"
               placeholder="検索"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -187,7 +187,7 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
               <button
                 type="button"
                 onClick={resetSearch}
-                className="absolute inset-y-0 right-0 flex items-center pr-3 text-[var(--color-neutral-400)] hover:text-[var(--color-neutral-700)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]"
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-[var(--color-neutral-500)] hover:text-[var(--color-neutral-700)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -203,7 +203,7 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
                   "dads-chip dads-chip--interactive border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]",
                   isFavoritesActive
                     ? "dads-chip--active border-transparent shadow-[var(--shadow-level-1)]"
-                    : "border-[var(--color-neutral-200)]",
+                    : "border-[var(--color-neutral-300)]",
                 )}
                 aria-pressed={isFavoritesActive}
               >
@@ -212,7 +212,7 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
                     "mr-1.5 h-3.5 w-3.5",
                     isFavoritesActive
                       ? "text-[var(--color-primary-100)]"
-                      : "text-[var(--color-neutral-400)]",
+                      : "text-[var(--color-neutral-500)]",
                   )}
                 />
                 お気に入り{favorites.length > 0 ? `(${favorites.length})` : ""}
@@ -239,10 +239,10 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
                         {category}
                         <span
                           className={cn(
-                            "ml-1.5 text-[10px]",
+                            "ml-1.5 text-[12px]",
                             isActive
                               ? "text-[var(--color-primary-100)]"
-                              : "text-[var(--color-neutral-400)]",
+                              : "text-[var(--color-neutral-500)]",
                           )}
                         >
                           {groups[category].length}
@@ -264,7 +264,7 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
                 return (
                   <div
                     key={ref.id}
-                    className="w-full rounded-[var(--radius-md)] border border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)] transition-colors hover:border-[var(--color-primary-200)] hover:bg-white"
+                    className="w-full rounded-[var(--radius-md)] border border-[var(--color-neutral-300)] bg-[var(--color-neutral-50)] transition-colors hover:border-[var(--color-primary-200)] hover:bg-white"
                   >
                     <div className="flex items-start gap-3 p-4">
                       <button
@@ -272,7 +272,7 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
                         onClick={() => handleSelect(ref)}
                         className="flex min-w-0 flex-1 items-start gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)] rounded-[var(--radius-sm)]"
                       >
-                        <div className="flex size-8 shrink-0 items-center justify-center rounded-[var(--radius-sm)] border border-[var(--color-neutral-200)] bg-white text-dns-14 font-bold text-[var(--color-neutral-400)]">
+                        <div className="flex size-8 shrink-0 items-center justify-center rounded-[var(--radius-sm)] border border-[var(--color-neutral-300)] bg-white text-dns-14 font-bold text-[var(--color-neutral-500)]">
                           {String(index + 1).padStart(2, "0")}
                         </div>
                         <div className="min-w-0 flex-1">
@@ -280,7 +280,7 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
                             <span className="text-oln-16 font-bold text-[var(--color-neutral-800)]">
                               {ref.title}
                             </span>
-                            <span className="rounded-[var(--radius-sm)] bg-[var(--color-neutral-100)] px-2 py-1 text-[10px] text-[var(--color-neutral-500)]">
+                            <span className="rounded-[var(--radius-sm)] bg-[var(--color-neutral-100)] px-2 py-1 text-[12px] text-[var(--color-neutral-500)]">
                               {ref.category}
                             </span>
                           </div>
@@ -291,7 +291,7 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
                             {ref.tags.slice(0, 2).map((tag) => (
                               <span
                                 key={tag}
-                                className="rounded-[var(--radius-sm)] bg-[var(--color-neutral-100)] px-2 py-1 text-[10px] text-[var(--color-neutral-400)]"
+                                className="rounded-[var(--radius-sm)] bg-[var(--color-neutral-100)] px-2 py-1 text-[12px] text-[var(--color-neutral-500)]"
                               >
                                 #{tag}
                               </span>
@@ -319,7 +319,7 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
               })}
             </div>
           ) : (
-            <div className="py-12 text-center text-[var(--color-neutral-400)]">
+            <div className="py-12 text-center text-[var(--color-neutral-500)]">
               <p className="text-dns-14">
                 {showFavoritesOnly && !query
                   ? "お気に入りに登録されたプロンプトはありません。"
@@ -329,7 +329,7 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
           )}
         </div>
 
-        <div className="flex-shrink-0 border-t border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)] px-6 py-3 text-center text-dns-14 text-[var(--color-neutral-400)]">
+        <div className="flex-shrink-0 border-t border-[var(--color-neutral-300)] bg-[var(--color-neutral-50)] px-6 py-3 text-center text-dns-14 text-[var(--color-neutral-500)]">
           プロンプト出典:{" "}
           <a
             href="https://github.com/PicoTrex/Awesome-Nano-Banana-images"

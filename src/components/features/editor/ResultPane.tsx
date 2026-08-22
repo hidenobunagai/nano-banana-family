@@ -87,7 +87,7 @@ export function ResultPane({
                     次の結果
                     <ChevronRight className="w-4 h-4 ml-1" />
                   </Button>
-                  <span className="text-dns-14 text-[var(--color-neutral-400)] tabular-nums">
+                  <span className="text-dns-14 text-[var(--color-neutral-500)] tabular-nums">
                     {history.index + 1} / {history.total}
                   </span>
                 </div>
@@ -121,7 +121,7 @@ export function ResultPane({
           </Button>
         </div>
       ) : (
-        <div className="h-64 flex flex-col items-center justify-center gap-3 text-[var(--color-neutral-400)] border-2 border-dashed border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)] rounded-[var(--radius-lg)] px-6 text-center">
+        <div className="h-64 flex flex-col items-center justify-center gap-3 text-[var(--color-neutral-500)] border-2 border-dashed border-[var(--color-neutral-300)] bg-[var(--color-neutral-50)] rounded-[var(--radius-lg)] px-6 text-center">
           <div className="w-14 h-14 rounded-full bg-[var(--color-neutral-100)] flex items-center justify-center">
             {emptyIcon}
           </div>

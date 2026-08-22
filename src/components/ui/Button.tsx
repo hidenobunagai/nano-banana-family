@@ -14,13 +14,13 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-[var(--color-primary-600)] text-white border border-[var(--color-primary-600)] shadow-[var(--shadow-level-1)] hover:bg-[var(--color-primary-700)] hover:border-[var(--color-primary-700)] disabled:bg-[var(--color-primary-300)] disabled:border-[var(--color-primary-300)] disabled:text-white",
+          "bg-[var(--color-primary-600)] text-white border border-[var(--color-primary-600)] shadow-[var(--shadow-level-1)] hover:bg-[var(--color-primary-700)] hover:border-[var(--color-primary-700)] hover:shadow-[var(--shadow-level-2)] disabled:bg-[var(--color-primary-300)] disabled:border-[var(--color-primary-300)] disabled:text-white",
         secondary:
-          "bg-white text-[var(--color-neutral-900)] border border-[var(--color-neutral-300)] shadow-[var(--shadow-level-1)] hover:bg-[var(--color-neutral-100)] hover:border-[var(--color-neutral-400)] disabled:bg-[var(--color-neutral-50)] disabled:text-[var(--color-neutral-400)] disabled:border-[var(--color-neutral-200)]",
+          "bg-white text-[var(--color-neutral-900)] border border-[var(--color-neutral-300)] shadow-[var(--shadow-level-1)] hover:bg-[var(--color-neutral-100)] hover:border-[var(--color-neutral-400)] disabled:bg-[var(--color-neutral-50)] disabled:text-[var(--color-neutral-500)] disabled:border-[var(--color-neutral-300)]",
         ghost:
-          "bg-transparent text-[var(--color-neutral-500)] hover:bg-[var(--color-neutral-100)] hover:text-[var(--color-neutral-900)] disabled:text-[var(--color-neutral-400)]",
+          "bg-transparent text-[var(--color-neutral-500)] hover:bg-[var(--color-neutral-100)] hover:text-[var(--color-neutral-900)] disabled:text-[var(--color-neutral-500)]",
         outline:
-          "bg-white text-[var(--color-neutral-700)] border border-[var(--color-neutral-300)] hover:bg-[var(--color-neutral-100)] hover:border-[var(--color-neutral-400)] disabled:text-[var(--color-neutral-400)] disabled:border-[var(--color-neutral-200)]",
+          "bg-white text-[var(--color-neutral-700)] border border-[var(--color-neutral-300)] hover:bg-[var(--color-neutral-100)] hover:border-[var(--color-neutral-400)] disabled:text-[var(--color-neutral-500)] disabled:border-[var(--color-neutral-300)]",
         danger:
           "bg-[var(--color-error-dark)] text-white border border-[var(--color-error-dark)] shadow-[var(--shadow-level-1)] hover:brightness-90 disabled:opacity-70",
       },
