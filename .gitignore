@@ -51,5 +51,3 @@ headroom_memory.db
 
 # misc logs
 *.log
-# Added by code-review-graph
-.code-review-graph/
