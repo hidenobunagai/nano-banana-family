@@ -2,7 +2,7 @@
 
 import { cn } from "@/components/ui/Button";
 import { PROMPT_REFERENCES, type PromptReference } from "@/promptReferences";
-import { Heart, Search, Star, X } from "lucide-react";
+import { ExternalLink, Heart, Search, Star, X } from "lucide-react";
 import { useId, useMemo, useState, useCallback, useRef, useEffect } from "react";
 
 type PromptGroups = Record<string, PromptReference[]>;
@@ -335,8 +335,11 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
             href="https://github.com/PicoTrex/Awesome-Nano-Banana-images"
             target="_blank"
             rel="noopener noreferrer"
+            className="inline-flex items-center gap-1"
           >
             Awesome-Nano-Banana-images
+            <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
+            <span className="sr-only">（新しいタブで開きます）</span>
           </a>
           （CC BY 4.0）
         </div>
