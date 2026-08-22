@@ -5,7 +5,10 @@
   --font-mono: "Noto Sans Mono", monospace;
   --font-display: "Noto Sans JP", -apple-system, BlinkMacSystemFont, sans-serif;
 
-  /* DADS Spacing Scale (8px base, 3-5 steps) */
+  /* DADS Spacing Scale (8px base, 3-5 steps)
+     Tailwind mapping: p-2/xs=8px, p-4/sm=16px, p-6/md=24px, p-16/lg=64px
+     Use var(--spacing-*) for custom values; Tailwind utilities that match
+     the scale (e.g. p-4, gap-6) are considered compliant. */
   --spacing-xs: 8px;
   --spacing-sm: 16px;
   --spacing-md: 24px;
