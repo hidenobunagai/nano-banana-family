@@ -1,10 +1,22 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { useSession } from "next-auth/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Shell } from "./Shell";
 import { NAV_ITEMS } from "@/types/nav";
 
+vi.mock("next-auth/react", () => ({
+  useSession: vi.fn(),
+}));
+
 describe("Shell", () => {
+  beforeEach(() => {
+    vi.mocked(useSession).mockReturnValue({
+      data: null,
+      status: "unauthenticated",
+      update: vi.fn(),
+    });
+  });
   it("renders children", () => {
     render(
       <Shell onSignOut={vi.fn()} navMode="freestyle" onNavModeChange={vi.fn()}>
@@ -45,5 +57,25 @@ describe("Shell", () => {
     );
     await userEvent.click(screen.getByRole("button", { name: /サインアウト/ }));
     expect(onSignOut).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders user profile when authenticated", () => {
+    vi.mocked(useSession).mockReturnValue({
+      data: {
+        user: { name: "家族ユーザー", email: "user@example.com", image: "https://example.com/avatar.jpg" },
+        expires: "2099-01-01",
+      },
+      status: "authenticated",
+      update: vi.fn(),
+    });
+
+    render(
+      <Shell onSignOut={vi.fn()} navMode="freestyle" onNavModeChange={vi.fn()}>
+        <p>content</p>
+      </Shell>,
+    );
+
+    expect(screen.getByAltText("家族ユーザー")).toBeInTheDocument();
+    expect(screen.getByText("家族ユーザー")).toBeInTheDocument();
   });
 });

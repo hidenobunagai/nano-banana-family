@@ -4,6 +4,7 @@ import { Button, cn } from "@/components/ui/Button";
 import { NAV_ITEMS, type NavMode } from "@/types/nav";
 import { motion } from "framer-motion";
 import { LogOut } from "lucide-react";
+import { useSession } from "next-auth/react";
 import * as React from "react";
 
 interface ShellProps {
@@ -14,6 +15,8 @@ interface ShellProps {
 }
 
 export function Shell({ children, onSignOut, navMode, onNavModeChange }: ShellProps) {
+  const { data: session } = useSession();
+
   return (
     <div className="flex h-dvh w-full overflow-hidden text-[var(--color-neutral-900)] selection:bg-[var(--color-primary-600)]/20">
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
@@ -52,15 +55,40 @@ export function Shell({ children, onSignOut, navMode, onNavModeChange }: ShellPr
             })}
           </nav>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onSignOut}
-            className="text-[var(--color-neutral-600)] hover:text-[var(--color-error-dark)] hover:bg-[var(--color-error-light)] gap-2"
-          >
-            <LogOut className="w-5 h-5" />
-            <span className="hidden sm:inline">サインアウト</span>
-          </Button>
+          <div className="flex items-center gap-2 sm:gap-3">
+            {session?.user && (
+              <div className="flex items-center gap-2 px-2.5 py-1 rounded-[var(--radius-full)] bg-[var(--color-neutral-100)] border border-[var(--color-neutral-200)]">
+                {session.user.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={session.user.image}
+                    alt={session.user.name ?? "ユーザー"}
+                    className="w-6 h-6 rounded-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="w-6 h-6 rounded-full bg-[var(--color-primary-100)] text-[var(--color-primary-700)] flex items-center justify-center font-bold text-dns-14">
+                    {(session.user.name ?? session.user.email ?? "U").charAt(0).toUpperCase()}
+                  </div>
+                )}
+                {session.user.name && (
+                  <span className="hidden lg:inline text-dns-14 font-medium text-[var(--color-neutral-700)] max-w-[120px] truncate">
+                    {session.user.name}
+                  </span>
+                )}
+              </div>
+            )}
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onSignOut}
+              className="text-[var(--color-neutral-600)] hover:text-[var(--color-error-dark)] hover:bg-[var(--color-error-light)] gap-2"
+            >
+              <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">サインアウト</span>
+            </Button>
+          </div>
         </header>
 
         <div
