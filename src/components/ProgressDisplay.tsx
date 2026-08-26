@@ -84,7 +84,10 @@ export function ProgressDisplay({
         </div>
 
         <div className="rounded-[var(--radius-md)] bg-[var(--color-primary-50)]/70 border border-[var(--color-primary-200)]/60 p-3 text-dns-14 text-[var(--color-primary-900)] flex items-start gap-2.5">
-          <Sparkles className="w-4 h-4 text-[var(--color-primary-600)] flex-shrink-0 mt-0.5" aria-hidden="true" />
+          <Sparkles
+            className="w-4 h-4 text-[var(--color-primary-600)] flex-shrink-0 mt-0.5"
+            aria-hidden="true"
+          />
           <p className="font-medium text-dns-14 leading-relaxed transition-opacity duration-300">
             <span className="font-bold text-[var(--color-primary-700)]">ヒント: </span>
             {DEFAULT_TIPS[tipIndex]}

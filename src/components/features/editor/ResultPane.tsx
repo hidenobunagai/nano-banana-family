@@ -19,8 +19,7 @@ import {
 import { type ReactNode, useEffect, useState, useSyncExternalStore } from "react";
 
 const emptySubscribe = () => () => {};
-const getCanShare = () =>
-  typeof navigator !== "undefined" && typeof navigator.share === "function";
+const getCanShare = () => typeof navigator !== "undefined" && typeof navigator.share === "function";
 const getServerCanShare = () => false;
 
 interface ResultPaneProps {

@@ -62,7 +62,11 @@ describe("Shell", () => {
   it("renders user profile when authenticated", () => {
     vi.mocked(useSession).mockReturnValue({
       data: {
-        user: { name: "家族ユーザー", email: "user@example.com", image: "https://example.com/avatar.jpg" },
+        user: {
+          name: "家族ユーザー",
+          email: "user@example.com",
+          image: "https://example.com/avatar.jpg",
+        },
         expires: "2099-01-01",
       },
       status: "authenticated",
