@@ -16,7 +16,7 @@ import {
   Share2,
   X,
 } from "lucide-react";
-import { type ReactNode, useEffect, useState, useSyncExternalStore } from "react";
+import { type ReactNode, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 const emptySubscribe = () => () => {};
 const getCanShare = () => typeof navigator !== "undefined" && typeof navigator.share === "function";
@@ -72,13 +72,44 @@ export function ResultPane({
   const [isCopied, setIsCopied] = useState(false);
   const canShare = useSyncExternalStore(emptySubscribe, getCanShare, getServerCanShare);
 
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
   useEffect(() => {
     if (!isLightboxOpen) return;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    closeButtonRef.current?.focus();
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setIsLightboxOpen(false);
+      if (e.key === "Escape") {
+        setIsLightboxOpen(false);
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const focusables = dialogRef.current?.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      );
+      if (!focusables || focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
+
+    // Lock background scroll while the lightbox is open
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+      previouslyFocused?.focus();
+    };
   }, [isLightboxOpen]);
 
   const handleCopyImage = async () => {
@@ -274,6 +305,7 @@ export function ResultPane({
 
           {isLightboxOpen && (
             <div
+              ref={dialogRef}
               role="dialog"
               aria-modal="true"
               aria-label="生成画像の拡大表示"
@@ -285,6 +317,7 @@ export function ResultPane({
                 onClick={(e) => e.stopPropagation()}
               >
                 <button
+                  ref={closeButtonRef}
                   type="button"
                   onClick={() => setIsLightboxOpen(false)}
                   className="absolute -top-12 right-0 p-2 text-white/80 hover:text-white rounded-full bg-white/10 hover:bg-white/20 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"

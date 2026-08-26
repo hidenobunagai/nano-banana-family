@@ -240,6 +240,7 @@ export function IconCreator() {
 
   return (
     <EditorLayout
+      title="アイコン作成"
       resultPane={
         <ResultPane
           isSubmitting={isSubmitting}
@@ -310,6 +311,7 @@ export function IconCreator() {
             name="contactName"
             autoComplete="off"
             type="text"
+            aria-label="連絡先名"
             className="w-full rounded-[var(--radius-md)] bg-white border border-[var(--color-neutral-300)] px-4 py-3 text-[var(--color-neutral-900)] placeholder:text-[var(--color-neutral-500)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30 focus:border-[var(--color-primary-500)] transition-shadow text-std-20"
             placeholder="例: 桜小学校児童クラブ"
             value={name}
@@ -341,6 +343,7 @@ export function IconCreator() {
               autoComplete="off"
               spellCheck={false}
               type="url"
+              aria-label="参考 URL"
               className="w-full rounded-[var(--radius-md)] bg-white border border-[var(--color-neutral-300)] pl-12 pr-4 py-3 text-[var(--color-neutral-900)] placeholder:text-[var(--color-neutral-500)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30 focus:border-[var(--color-primary-500)] transition-shadow text-std-16"
               placeholder="https://example.com"
               value={url}
@@ -450,6 +453,7 @@ export function IconCreator() {
             canRedo={canRedo}
             disabled={isSubmitting || isOptimizingAny}
             placeholder="追加したい雰囲気があれば入力 (Ctrl+Z で元に戻せます)"
+            ariaLabel="追加の指示"
             textareaRef={customPromptTextareaRef}
             textareaClassName="h-24 resize-none"
             counterAlign="right"

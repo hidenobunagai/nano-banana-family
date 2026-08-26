@@ -115,7 +115,7 @@ export function FileInput({
               <p className="text-oln-14 font-medium">
                 {isDragging ? "ここにドロップ" : "クリックして追加"}
               </p>
-              <p className="text-[12px] text-[var(--color-neutral-400)] mt-0.5">
+              <p className="text-oln-14 text-[var(--color-neutral-600)] mt-0.5">
                 または貼り付け (Ctrl+V)
               </p>
             </div>

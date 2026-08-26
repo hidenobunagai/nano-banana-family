@@ -14,6 +14,7 @@ interface PromptTextareaProps {
   canRedo: boolean;
   disabled: boolean;
   placeholder: string;
+  ariaLabel?: string;
   textareaRef?: Ref<HTMLTextAreaElement>;
   textareaClassName?: string;
   counterAlign?: "left" | "right";
@@ -29,6 +30,7 @@ export function PromptTextarea({
   canRedo,
   disabled,
   placeholder,
+  ariaLabel,
   textareaRef,
   textareaClassName = "",
   counterAlign = "left",
@@ -45,6 +47,7 @@ export function PromptTextarea({
           spellCheck={false}
           maxLength={MAX_PROMPT_LENGTH}
           className={`w-full rounded-[var(--radius-md)] bg-white border border-[var(--color-neutral-300)] p-4 pr-12 text-[var(--color-neutral-900)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30 focus:border-[var(--color-primary-500)] transition-shadow text-std-16 ${textareaClassName}`}
+          aria-label={ariaLabel}
           placeholder={placeholder}
           value={value}
           onChange={(event) => onValueChange(event.target.value)}

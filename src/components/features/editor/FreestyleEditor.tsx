@@ -257,6 +257,7 @@ export function FreestyleEditor() {
 
   return (
     <EditorLayout
+      title="自由生成"
       resultPane={
         <ResultPane
           isSubmitting={isSubmitting}
@@ -363,6 +364,7 @@ export function FreestyleEditor() {
             canRedo={canRedo}
             disabled={isSubmitting || isOptimizingAny}
             placeholder="仕上がりのイメージを自由に記入してください… (Ctrl+Z で元に戻せます)"
+            ariaLabel="仕上がりのイメージ"
             textareaRef={textareaRef}
             textareaClassName="h-32 resize-y"
           />

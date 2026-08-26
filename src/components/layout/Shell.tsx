@@ -83,6 +83,7 @@ export function Shell({ children, onSignOut, navMode, onNavModeChange }: ShellPr
               variant="ghost"
               size="sm"
               onClick={onSignOut}
+              aria-label="サインアウト"
               className="text-[var(--color-neutral-600)] hover:text-[var(--color-error-dark)] hover:bg-[var(--color-error-light)] gap-2"
             >
               <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
