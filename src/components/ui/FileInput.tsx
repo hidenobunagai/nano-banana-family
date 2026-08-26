@@ -59,6 +59,19 @@ export function FileInput({
     }
   };
 
+  const handlePaste = (e: React.ClipboardEvent) => {
+    if (e.clipboardData.files && e.clipboardData.files.length > 0) {
+      const file = Array.from(e.clipboardData.files).find((f) => f.type.startsWith("image/"));
+      if (file && inputRef.current) {
+        e.preventDefault();
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        inputRef.current.files = dataTransfer.files;
+        onChange({ target: inputRef.current } as ChangeEvent<HTMLInputElement>);
+      }
+    }
+  };
+
   return (
     <div>
       <FileInputLabel label={label} subLabel={subLabel} />
@@ -70,11 +83,19 @@ export function FileInput({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             key="upload-placeholder"
+            tabIndex={0}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
+            onPaste={handlePaste}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                inputRef.current?.click();
+              }
+            }}
             className={cn(
-              "relative flex flex-col items-center justify-center w-full h-48 rounded-[var(--radius-lg)] border-2 border-dashed transition-all cursor-pointer group overflow-hidden",
+              "relative flex flex-col items-center justify-center w-full h-48 rounded-[var(--radius-lg)] border-2 border-dashed transition-all cursor-pointer group overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]",
               isDragging
                 ? "border-[var(--color-primary-600)] bg-[var(--color-primary-50)] scale-[1.02]"
                 : "border-[var(--color-neutral-300)] hover:border-[var(--color-neutral-400)] bg-[var(--color-neutral-50)]",
@@ -93,6 +114,9 @@ export function FileInput({
               )}
               <p className="text-oln-14 font-medium">
                 {isDragging ? "ここにドロップ" : "クリックして追加"}
+              </p>
+              <p className="text-[12px] text-[var(--color-neutral-400)] mt-0.5">
+                または貼り付け (Ctrl+V)
               </p>
             </div>
             <input

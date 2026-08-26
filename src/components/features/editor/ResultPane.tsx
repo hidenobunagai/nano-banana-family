@@ -16,7 +16,12 @@ import {
   Share2,
   X,
 } from "lucide-react";
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useEffect, useState, useSyncExternalStore } from "react";
+
+const emptySubscribe = () => () => {};
+const getCanShare = () =>
+  typeof navigator !== "undefined" && typeof navigator.share === "function";
+const getServerCanShare = () => false;
 
 interface ResultPaneProps {
   isSubmitting: boolean;
@@ -66,11 +71,7 @@ export function ResultPane({
   const toast = useToast();
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
-  const [canShare, setCanShare] = useState(false);
-
-  useEffect(() => {
-    setCanShare(typeof navigator !== "undefined" && typeof navigator.share === "function");
-  }, []);
+  const canShare = useSyncExternalStore(emptySubscribe, getCanShare, getServerCanShare);
 
   useEffect(() => {
     if (!isLightboxOpen) return;

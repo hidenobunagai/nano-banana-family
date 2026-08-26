@@ -26,6 +26,7 @@ export interface UseUploadSlotsReturn {
   isOptimizingAny: boolean;
   optimizingIds: string[];
   addUploadSlot: () => void;
+  addFile: (file: File) => Promise<boolean>;
   removeUploadSlot: (id: string) => void;
   handleFileChange: (event: ChangeEvent<HTMLInputElement>, id: string) => Promise<void>;
   resetUploads: () => void;
@@ -105,6 +106,46 @@ export function useUploadSlots({
     setUploads((prev) => (prev.length < maxSlots ? [...prev, createUploadSlot()] : prev));
   }, [maxSlots]);
 
+  const addFile = useCallback(
+    async (file: File): Promise<boolean> => {
+      const currentUploads = uploadsRef.current;
+      let targetSlot = currentUploads.find((u) => !u.file);
+      let targetId = targetSlot?.id;
+
+      if (!targetId) {
+        if (currentUploads.length >= maxSlots) {
+          onFileError?.(`参考画像は最大 ${maxSlots} 枚までです。`);
+          return false;
+        }
+        const newSlot = createUploadSlot();
+        targetId = newSlot.id;
+        setUploads((prev) => [...prev, newSlot]);
+      }
+
+      onBeforeChange?.();
+      setOptimizing(targetId, true);
+
+      try {
+        const optimized = await resizeImage(file);
+        const previewUrl = URL.createObjectURL(optimized);
+        setUploads((prev) =>
+          prev.map((u) => (u.id === targetId ? { ...u, file: optimized, previewUrl } : u)),
+        );
+        return true;
+      } catch (error) {
+        onFileError?.(
+          error instanceof Error
+            ? error.message
+            : "画像の準備に失敗しました。別の画像でもう一度お試しください。",
+        );
+        return false;
+      } finally {
+        setOptimizing(targetId, false);
+      }
+    },
+    [maxSlots, onBeforeChange, onFileError, setOptimizing],
+  );
+
   const removeUploadSlot = useCallback((id: string) => {
     const slot = uploadsRef.current.find((u) => u.id === id);
     if (slot?.previewUrl) URL.revokeObjectURL(slot.previewUrl);
@@ -126,6 +167,7 @@ export function useUploadSlots({
     isOptimizingAny,
     optimizingIds,
     addUploadSlot,
+    addFile,
     removeUploadSlot,
     handleFileChange,
     resetUploads,

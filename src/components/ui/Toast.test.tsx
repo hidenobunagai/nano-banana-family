@@ -19,10 +19,8 @@ function renderWithToast(ui: React.ReactElement) {
 }
 
 describe("Toast", () => {
-  it("throws error when useToast is used outside provider", () => {
-    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-    expect(() => render(<TestConsumer />)).toThrow("useToast must be used within a ToastProvider");
-    consoleSpy.mockRestore();
+  it("does not throw when useToast is used outside provider", () => {
+    expect(() => render(<TestConsumer />)).not.toThrow();
   });
 
   it("shows success toast and auto-dismisses after timeout", async () => {

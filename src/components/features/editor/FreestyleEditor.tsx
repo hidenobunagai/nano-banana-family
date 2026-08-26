@@ -17,9 +17,10 @@ import { useUndoRedoShortcuts } from "@/hooks/useUndoRedoShortcuts";
 import { useUploadSlots } from "@/hooks/useUploadSlots";
 import { MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
 import { STYLE_SUGGESTIONS } from "@/utils/server/stylePrompts";
-import { BookOpen, Download, Loader2, Wand2, X } from "lucide-react";
+import { useToast } from "@/components/ui/Toast";
+import { BookOpen, Copy, Download, Loader2, Wand2, X } from "lucide-react";
 import Image from "next/image";
-import { type FormEvent, useCallback, useRef, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import type { ProgressStep } from "@/components/ProgressDisplay";
 
 const FREESTYLE_PROGRESS_STEPS: ProgressStep[] = [
@@ -36,6 +37,7 @@ const MAX_HISTORY = 4;
 const MAX_RECENT_PROMPTS = 6;
 
 export function FreestyleEditor() {
+  const toast = useToast();
   const [isComparing, setIsComparing] = useState(false);
   const [showReferencePicker, setShowReferencePicker] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -107,6 +109,7 @@ export function FreestyleEditor() {
     isOptimizingAny,
     optimizingIds,
     addUploadSlot,
+    addFile,
     removeUploadSlot,
     handleFileChange,
     resetUploads,
@@ -116,6 +119,35 @@ export function FreestyleEditor() {
     onBeforeChange: () => reset(),
     onFileError: setErrorMessage,
   });
+
+  // Global paste support for screenshots
+  useEffect(() => {
+    const handleWindowPaste = (e: ClipboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (
+        (target.tagName === "INPUT" || target.tagName === "TEXTAREA") &&
+        e.clipboardData?.types.includes("text/plain") &&
+        !e.clipboardData?.types.includes("Files")
+      ) {
+        return;
+      }
+      if (e.clipboardData?.files && e.clipboardData.files.length > 0) {
+        const imageFile = Array.from(e.clipboardData.files).find((f) =>
+          f.type.startsWith("image/"),
+        );
+        if (imageFile) {
+          e.preventDefault();
+          void addFile(imageFile).then((added) => {
+            if (added) {
+              toast.success("クリップボードの画像を参考画像に追加しました！");
+            }
+          });
+        }
+      }
+    };
+    window.addEventListener("paste", handleWindowPaste);
+    return () => window.removeEventListener("paste", handleWindowPaste);
+  }, [addFile, toast]);
 
   const handleProgressComplete = useCallback(() => setIsSubmitting(false), [setIsSubmitting]);
   const {
@@ -196,8 +228,9 @@ export function FreestyleEditor() {
     (referencePrompt: string) => {
       handlePromptChange(prompt.trim() ? `${prompt}\n\n${referencePrompt}` : referencePrompt);
       textareaRef.current?.focus();
+      toast.info("プロンプト例を挿入しました");
     },
-    [handlePromptChange, prompt],
+    [handlePromptChange, prompt, toast],
   );
 
   const handleRecentSelect = useCallback(
@@ -212,8 +245,9 @@ export function FreestyleEditor() {
     (nextPrompt: string) => {
       handlePromptChange(prompt.trim() ? `${prompt.trim()}\n\n${nextPrompt}` : nextPrompt);
       textareaRef.current?.focus();
+      toast.info("スタイルキーワードを追加しました");
     },
-    [handlePromptChange, prompt],
+    [handlePromptChange, prompt, toast],
   );
 
   const handleSubmit = (event: FormEvent) => {
@@ -332,6 +366,22 @@ export function FreestyleEditor() {
             textareaRef={textareaRef}
             textareaClassName="h-32 resize-y"
           />
+
+          {prompt.trim() && (
+            <div className="mt-1.5 flex justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  void navigator.clipboard.writeText(prompt);
+                  toast.success("プロンプトをコピーしました！");
+                }}
+                className="inline-flex items-center gap-1 text-dns-14 text-[var(--color-neutral-500)] hover:text-[var(--color-neutral-800)] px-2 py-0.5 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                プロンプトをコピー
+              </button>
+            </div>
+          )}
 
           <div className="mt-3 space-y-2">
             {recentPrompts.length > 0 && (

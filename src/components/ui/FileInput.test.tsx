@@ -77,6 +77,31 @@ describe("FileInput", () => {
     expect(container.querySelector("input[type=file]")).toBe(event.target);
   });
 
+  it("calls onChange with the pasted file", () => {
+    const onChange = vi.fn();
+    const { container } = render(
+      <FileInput previewUrl={null} isOptimizing={false} onChange={onChange} />,
+    );
+
+    const dropZone = screen.getByText("クリックして追加").closest("label");
+    expect(dropZone).not.toBeNull();
+
+    const file = new File(["abc"], "pasted.png", { type: "image/png" });
+    const pasteEvent = new Event("paste", { bubbles: true, cancelable: true });
+    Object.defineProperty(pasteEvent, "clipboardData", {
+      value: {
+        files: [file],
+      },
+    });
+
+    dropZone?.dispatchEvent(pasteEvent);
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    const event = onChange.mock.calls[0][0] as React.ChangeEvent<HTMLInputElement>;
+    expect(event.target.files?.[0]).toBe(file);
+    expect(container.querySelector("input[type=file]")).toBe(event.target);
+  });
+
   it("renders a preview image when previewUrl is set", () => {
     render(<FileInput previewUrl="blob:mock-preview" isOptimizing={false} onChange={vi.fn()} />);
     expect(screen.getByAltText("選択した参考画像のプレビュー")).toBeInTheDocument();

@@ -141,4 +141,36 @@ describe("useUploadSlots", () => {
     expect(result.current.uploads).toHaveLength(1);
     expect(result.current.uploads[0].file).toBeNull();
   });
+
+  it("adds a file directly to the first available slot or creates a new one", async () => {
+    const { result } = renderHook(() => useUploadSlots({ maxSlots: 2, initialSlots: 1 }));
+    const file1 = makeFile("first.png");
+    const file2 = makeFile("second.png");
+
+    let success1 = false;
+    await act(async () => {
+      success1 = await result.current.addFile(file1);
+    });
+
+    expect(success1).toBe(true);
+    expect(result.current.activeUploads).toHaveLength(1);
+    expect(result.current.activeUploads[0].file).toBe(file1);
+
+    let success2 = false;
+    await act(async () => {
+      success2 = await result.current.addFile(file2);
+    });
+
+    expect(success2).toBe(true);
+    expect(result.current.activeUploads).toHaveLength(2);
+
+    // Beyond maxSlots
+    const file3 = makeFile("third.png");
+    let success3 = true;
+    await act(async () => {
+      success3 = await result.current.addFile(file3);
+    });
+    expect(success3).toBe(false);
+    expect(result.current.activeUploads).toHaveLength(2);
+  });
 });

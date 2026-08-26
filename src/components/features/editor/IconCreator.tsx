@@ -16,10 +16,22 @@ import { useUndoRedoShortcuts } from "@/hooks/useUndoRedoShortcuts";
 import { useUploadSlots } from "@/hooks/useUploadSlots";
 import { ICON_STYLES } from "@/utils/iconStyles";
 import { MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
-import { Globe, Loader2, Sparkles, User, X } from "lucide-react";
+import { useToast } from "@/components/ui/Toast";
+import { Check, Globe, Loader2, Sparkles, User, X } from "lucide-react";
 import Image from "next/image";
-import { type FormEvent, useCallback, useMemo, useRef, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ProgressStep } from "@/components/ProgressDisplay";
+
+const FAMILY_CONTACT_PRESETS = [
+  "小学校",
+  "学童クラブ",
+  "保育園・幼稚園",
+  "習い事",
+  "じいじ・ばあば",
+  "クリニック・病院",
+  "連絡網",
+  "お友達",
+];
 
 const ICON_PROGRESS_STEPS: ProgressStep[] = [
   { id: "analyze", label: "連絡先情報を分析中...", estimatedDuration: 1200 },
@@ -39,6 +51,7 @@ const MAX_HISTORY = 4;
 const MAX_RECENT_PROMPTS = 6;
 
 export function IconCreator() {
+  const toast = useToast();
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
   const [selectedStyle, setSelectedStyle] = useState("auto");
@@ -104,6 +117,7 @@ export function IconCreator() {
     isOptimizingAny,
     optimizingIds,
     addUploadSlot,
+    addFile,
     removeUploadSlot,
     handleFileChange,
     resetUploads,
@@ -112,6 +126,35 @@ export function IconCreator() {
     onBeforeChange: () => reset(),
     onFileError: setErrorMessage,
   });
+
+  // Global paste support for screenshots
+  useEffect(() => {
+    const handleWindowPaste = (e: ClipboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (
+        (target.tagName === "INPUT" || target.tagName === "TEXTAREA") &&
+        e.clipboardData?.types.includes("text/plain") &&
+        !e.clipboardData?.types.includes("Files")
+      ) {
+        return;
+      }
+      if (e.clipboardData?.files && e.clipboardData.files.length > 0) {
+        const imageFile = Array.from(e.clipboardData.files).find((f) =>
+          f.type.startsWith("image/"),
+        );
+        if (imageFile) {
+          e.preventDefault();
+          void addFile(imageFile).then((added) => {
+            if (added) {
+              toast.success("クリップボードの画像を参考画像に追加しました！");
+            }
+          });
+        }
+      }
+    };
+    window.addEventListener("paste", handleWindowPaste);
+    return () => window.removeEventListener("paste", handleWindowPaste);
+  }, [addFile, toast]);
 
   const handleProgressComplete = useCallback(() => setIsSubmitting(false), [setIsSubmitting]);
   const {
@@ -272,6 +315,22 @@ export function IconCreator() {
             value={name}
             onChange={(event) => setName(event.target.value)}
           />
+          <div className="mt-3 flex flex-wrap items-center gap-1.5">
+            <span className="text-dns-14 text-[var(--color-neutral-500)] mr-1">よく使う例:</span>
+            {FAMILY_CONTACT_PRESETS.map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => {
+                  setName(preset);
+                  toast.info(`「${preset}」を入力しました`);
+                }}
+                className="inline-flex items-center px-2.5 py-1 rounded-full text-dns-14 bg-[var(--color-neutral-100)] text-[var(--color-neutral-700)] hover:bg-[var(--color-primary-50)] hover:text-[var(--color-primary-700)] hover:border-[var(--color-primary-300)] border border-[var(--color-neutral-200)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]"
+              >
+                + {preset}
+              </button>
+            ))}
+          </div>
         </Section>
 
         <Section title="2. 参考URL（任意）">
@@ -336,12 +395,17 @@ export function IconCreator() {
                 onClick={() => setSelectedStyle(styleOption.id)}
                 aria-pressed={selectedStyle === styleOption.id}
                 className={cn(
-                  "relative flex flex-col items-start gap-2 rounded-[var(--radius-md)] border-2 p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]",
+                  "relative flex flex-col items-start gap-2 rounded-[var(--radius-md)] border-2 p-4 text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]",
                   selectedStyle === styleOption.id
-                    ? "border-[var(--color-primary-600)] bg-[var(--color-primary-50)] shadow-[var(--shadow-level-1)]"
+                    ? "border-[var(--color-primary-600)] bg-[var(--color-primary-50)] shadow-[var(--shadow-level-1)] ring-1 ring-[var(--color-primary-600)]"
                     : "border-[var(--color-neutral-300)] bg-[var(--color-neutral-50)] hover:border-[var(--color-neutral-400)] hover:bg-[var(--color-neutral-100)]",
                 )}
               >
+                {selectedStyle === styleOption.id && (
+                  <span className="absolute top-3 right-3 flex items-center justify-center w-5 h-5 rounded-full bg-[var(--color-primary-600)] text-white shadow-xs">
+                    <Check className="w-3.5 h-3.5" />
+                  </span>
+                )}
                 <div className="flex items-center gap-3 w-full">
                   <div
                     className={cn(
