@@ -1,11 +1,19 @@
 import { cn } from "@/components/ui/Button";
-import { Check, Circle, Loader2 } from "lucide-react";
+import { Check, Circle, Loader2, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export interface ProgressStep {
   id: string;
   label: string;
   estimatedDuration: number;
 }
+
+export const DEFAULT_TIPS = [
+  "プロンプトに『水彩画風』『温かい夕暮れの光』などを指定すると柔らかいタッチになります",
+  "家族写真の服装やポーズを具体的に描写すると、より理想に近い仕上がりになります",
+  "アイコン作成では連絡先名に加えて『笑顔で明るい雰囲気』などの補足を足すのもおすすめ",
+  "生成した画像は拡大して細部を確認したり、直接クリップボードにコピーできます",
+];
 
 export interface ProgressDisplayProps {
   isVisible: boolean;
@@ -24,6 +32,16 @@ export function ProgressDisplay({
   title,
   timeRemaining,
 }: ProgressDisplayProps) {
+  const [tipIndex, setTipIndex] = useState(0);
+
+  useEffect(() => {
+    if (!isVisible) return;
+    const interval = setInterval(() => {
+      setTipIndex((prev) => (prev + 1) % DEFAULT_TIPS.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [isVisible]);
+
   if (!isVisible) {
     return null;
   }
@@ -60,9 +78,17 @@ export function ProgressDisplay({
           className="h-2.5 bg-[var(--color-neutral-100)] rounded-[var(--radius-full)] overflow-hidden"
         >
           <div
-            className="h-full bg-gradient-to-r from-[var(--color-primary-400)] to-[var(--color-primary-600)] transition-all duration-300 ease-out rounded-full"
+            className="h-full bg-gradient-to-r from-[var(--color-primary-400)] via-[var(--color-primary-300)] to-[var(--color-primary-600)] animate-shimmer transition-all duration-300 ease-out rounded-full"
             style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
           />
+        </div>
+
+        <div className="rounded-[var(--radius-md)] bg-[var(--color-primary-50)]/70 border border-[var(--color-primary-200)]/60 p-3 text-dns-14 text-[var(--color-primary-900)] flex items-start gap-2.5">
+          <Sparkles className="w-4 h-4 text-[var(--color-primary-600)] flex-shrink-0 mt-0.5" aria-hidden="true" />
+          <p className="font-medium text-dns-14 leading-relaxed transition-opacity duration-300">
+            <span className="font-bold text-[var(--color-primary-700)]">ヒント: </span>
+            {DEFAULT_TIPS[tipIndex]}
+          </p>
         </div>
       </div>
 

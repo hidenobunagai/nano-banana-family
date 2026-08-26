@@ -337,8 +337,24 @@ body {
   animation: float-pulse 8s ease-in-out infinite;
 }
 
+/* Shimmer animation for progress and skeleton states */
+@keyframes progress-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.animate-shimmer {
+  background-size: 200% 100%;
+  animation: progress-shimmer 2.5s linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .animate-float {
+  .animate-float,
+  .animate-shimmer {
     animation: none;
   }
 }

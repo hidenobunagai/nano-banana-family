@@ -72,4 +72,9 @@ describe("ProgressDisplay", () => {
     );
     expect(screen.getByText("残り約 1 秒")).toBeInTheDocument();
   });
+
+  it("renders creative tips while in progress", () => {
+    render(<ProgressDisplay isVisible={true} currentStep={0} progress={50} steps={sampleSteps} />);
+    expect(screen.getByText(/ヒント:/)).toBeInTheDocument();
+  });
 });
