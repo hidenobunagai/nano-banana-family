@@ -358,3 +358,24 @@ body {
     animation: none;
   }
 }
+
+/* Shimmer used by the auth-gate loading skeleton */
+@keyframes skeleton-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float,
+  .animate-shimmer,
+  .skeleton-shimmer::before {
+    animation: none !important;
+  }
+  .skeleton-shimmer::before {
+    opacity: 0.4;
+  }
+}

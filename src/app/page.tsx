@@ -4,10 +4,11 @@ import { FreestyleEditor } from "@/components/features/editor/FreestyleEditor";
 import { IconCreator } from "@/components/features/editor/IconCreator";
 import { Dock } from "@/components/layout/Dock";
 import { Shell } from "@/components/layout/Shell";
+import { LoadingStudio } from "@/components/layout/LoadingStudio";
 import { Button } from "@/components/ui/Button";
 import type { NavMode } from "@/types/nav";
 import { motion } from "framer-motion";
-import { Loader2, Palette, UserCircle } from "lucide-react";
+import { Palette, UserCircle } from "lucide-react";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { useState } from "react";
 
@@ -18,11 +19,7 @@ export default function Home() {
   const handleSignOut = () => void signOut();
 
   if (status === "loading") {
-    return (
-      <main className="min-h-dvh flex items-center justify-center bg-[var(--color-background)]">
-        <Loader2 className="w-8 h-8 animate-spin text-[var(--color-primary-600)]" />
-      </main>
-    );
+    return <LoadingStudio />;
   }
 
   if (status !== "authenticated") {

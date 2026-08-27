@@ -6,6 +6,10 @@ import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Button, cn } from "@/components/ui/Button";
 import { FileInput } from "@/components/ui/FileInput";
 import { PromptTextarea } from "@/components/ui/PromptTextarea";
+import { StarterChips } from "@/components/ui/StarterChips";
+import { ToneChips } from "@/components/ui/ToneChips";
+import { STARTER_PROMPTS } from "@/utils/starterPrompts";
+import { TONE_PROMPTS } from "@/utils/tonePrompts";
 import { Section } from "@/components/ui/Section";
 import { useEditorSubmit } from "@/hooks/useEditorSubmit";
 import { useProgressSimulation } from "@/hooks/useProgressSimulation";
@@ -58,6 +62,14 @@ export function IconCreator() {
   const customPromptTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   const { recentPrompts, pushRecent } = useRecentPrompts("icon-recent-prompts", MAX_RECENT_PROMPTS);
+  const starterPrompts = STARTER_PROMPTS.filter((p) => p.modes.includes("icon"));
+  const tonePrompts = TONE_PROMPTS.filter((p) => p.modes.includes("icon"));
+  const applyTone = (suffix: string) => {
+    handlePromptChange(
+      customPrompt.trim() ? `${customPrompt.trim()}、${suffix}` : suffix
+    );
+  };
+
   const {
     value: customPrompt,
     handleChange: handlePromptChange,
@@ -457,6 +469,16 @@ export function IconCreator() {
             textareaRef={customPromptTextareaRef}
             textareaClassName="h-24 resize-none"
             counterAlign="right"
+          />
+          <StarterChips
+            prompts={starterPrompts}
+            disabled={isSubmitting}
+            onPick={handlePromptChange}
+          />
+          <ToneChips
+            tones={tonePrompts}
+            disabled={isSubmitting}
+            onPick={applyTone}
           />
           {recentPrompts.length > 0 && (
             <div className="mt-2 flex flex-wrap items-center gap-2">

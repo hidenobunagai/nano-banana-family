@@ -7,6 +7,10 @@ import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Button } from "@/components/ui/Button";
 import { FileInput, FileInputLabel } from "@/components/ui/FileInput";
 import { PromptTextarea } from "@/components/ui/PromptTextarea";
+import { StarterChips } from "@/components/ui/StarterChips";
+import { ToneChips } from "@/components/ui/ToneChips";
+import { STARTER_PROMPTS } from "@/utils/starterPrompts";
+import { TONE_PROMPTS } from "@/utils/tonePrompts";
 import { Section } from "@/components/ui/Section";
 import { useEditorSubmit } from "@/hooks/useEditorSubmit";
 import { useProgressSimulation } from "@/hooks/useProgressSimulation";
@@ -46,6 +50,13 @@ export function FreestyleEditor() {
     "freestyle-recent-prompts",
     MAX_RECENT_PROMPTS,
   );
+  const starterPrompts = STARTER_PROMPTS.filter((p) => p.modes.includes("freestyle"));
+  const tonePrompts = TONE_PROMPTS.filter((p) => p.modes.includes("freestyle"));
+  const applyTone = (suffix: string) => {
+    handlePromptChange(
+      prompt.trim() ? `${prompt.trim()}、${suffix}` : suffix
+    );
+  };
   const {
     value: prompt,
     handleChange: handlePromptChange,
@@ -386,6 +397,16 @@ export function FreestyleEditor() {
           )}
 
           <div className="mt-3 space-y-2">
+            <StarterChips
+              prompts={starterPrompts}
+              disabled={isSubmitting}
+              onPick={handlePromptChange}
+            />
+            <ToneChips
+              tones={tonePrompts}
+              disabled={isSubmitting}
+              onPick={applyTone}
+            />
             {recentPrompts.length > 0 && (
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-oln-14 text-[var(--color-neutral-500)]">最近:</span>
