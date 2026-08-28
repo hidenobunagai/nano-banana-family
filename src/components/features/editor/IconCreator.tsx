@@ -65,9 +65,7 @@ export function IconCreator() {
   const starterPrompts = STARTER_PROMPTS.filter((p) => p.modes.includes("icon"));
   const tonePrompts = TONE_PROMPTS.filter((p) => p.modes.includes("icon"));
   const applyTone = (suffix: string) => {
-    handlePromptChange(
-      customPrompt.trim() ? `${customPrompt.trim()}、${suffix}` : suffix
-    );
+    handlePromptChange(customPrompt.trim() ? `${customPrompt.trim()}、${suffix}` : suffix);
   };
 
   const {
@@ -475,11 +473,7 @@ export function IconCreator() {
             disabled={isSubmitting}
             onPick={handlePromptChange}
           />
-          <ToneChips
-            tones={tonePrompts}
-            disabled={isSubmitting}
-            onPick={applyTone}
-          />
+          <ToneChips tones={tonePrompts} disabled={isSubmitting} onPick={applyTone} />
           {recentPrompts.length > 0 && (
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <span className="text-oln-14 text-[var(--color-neutral-500)]">最近:</span>

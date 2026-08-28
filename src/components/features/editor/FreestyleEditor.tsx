@@ -53,9 +53,7 @@ export function FreestyleEditor() {
   const starterPrompts = STARTER_PROMPTS.filter((p) => p.modes.includes("freestyle"));
   const tonePrompts = TONE_PROMPTS.filter((p) => p.modes.includes("freestyle"));
   const applyTone = (suffix: string) => {
-    handlePromptChange(
-      prompt.trim() ? `${prompt.trim()}、${suffix}` : suffix
-    );
+    handlePromptChange(prompt.trim() ? `${prompt.trim()}、${suffix}` : suffix);
   };
   const {
     value: prompt,
@@ -402,11 +400,7 @@ export function FreestyleEditor() {
               disabled={isSubmitting}
               onPick={handlePromptChange}
             />
-            <ToneChips
-              tones={tonePrompts}
-              disabled={isSubmitting}
-              onPick={applyTone}
-            />
+            <ToneChips tones={tonePrompts} disabled={isSubmitting} onPick={applyTone} />
             {recentPrompts.length > 0 && (
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-oln-14 text-[var(--color-neutral-500)]">最近:</span>

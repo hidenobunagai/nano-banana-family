@@ -112,8 +112,10 @@ export async function POST(request: Request) {
     imageGenerationCache.set(cacheKey, generationResult);
     return NextResponse.json(generationResult);
   } catch (error) {
-    return (
-      await import("@/utils/server/api-helpers")
-    ).handleApiError(error, "icon-generate", session.user?.email ?? "unknown");
+    return (await import("@/utils/server/api-helpers")).handleApiError(
+      error,
+      "icon-generate",
+      session.user?.email ?? "unknown",
+    );
   }
 }
