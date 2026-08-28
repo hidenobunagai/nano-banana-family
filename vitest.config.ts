@@ -6,6 +6,10 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: ["./src/test-setup.ts"],
+    env: {
+      AUTH_SECRET: "test-secret-for-vitest",
+      NEXTAUTH_SECRET: "test-secret-for-vitest",
+    },
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
@@ -16,7 +20,12 @@ export default defineConfig({
         statements: 90,
       },
       include: ["src/**/*.{ts,tsx}"],
-      exclude: ["src/**/*.d.ts", "src/app/**", "src/**/*.test.{ts,tsx}", "node_modules/**"],
+      exclude: [
+        "src/**/*.d.ts",
+        "src/app/**",
+        "src/**/*.test.{ts,tsx}",
+        "node_modules/**",
+      ],
     },
   },
   resolve: {

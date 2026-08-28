@@ -79,3 +79,8 @@ To allow family members:
 - **Vercel Analytics**: Built-in, automatically tracks page views
 - **Function Logs**: Available in Vercel dashboard → Logs
 - **Error Tracking**: Consider adding Sentry for production error monitoring
+
+## Known Issues
+
+- The middleware uses `withAuth` from `next-auth/middleware` for Next.js 16 compatibility
+- Environment variables are required at build time for NextAuth
