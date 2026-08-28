@@ -1,15 +1,10 @@
 import { NextResponse } from "next/server";
 
-import {
-  authenticateRequest,
-  checkUserRateLimit,
-  validateApiKey,
-  handleApiError,
-  validateFormData,
-} from "@/utils/server/api-helpers";
+import { withApiAuth } from "@/utils/server/withApiAuth";
 import { filesToParts } from "@/utils/server/imageProcessing";
 import { generateImage } from "@/utils/server/imageGeneration";
 import { FreestyleEditFormSchema } from "@/utils/server/validation";
+import { validateFormData } from "@/utils/server/api-helpers";
 import { fileFingerprint, generateCacheKey, imageGenerationCache } from "@/utils/server/cache";
 
 export const runtime = "nodejs";
@@ -17,16 +12,9 @@ export const runtime = "nodejs";
 export const maxDuration = 300;
 
 export async function POST(request: Request) {
-  const authResult = await authenticateRequest();
-  if ("response" in authResult) return authResult.response;
-  const { session } = authResult;
-
-  const rateLimitResult = checkUserRateLimit(session.user?.email ?? "anonymous");
-  if ("response" in rateLimitResult) return rateLimitResult.response;
-
-  const apiKeyResult = validateApiKey();
-  if ("response" in apiKeyResult) return apiKeyResult.response;
-  const apiKey = apiKeyResult.key;
+  const auth = await withApiAuth("freestyle-edit");
+  if (!auth.ok) return auth.response;
+  const { session, apiKey } = auth;
 
   const formData = await request.formData();
   const prompt = (formData.get("prompt") as string | null) || "";
@@ -87,6 +75,7 @@ export async function POST(request: Request) {
     imageGenerationCache.set(cacheKey, generationResult);
     return NextResponse.json(generationResult);
   } catch (error) {
+    const { handleApiError } = await import("@/utils/server/api-helpers");
     return handleApiError(error, "freestyle-edit", session.user?.email ?? "unknown");
   }
 }

@@ -2,13 +2,8 @@ import { NextResponse } from "next/server";
 
 import { buildIconPrompt } from "@/utils/server/iconPromptBuilder";
 import type { IconStyleId } from "@/utils/iconStyles";
-import {
-  authenticateRequest,
-  checkUserRateLimit,
-  validateApiKey,
-  handleApiError,
-  validateFormData,
-} from "@/utils/server/api-helpers";
+import { withApiAuth } from "@/utils/server/withApiAuth";
+import { validateFormData } from "@/utils/server/api-helpers";
 import { filesToParts, fetchOgImage } from "@/utils/server/imageProcessing";
 import { generateImage } from "@/utils/server/imageGeneration";
 import { fetchUrlMetadata } from "@/utils/server/urlMetadata";
@@ -20,16 +15,9 @@ export const runtime = "nodejs";
 export const maxDuration = 300;
 
 export async function POST(request: Request) {
-  const authResult = await authenticateRequest();
-  if ("response" in authResult) return authResult.response;
-  const { session } = authResult;
-
-  const rateLimitResult = checkUserRateLimit(session.user?.email ?? "anonymous");
-  if ("response" in rateLimitResult) return rateLimitResult.response;
-
-  const apiKeyResult = validateApiKey();
-  if ("response" in apiKeyResult) return apiKeyResult.response;
-  const apiKey = apiKeyResult.key;
+  const auth = await withApiAuth("icon-generate");
+  if (!auth.ok) return auth.response;
+  const { session, apiKey } = auth;
 
   const formData = await request.formData();
   const name = (formData.get("name") as string | null) || "";
@@ -124,6 +112,8 @@ export async function POST(request: Request) {
     imageGenerationCache.set(cacheKey, generationResult);
     return NextResponse.json(generationResult);
   } catch (error) {
-    return handleApiError(error, "icon-generate", session.user?.email ?? "unknown");
+    return (
+      await import("@/utils/server/api-helpers")
+    ).handleApiError(error, "icon-generate", session.user?.email ?? "unknown");
   }
 }

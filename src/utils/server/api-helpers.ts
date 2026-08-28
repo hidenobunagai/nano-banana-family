@@ -37,14 +37,15 @@ export async function authenticateRequest(): Promise<
 export function checkUserRateLimit(userId: string): { allowed: true } | { response: NextResponse } {
   const rateLimit = checkRateLimit(userId);
   if (!rateLimit.allowed) {
-    return {
-      response: NextResponse.json(
-        {
-          error: `リクエストが多すぎます。${rateLimit.retryAfter ?? 60}秒後にもう一度お試しください。`,
-        },
-        { status: 429 },
-      ),
-    };
+    const retryAfter = rateLimit.retryAfter ?? 60;
+    const response = NextResponse.json(
+      {
+        error: `リクエストが多すぎます。${retryAfter}秒後にもう一度お試しください。`,
+      },
+      { status: 429 },
+    );
+    response.headers.set("Retry-After", String(retryAfter));
+    return { response };
   }
   return { allowed: true };
 }

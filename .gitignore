@@ -51,3 +51,4 @@ headroom_memory.db
 
 # misc logs
 *.log
+package-lock.json
