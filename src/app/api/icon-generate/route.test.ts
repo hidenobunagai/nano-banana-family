@@ -34,7 +34,9 @@ vi.mock("@/utils/server/urlMetadata", () => ({
 
 vi.mock("@/utils/server/api-helpers", () => ({
   validateFormData: vi.fn().mockImplementation((schema: unknown, data: unknown) => {
-    const result = (schema as { safeParse: (data: unknown) => { success: boolean; data: unknown } }).safeParse(data);
+    const result = (
+      schema as { safeParse: (data: unknown) => { success: boolean; data: unknown } }
+    ).safeParse(data);
     if (result.success) {
       return { success: true, data: result.data };
     }

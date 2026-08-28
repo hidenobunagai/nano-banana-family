@@ -3,7 +3,7 @@
 ## Prerequisites
 
 1. **Vercel Account**: Sign up at [vercel.com](https://vercel.com) if you don't have one.
-2. **Google Cloud Project**: 
+2. **Google Cloud Project**:
    - Create a project at [Google Cloud Console](https://console.cloud.google.com)
    - Enable the Gemini API
    - Create OAuth 2.0 credentials (Web application type)
@@ -34,6 +34,7 @@ vercel link
 ### 2. Configure Environment Variables
 
 In Vercel dashboard:
+
 1. Go to Project Settings → Environment Variables
 2. Add all required variables for Production, Preview, and Development environments
 
@@ -50,6 +51,7 @@ git push origin main
 ### 4. Custom Domain (Optional)
 
 In Vercel dashboard:
+
 1. Go to Project Settings → Domains
 2. Add your custom domain
 3. Configure DNS as instructed
@@ -57,6 +59,7 @@ In Vercel dashboard:
 ## Testing Deployment
 
 After deployment:
+
 1. Visit your deployment URL
 2. Test Google login with whitelisted emails
 3. Verify image editing functionality
@@ -65,6 +68,7 @@ After deployment:
 ## Family Access
 
 To allow family members:
+
 1. Add their Google email addresses to the whitelist in `src/lib/auth.ts`
 2. Redeploy or wait for next deployment
 

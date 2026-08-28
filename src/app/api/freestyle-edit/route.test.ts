@@ -42,11 +42,12 @@ vi.mock("@/utils/server/api-helpers", () => ({
       error: result.error.issues.map((i: any) => i.message).join(", "),
     };
   }),
-  handleApiError: vi.fn((e) =>
-    new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : String(e) }),
-      { status: 500, headers: { "Content-Type": "application/json" } },
-    ),
+  handleApiError: vi.fn(
+    (e) =>
+      new Response(JSON.stringify({ error: e instanceof Error ? e.message : String(e) }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }),
   ),
 }));
 
