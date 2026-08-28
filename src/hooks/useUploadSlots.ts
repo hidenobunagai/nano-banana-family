@@ -44,9 +44,8 @@ export function useUploadSlots({
   const [optimizingIds, setOptimizingIds] = useState<string[]>([]);
   const previewUrlsRef = useRef<string[]>([]);
   const uploadsRef = useRef(uploads);
-  uploadsRef.current = uploads;
-
   useEffect(() => {
+    uploadsRef.current = uploads;
     previewUrlsRef.current = uploads
       .map((u) => u.previewUrl)
       .filter((url): url is string => Boolean(url));
