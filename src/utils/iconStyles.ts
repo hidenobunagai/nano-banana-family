@@ -5,7 +5,11 @@
  */
 
 export type IconStyleId =
-  "flat-minimal" | "gradient-modern" | "illustrated" | "photo-circle" | "auto";
+  | "flat-minimal"
+  | "gradient-modern"
+  | "illustrated"
+  | "photo-circle"
+  | "auto";
 
 export interface IconStyle {
   id: IconStyleId;
