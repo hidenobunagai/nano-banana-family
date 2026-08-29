@@ -102,6 +102,8 @@ describe("StoryCreator", () => {
 
     // Reset editor
     fireEvent.click(screen.getByRole("button", { name: "最初からやり直す" }));
-    expect(screen.getByText(/写真を選ぶと、AI が絵本や漫画のストーリー作品を自動生成します/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/写真を選ぶと、AI が絵本や漫画のストーリー作品を自動生成します/),
+    ).toBeInTheDocument();
   });
 });

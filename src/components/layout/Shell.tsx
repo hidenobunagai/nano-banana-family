@@ -114,6 +114,7 @@ export function Shell({ children, onSignOut, navMode, onNavModeChange }: ShellPr
           <div className="max-w-[1400px] mx-auto w-full">
             {children}
           </div>
+          <div className="max-w-[1400px] mx-auto w-full">{children}</div>
         </div>
       </main>
 

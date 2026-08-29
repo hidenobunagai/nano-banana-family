@@ -45,7 +45,11 @@ vi.mock("@/utils/server/cache", () => ({
 
 import { POST } from "./route";
 
-function createRequest(storyType = "picture-book", images?: File[], customPrompt?: string): Request {
+function createRequest(
+  storyType = "picture-book",
+  images?: File[],
+  customPrompt?: string,
+): Request {
   const fd = new FormData();
   fd.set("storyType", storyType);
   fd.set("tone", "funny");

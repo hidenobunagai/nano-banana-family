@@ -41,4 +41,3 @@ export const CreateStoryFormSchema = z.object({
     .min(1, "写真を1枚以上アップロードしてください")
     .max(5, "写真は最大5枚までアップロードできます"),
 });
-

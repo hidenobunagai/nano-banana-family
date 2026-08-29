@@ -53,6 +53,7 @@ describe("withApiAuth", () => {
     const result = await withApiAuth("test-route");
 
     expect(result.ok).toBe(false);
+    if (result.ok) throw new Error("Expected ok: false");
     expect(result.response.status).toBe(401);
   });
 
@@ -64,6 +65,7 @@ describe("withApiAuth", () => {
     const result = await withApiAuth("test-route");
 
     expect(result.ok).toBe(false);
+    if (result.ok) throw new Error("Expected ok: false");
     expect(result.response.status).toBe(429);
     expect(mockCheckRateLimit).toHaveBeenCalledWith("test@example.com");
   });
@@ -76,6 +78,7 @@ describe("withApiAuth", () => {
     const result = await withApiAuth("test-route");
 
     expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error("Expected ok: true");
     expect(result.session).toEqual(mockSession);
     expect(result.apiKey).toBe("test-api-key");
   });
@@ -88,6 +91,7 @@ describe("withApiAuth", () => {
     const result = await withApiAuth("test-route");
 
     expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error("Expected ok: true");
     expect(mockCheckRateLimit).toHaveBeenCalledWith("anonymous");
   });
 
@@ -100,6 +104,7 @@ describe("withApiAuth", () => {
     const result = await withApiAuth("test-route");
 
     expect(result.ok).toBe(false);
+    if (result.ok) throw new Error("Expected ok: false");
     expect(result.response.status).toBe(500);
 
     // Restore for other tests

@@ -2,11 +2,7 @@
 
 import { Button, cn } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
-import {
-  deleteFromGallery,
-  loadFromGallery,
-  type GalleryItem,
-} from "@/utils/galleryStorage";
+import { deleteFromGallery, loadFromGallery, type GalleryItem } from "@/utils/galleryStorage";
 import { Copy, Download, Image as ImageIcon, Trash2, X } from "lucide-react";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -123,7 +119,10 @@ export function GalleryModal({ isOpen, onClose, onSelectImage }: GalleryModalPro
         <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-neutral-200)]">
           <div className="flex items-center gap-2">
             <ImageIcon className="w-5 h-5 text-[var(--color-primary-600)]" />
-            <h2 id="gallery-modal-title" className="text-std-18 font-bold text-[var(--color-neutral-900)]">
+            <h2
+              id="gallery-modal-title"
+              className="text-std-18 font-bold text-[var(--color-neutral-900)]"
+            >
               作品ギャラリー ({items.length}件)
             </h2>
           </div>

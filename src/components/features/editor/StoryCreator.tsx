@@ -89,13 +89,18 @@ const MAX_RECENT_PROMPTS = 6;
 
 export function StoryCreator() {
   const toast = useToast();
-  const [storyType, setStoryType] = useState<"picture-book" | "comic" | "newspaper">("picture-book");
+  const [storyType, setStoryType] = useState<"picture-book" | "comic" | "newspaper">(
+    "picture-book",
+  );
   const [tone, setTone] = useState<"funny" | "cute" | "adventure" | "warm">("funny");
   const [language, setLanguage] = useState<"ja" | "en">("ja");
   const [isComparing, setIsComparing] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const { recentPrompts, pushRecent } = useRecentPrompts("story-recent-prompts", MAX_RECENT_PROMPTS);
+  const { recentPrompts, pushRecent } = useRecentPrompts(
+    "story-recent-prompts",
+    MAX_RECENT_PROMPTS,
+  );
   const {
     value: customPrompt,
     handleChange: handlePromptChange,
