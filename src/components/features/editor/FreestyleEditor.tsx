@@ -11,7 +11,7 @@ const PromptReferencePicker = dynamic(
 
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Button } from "@/components/ui/Button";
-import { FileInput, FileInputLabel } from "@/components/ui/FileInput";
+import { ImageUploadGrid } from "@/components/ui/ImageUploadGrid";
 import { PromptTextarea } from "@/components/ui/PromptTextarea";
 import { StarterChips } from "@/components/ui/StarterChips";
 import { ToneChips } from "@/components/ui/ToneChips";
@@ -327,45 +327,14 @@ export function FreestyleEditor() {
     >
       <form onSubmit={handleSubmit} className="space-y-6">
         <Section title="1. 参考にしたい画像をアップロード">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {uploads.map((slot, index) => (
-              <div key={slot.id} className="relative group">
-                <FileInput
-                  subLabel={`参考画像 ${index + 1}`}
-                  previewUrl={slot.previewUrl}
-                  isOptimizing={optimizingIds.includes(slot.id)}
-                  onChange={(event) => handleFileChange(event, slot.id)}
-                />
-                {uploads.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveUploadSlot(slot.id)}
-                    aria-label={`参考画像 ${index + 1} を削除`}
-                    className="absolute top-2 right-2 rounded-[var(--radius-full)] bg-[var(--color-error-dark)]/90 p-1.5 text-white shadow-[var(--shadow-level-1)] transition-colors hover:bg-[var(--color-error-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error-dark)]"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-            ))}
-            {uploads.length < MAX_FREESTYLE_UPLOADS && (
-              <div className="flex flex-col">
-                <div aria-hidden="true" className="invisible select-none">
-                  <FileInputLabel subLabel={`参考画像 ${uploads.length + 1}`} />
-                </div>
-                <button
-                  type="button"
-                  onClick={addUploadSlot}
-                  className="h-48 w-full rounded-[var(--radius-lg)] border-2 border-dashed border-[var(--color-neutral-300)] bg-white text-[var(--color-neutral-500)] transition-colors hover:border-[var(--color-primary-400)] hover:bg-[var(--color-primary-50)] hover:text-[var(--color-primary-600)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)] flex flex-col items-center justify-center"
-                >
-                  <span className="block text-3xl">+</span>
-                  <span className="mt-2 block text-oln-14 font-medium">
-                    画像を追加（あと {MAX_FREESTYLE_UPLOADS - uploads.length} 枚）
-                  </span>
-                </button>
-              </div>
-            )}
-          </div>
+          <ImageUploadGrid
+            uploads={uploads}
+            maxUploads={MAX_FREESTYLE_UPLOADS}
+            optimizingIds={optimizingIds}
+            onFileChange={handleFileChange}
+            onRemoveSlot={handleRemoveUploadSlot}
+            onAddSlot={addUploadSlot}
+          />
         </Section>
 
         <Section title="2. 仕上がりのイメージを記入">

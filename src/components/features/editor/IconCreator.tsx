@@ -4,7 +4,7 @@ import { EditorLayout } from "@/components/layout/EditorLayout";
 import { ResultPane } from "@/components/features/editor/ResultPane";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Button, cn } from "@/components/ui/Button";
-import { FileInput } from "@/components/ui/FileInput";
+import { ImageUploadGrid } from "@/components/ui/ImageUploadGrid";
 import { PromptTextarea } from "@/components/ui/PromptTextarea";
 import { StarterChips } from "@/components/ui/StarterChips";
 import { ToneChips } from "@/components/ui/ToneChips";
@@ -363,40 +363,16 @@ export function IconCreator() {
         </Section>
 
         <Section title="3. 参考画像（任意）">
-          {uploads.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
-              {uploads.map((slot, index) => (
-                <div key={slot.id} className="relative">
-                  <FileInput
-                    subLabel={`参考画像 ${index + 1}`}
-                    previewUrl={slot.previewUrl}
-                    isOptimizing={optimizingIds.includes(slot.id)}
-                    onChange={(event) => handleFileChange(event, slot.id)}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveUploadSlot(slot.id)}
-                    aria-label={`参考画像 ${index + 1} を削除`}
-                    className="absolute top-2 right-2 rounded-[var(--radius-full)] bg-[var(--color-error-dark)]/90 p-1.5 text-white shadow-[var(--shadow-level-1)] transition-colors hover:bg-[var(--color-error-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error-dark)]"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-          {uploads.length < MAX_ICON_UPLOADS && (
-            <button
-              type="button"
-              onClick={addUploadSlot}
-              className="w-full h-20 rounded-[var(--radius-lg)] border-2 border-dashed border-[var(--color-neutral-300)] hover:border-[var(--color-primary-400)] hover:bg-[var(--color-primary-50)] transition-colors flex items-center justify-center text-[var(--color-neutral-500)] hover:text-[var(--color-primary-600)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]"
-            >
-              <span className="text-2xl mr-2">+</span>
-              <span className="text-oln-14 font-medium">
-                画像を追加（あと {MAX_ICON_UPLOADS - uploads.length} 枚）
-              </span>
-            </button>
-          )}
+          <ImageUploadGrid
+            uploads={uploads}
+            maxUploads={MAX_ICON_UPLOADS}
+            optimizingIds={optimizingIds}
+            onFileChange={handleFileChange}
+            onRemoveSlot={handleRemoveUploadSlot}
+            onAddSlot={addUploadSlot}
+            gridClassName="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"
+            addButtonHeight="compact"
+          />
         </Section>
 
         <Section title="4. スタイル">
