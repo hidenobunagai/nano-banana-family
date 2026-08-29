@@ -2,7 +2,13 @@
 
 import { EditorLayout } from "@/components/layout/EditorLayout";
 import { ResultPane } from "@/components/features/editor/ResultPane";
-import { PromptReferencePicker } from "@/components/PromptReferencePicker";
+import dynamic from "next/dynamic";
+
+const PromptReferencePicker = dynamic(
+  () => import("@/components/PromptReferencePicker").then((mod) => mod.PromptReferencePicker),
+  { ssr: false },
+);
+
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Button } from "@/components/ui/Button";
 import { FileInput, FileInputLabel } from "@/components/ui/FileInput";
