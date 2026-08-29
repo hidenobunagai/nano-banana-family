@@ -5,42 +5,44 @@ import { useCallback, useState } from "react";
  * The current position is always the last item after a push.
  */
 export function useResultHistory(maxItems: number) {
-  const [history, setHistory] = useState<string[]>([]);
-  const [historyIndex, setHistoryIndex] = useState(-1);
+  const [state, setState] = useState<{ items: string[]; index: number }>({
+    items: [],
+    index: -1,
+  });
 
   const pushResult = useCallback(
     (image: string) => {
-      setHistory((prev) => {
-        const next = [...prev, image];
-        return next.length > maxItems ? next.slice(next.length - maxItems) : next;
+      setState((prev) => {
+        const nextItems = [...prev.items, image];
+        const bounded =
+          nextItems.length > maxItems ? nextItems.slice(nextItems.length - maxItems) : nextItems;
+        return {
+          items: bounded,
+          index: bounded.length - 1,
+        };
       });
-      setHistoryIndex((prev) => Math.min(prev + 1, maxItems - 1));
     },
     [maxItems],
   );
 
-  const navigateTo = useCallback(
-    (index: number) => {
-      setHistoryIndex((prev) => {
-        if (index < 0 || index >= history.length) return prev;
-        return index;
-      });
-    },
-    [history.length],
-  );
+  const navigateTo = useCallback((index: number) => {
+    setState((prev) => {
+      if (index < 0 || index >= prev.items.length) return prev;
+      return { ...prev, index };
+    });
+  }, []);
 
   const reset = useCallback(() => {
-    setHistory([]);
-    setHistoryIndex(-1);
+    setState({ items: [], index: -1 });
   }, []);
 
   return {
-    history,
-    historyIndex,
+    history: state.items,
+    historyIndex: state.index,
     pushResult,
     navigateTo,
-    canGoBack: historyIndex > 0,
-    canGoForward: historyIndex < history.length - 1,
+    canGoBack: state.index > 0,
+    canGoForward: state.index < state.items.length - 1,
     reset,
   };
 }

@@ -69,4 +69,21 @@ describe("useResultHistory", () => {
     expect(result.current.history).toEqual([]);
     expect(result.current.historyIndex).toBe(-1);
   });
+
+  it("lands index at the newly pushed item even when previously viewing an older item", () => {
+    const { result } = renderHook(() => useResultHistory(4));
+
+    act(() => result.current.pushResult("img1"));
+    act(() => result.current.pushResult("img2"));
+    expect(result.current.historyIndex).toBe(1);
+
+    // Navigate back to the first item
+    act(() => result.current.navigateTo(0));
+    expect(result.current.historyIndex).toBe(0);
+
+    // Push a 3rd item
+    act(() => result.current.pushResult("img3"));
+    expect(result.current.history).toEqual(["img1", "img2", "img3"]);
+    expect(result.current.historyIndex).toBe(2);
+  });
 });
