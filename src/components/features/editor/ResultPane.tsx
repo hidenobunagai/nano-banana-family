@@ -176,7 +176,7 @@ export function ResultPane({
           timeRemaining={timeRemaining}
         />
       ) : resultImage ? (
-        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
+        <div className="space-y-4">
           {(history.total > 1 || actions) && (
             <div className="flex items-center justify-between gap-2">
               {history.total > 1 ? (
@@ -309,7 +309,7 @@ export function ResultPane({
               role="dialog"
               aria-modal="true"
               aria-label="生成画像の拡大表示"
-              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-opacity duration-200"
               onClick={() => setIsLightboxOpen(false)}
             >
               <div
