@@ -29,3 +29,16 @@ export const IconGenerateFormSchema = z.object({
   customPrompt: z.string().max(MAX_PROMPT_LENGTH).optional(),
   images: z.array(z.instanceof(File)).max(3, "画像は最大3枚までアップロードできます"),
 });
+
+// Create story form data schema
+export const CreateStoryFormSchema = z.object({
+  storyType: z.enum(["picture-book", "comic", "newspaper"]).default("picture-book"),
+  tone: z.enum(["funny", "cute", "adventure", "warm"]).default("funny"),
+  language: z.enum(["ja", "en"]).default("ja"),
+  customPrompt: z.string().max(MAX_PROMPT_LENGTH).optional(),
+  images: z
+    .array(z.instanceof(File))
+    .min(1, "写真を1枚以上アップロードしてください")
+    .max(5, "写真は最大5枚までアップロードできます"),
+});
+

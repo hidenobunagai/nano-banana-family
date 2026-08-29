@@ -25,21 +25,21 @@ export function GalleryModal({ isOpen, onClose, onSelectImage }: GalleryModalPro
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
-  const fetchItems = useCallback(async () => {
-    setIsLoading(true);
-    const loaded = await loadFromGallery();
-    setItems(loaded);
-    setIsLoading(false);
-  }, []);
-
   useEffect(() => {
+    let ignore = false;
     if (isOpen) {
-      void fetchItems();
+      loadFromGallery().then((loaded) => {
+        if (!ignore) {
+          setItems(loaded);
+          setIsLoading(false);
+        }
+      });
       closeButtonRef.current?.focus();
-    } else {
-      setSelectedItem(null);
     }
-  }, [isOpen, fetchItems]);
+    return () => {
+      ignore = true;
+    };
+  }, [isOpen]);
 
   // Focus trap and Escape handler
   useEffect(() => {
@@ -99,6 +99,11 @@ export function GalleryModal({ isOpen, onClose, onSelectImage }: GalleryModalPro
     }
   };
 
+  const handleClose = () => {
+    setSelectedItem(null);
+    onClose();
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -108,7 +113,7 @@ export function GalleryModal({ isOpen, onClose, onSelectImage }: GalleryModalPro
       aria-modal="true"
       aria-labelledby="gallery-modal-title"
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-      onClick={onClose}
+      onClick={handleClose}
     >
       <div
         className="relative w-full max-w-4xl max-h-[85vh] bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-[var(--color-neutral-300)]"
@@ -125,7 +130,7 @@ export function GalleryModal({ isOpen, onClose, onSelectImage }: GalleryModalPro
           <button
             ref={closeButtonRef}
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="p-2 rounded-full text-[var(--color-neutral-500)] hover:text-[var(--color-neutral-800)] hover:bg-[var(--color-neutral-100)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]"
             aria-label="閉じる"
           >

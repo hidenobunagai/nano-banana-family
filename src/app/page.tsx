@@ -2,13 +2,14 @@
 
 import { FreestyleEditor } from "@/components/features/editor/FreestyleEditor";
 import { IconCreator } from "@/components/features/editor/IconCreator";
+import { StoryCreator } from "@/components/features/editor/StoryCreator";
 import { Dock } from "@/components/layout/Dock";
 import { Shell } from "@/components/layout/Shell";
 import { LoadingStudio } from "@/components/layout/LoadingStudio";
 import { Button } from "@/components/ui/Button";
 import type { NavMode } from "@/types/nav";
 import { motion } from "framer-motion";
-import { Palette, UserCircle } from "lucide-react";
+import { BookOpen, Palette, UserCircle } from "lucide-react";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { useState } from "react";
 
@@ -43,21 +44,29 @@ export default function Home() {
             </div>
 
             {/* Features */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex items-center gap-3 rounded-2xl border border-[var(--color-neutral-300)] bg-white px-4 py-3 shadow-[var(--shadow-level-1)]">
+            <div className="grid grid-cols-3 gap-3">
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-3 rounded-2xl border border-[var(--color-neutral-300)] bg-white p-3 sm:px-4 sm:py-3 shadow-[var(--shadow-level-1)] text-center sm:text-left">
                 <div className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-xl bg-[var(--color-primary-50)] text-[var(--color-primary-600)]">
                   <Palette className="w-5 h-5" />
                 </div>
-                <span className="text-std-16 font-medium text-[var(--color-neutral-800)]">
+                <span className="text-std-14 sm:text-std-16 font-medium text-[var(--color-neutral-800)]">
                   自由生成
                 </span>
               </div>
-              <div className="flex items-center gap-3 rounded-2xl border border-[var(--color-neutral-300)] bg-white px-4 py-3 shadow-[var(--shadow-level-1)]">
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-3 rounded-2xl border border-[var(--color-neutral-300)] bg-white p-3 sm:px-4 sm:py-3 shadow-[var(--shadow-level-1)] text-center sm:text-left">
                 <div className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-xl bg-[var(--color-primary-50)] text-[var(--color-primary-600)]">
                   <UserCircle className="w-5 h-5" />
                 </div>
-                <span className="text-std-16 font-medium text-[var(--color-neutral-800)]">
-                  アイコン作成
+                <span className="text-std-14 sm:text-std-16 font-medium text-[var(--color-neutral-800)]">
+                  アイコン
+                </span>
+              </div>
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-3 rounded-2xl border border-[var(--color-neutral-300)] bg-white p-3 sm:px-4 sm:py-3 shadow-[var(--shadow-level-1)] text-center sm:text-left">
+                <div className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-xl bg-[var(--color-primary-50)] text-[var(--color-primary-600)]">
+                  <BookOpen className="w-5 h-5" />
+                </div>
+                <span className="text-std-14 sm:text-std-16 font-medium text-[var(--color-neutral-800)]">
+                  ストーリー
                 </span>
               </div>
             </div>
@@ -90,7 +99,13 @@ export default function Home() {
         transition={{ duration: 0.3 }}
         className="w-full"
       >
-        {mode === "freestyle" ? <FreestyleEditor /> : <IconCreator />}
+        {mode === "freestyle" ? (
+          <FreestyleEditor />
+        ) : mode === "icon" ? (
+          <IconCreator />
+        ) : (
+          <StoryCreator />
+        )}
       </motion.div>
 
       <Dock currentMode={mode} onModeChange={setMode} />
