@@ -20,6 +20,7 @@ import { useUndoRedoShortcuts } from "@/hooks/useUndoRedoShortcuts";
 import { useUploadSlots } from "@/hooks/useUploadSlots";
 import { ICON_STYLES } from "@/utils/iconStyles";
 import { MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
+import { saveToGallery } from "@/utils/galleryStorage";
 import { useToast } from "@/components/ui/Toast";
 import { Check, Globe, Loader2, Sparkles, User, X } from "lucide-react";
 import Image from "next/image";
@@ -115,8 +116,19 @@ export function IconCreator() {
     downloadPrefix: "icon",
     onBeforeSubmit: clearStacks,
     onSuccess: (image) => {
-      if (customPrompt.trim()) pushRecent(customPrompt);
+      if (customPrompt.trim()) pushRecent(customPrompt.trim());
       pushResult(image);
+      const commaIndex = image.indexOf(",");
+      const mimeMatch = image.match(/^data:([^;]+);base64,/);
+      if (commaIndex !== -1) {
+        void saveToGallery({
+          mode: "icon",
+          title: name.trim() || "アイコン",
+          prompt: customPrompt.trim(),
+          imageBase64: image.slice(commaIndex + 1),
+          mimeType: mimeMatch?.[1] || "image/png",
+        });
+      }
     },
     onFinished: (elapsedMs) => completeProgress(elapsedMs),
   });

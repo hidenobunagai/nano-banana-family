@@ -2,10 +2,12 @@
 
 import { Button, cn } from "@/components/ui/Button";
 import { NAV_ITEMS, type NavMode } from "@/types/nav";
+import { GalleryModal } from "@/components/features/gallery/GalleryModal";
 import { motion } from "framer-motion";
-import { LogOut } from "lucide-react";
+import { Image as ImageIcon, LogOut } from "lucide-react";
 import { useSession } from "next-auth/react";
 import * as React from "react";
+import { useState } from "react";
 
 interface ShellProps {
   children: React.ReactNode;
@@ -16,6 +18,7 @@ interface ShellProps {
 
 export function Shell({ children, onSignOut, navMode, onNavModeChange }: ShellProps) {
   const { data: session } = useSession();
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
 
   return (
     <div className="flex h-dvh w-full overflow-hidden text-[var(--color-neutral-900)] selection:bg-[var(--color-primary-600)]/20">
@@ -56,6 +59,17 @@ export function Shell({ children, onSignOut, navMode, onNavModeChange }: ShellPr
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsGalleryOpen(true)}
+              aria-label="作品ギャラリーを開く"
+              className="text-[var(--color-neutral-600)] hover:text-[var(--color-primary-600)] hover:bg-[var(--color-primary-50)] gap-1.5"
+            >
+              <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">ギャラリー</span>
+            </Button>
+
             {session?.user && (
               <div className="flex items-center gap-2 px-2.5 py-1 rounded-[var(--radius-full)] bg-[var(--color-neutral-100)] border border-[var(--color-neutral-200)]">
                 {session.user.image ? (
@@ -102,6 +116,8 @@ export function Shell({ children, onSignOut, navMode, onNavModeChange }: ShellPr
           </div>
         </div>
       </main>
+
+      <GalleryModal isOpen={isGalleryOpen} onClose={() => setIsGalleryOpen(false)} />
     </div>
   );
 }

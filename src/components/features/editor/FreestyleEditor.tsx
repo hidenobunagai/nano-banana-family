@@ -27,6 +27,7 @@ import { useUndoRedoShortcuts } from "@/hooks/useUndoRedoShortcuts";
 import { useUploadSlots } from "@/hooks/useUploadSlots";
 import { MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
 import { STYLE_SUGGESTIONS } from "@/utils/server/stylePrompts";
+import { saveToGallery } from "@/utils/galleryStorage";
 import { useToast } from "@/components/ui/Toast";
 import { BookOpen, Copy, Download, Loader2, Wand2, X } from "lucide-react";
 import Image from "next/image";
@@ -114,6 +115,16 @@ export function FreestyleEditor() {
     onSuccess: (image) => {
       pushRecent(prompt);
       pushResult(image);
+      const commaIndex = image.indexOf(",");
+      const mimeMatch = image.match(/^data:([^;]+);base64,/);
+      if (commaIndex !== -1) {
+        void saveToGallery({
+          mode: "freestyle",
+          prompt,
+          imageBase64: image.slice(commaIndex + 1),
+          mimeType: mimeMatch?.[1] || "image/png",
+        });
+      }
     },
     onFinished: (elapsedMs) => completeProgress(elapsedMs),
   });
