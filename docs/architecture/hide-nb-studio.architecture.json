@@ -2,31 +2,31 @@
   "schema_version": 1,
   "diagram_type": "architecture",
   "meta": {
-    "title": "Hide NB Studio — アーキテクチャ概観",
+    "title": "Hide NB Studio — Architecture Overview",
     "quality_profile": "showcase",
-    "viewBox": [1020, 600],
+    "viewBox": [1020, 510],
     "repository": {
       "url": "https://github.com/hidenobunagai/nano-banana-family.git",
-      "revision": "0077b346a0ec9edefd901c786a74124e26acba54"
+      "revision": "52e03c3ed5d3154831d339565b3797db95fb1442"
     },
     "views": [
       {
         "id": "gen-flow",
-        "label": "画像生成フロー",
+        "label": "Image Generation Flow",
         "focus": ["family", "auth", "frontend", "api", "cache", "gemini"],
-        "note": "家族の写真とプロンプトが Gemini で画像化され、結果が返るメイン経路"
+        "note": "Main path where family photos and creative prompts are converted by Gemini API into generated images"
       },
       {
         "id": "identity",
-        "label": "認証とアクセス制御",
+        "label": "Auth & Access Control",
         "focus": ["family", "auth", "google-oauth", "frontend", "api"],
-        "note": "Google OAuth + ALLOWED_EMAILS とサーバー側セッション検証"
+        "note": "Google OAuth + ALLOWED_EMAILS whitelist with server-side session validation"
       },
       {
         "id": "guards",
-        "label": "ガードレールと計測",
+        "label": "Guardrails & Observability",
         "focus": ["api", "cache", "rate-limit", "url-meta", "analytics"],
-        "note": "バリデーション・レート制限・キャッシュ・OG 取得・計測のサイドパス"
+        "note": "Side-paths for validation, rate limiting, in-memory caching, OG metadata fetching, and analytics"
       }
     ]
   },
@@ -34,25 +34,25 @@
     {
       "id": "family",
       "type": "external",
-      "label": "家族メンバー",
-      "sublabel": "ブラウザ / スマホ",
-      "pos": [20, 300],
+      "label": "Family Members",
+      "sublabel": "Browser / Mobile PWA",
+      "pos": [20, 240],
       "size": [140, 64]
     },
     {
       "id": "google-oauth",
       "type": "external",
       "label": "Google OAuth 2.0",
-      "sublabel": "Google アカウント連携",
-      "pos": [20, 140],
+      "sublabel": "Google Account Auth",
+      "pos": [20, 110],
       "size": [140, 56]
     },
     {
       "id": "auth",
       "type": "security",
-      "label": "NextAuth 認証ゲート",
-      "sublabel": "Google OAuth + ALLOWED_EMAILS",
-      "tag": "middleware 全ルート保護",
+      "label": "NextAuth Gate",
+      "sublabel": "Google OAuth + Whitelist",
+      "tag": "middleware route guard",
       "sources": [
         {
           "path": "src/auth.ts"
@@ -61,7 +61,7 @@
           "path": "src/middleware.ts"
         }
       ],
-      "pos": [190, 300],
+      "pos": [190, 240],
       "size": [140, 64]
     },
     {
@@ -79,7 +79,7 @@
           "path": "src/components/features/editor/FreestyleEditor.tsx"
         }
       ],
-      "pos": [360, 300],
+      "pos": [360, 240],
       "size": [170, 72]
     },
     {
@@ -99,7 +99,7 @@
           "path": "src/app/api/create-story/route.ts"
         }
       ],
-      "pos": [560, 300],
+      "pos": [560, 240],
       "size": [190, 72]
     },
     {
@@ -113,40 +113,40 @@
           "path": "src/utils/server/imageGeneration.ts"
         }
       ],
-      "pos": [790, 300],
+      "pos": [790, 240],
       "size": [170, 72]
     },
     {
       "id": "cache",
       "type": "database",
-      "label": "インメモリキャッシュ",
-      "sublabel": "5 分 TTL · fingerprint キー",
+      "label": "In-Memory Cache",
+      "sublabel": "5-min TTL · cache key",
       "sources": [
         {
           "path": "src/utils/server/cache.ts"
         }
       ],
-      "pos": [560, 510],
+      "pos": [560, 420],
       "size": [130, 60]
     },
     {
       "id": "rate-limit",
       "type": "security",
-      "label": "レート制限",
-      "sublabel": "10 回 / 分 / ユーザー",
+      "label": "Rate Limiter",
+      "sublabel": "10 req/min per user",
       "sources": [
         {
           "path": "src/utils/server/rateLimit.ts"
         }
       ],
-      "pos": [720, 510],
+      "pos": [720, 420],
       "size": [130, 60]
     },
     {
       "id": "url-meta",
       "type": "external",
-      "label": "外部サイト",
-      "sublabel": "OG 画像・メタデータ取得",
+      "label": "External Web",
+      "sublabel": "OG image & metadata fetch",
       "sources": [
         {
           "path": "src/utils/server/urlMetadata.ts"
@@ -155,7 +155,7 @@
           "path": "src/utils/server/imageProcessing.ts"
         }
       ],
-      "pos": [880, 510],
+      "pos": [880, 420],
       "size": [120, 60]
     },
     {
@@ -169,19 +169,19 @@
           "path": "src/app/layout.tsx"
         }
       ],
-      "pos": [360, 140],
+      "pos": [360, 110],
       "size": [170, 56]
     }
   ],
   "boundaries": [
     {
       "kind": "region",
-      "label": "Vercel デプロイ (Hide NB Studio)",
+      "label": "Vercel Deployment (Hide NB Studio)",
       "wraps": ["auth", "frontend", "api", "cache", "rate-limit", "analytics"]
     },
     {
       "kind": "security-group",
-      "label": "NextAuth セッション保護",
+      "label": "NextAuth Session Guard",
       "wraps": ["auth", "frontend", "api"]
     }
   ],
@@ -198,22 +198,22 @@
       "id": "auth-to-google",
       "from": "auth",
       "to": "google-oauth",
-      "label": "OAuth 2.0 認可",
+      "label": "OAuth 2.0 Authorize",
       "variant": "security"
     },
     {
       "id": "auth-to-frontend",
       "from": "auth",
       "to": "frontend",
-      "label": "認可済みアクセス",
-      "labelDy": 80
+      "label": "Authenticated Access",
+      "labelDy": 70
     },
     {
       "id": "frontend-to-api",
       "from": "frontend",
       "to": "api",
       "label": "multipart POST",
-      "labelAt": [552, 383]
+      "labelAt": [545, 335]
     },
     {
       "id": "api-to-gemini",
@@ -221,34 +221,34 @@
       "to": "gemini",
       "label": "generateContent",
       "variant": "emphasis",
-      "labelDy": 74
+      "labelDy": 70
     },
     {
       "id": "api-to-cache",
       "from": "api",
       "to": "cache",
-      "label": "参照 / 保存",
+      "label": "Lookup / Store",
       "variant": "dashed",
       "fromSide": "bottom",
       "toSide": "top",
-      "labelAt": [640, 505]
+      "labelAt": [640, 415]
     },
     {
       "id": "api-to-rate",
       "from": "api",
       "to": "rate-limit",
-      "label": "スライディング ウィンドウ",
+      "label": "Sliding Window Check",
       "variant": "security",
       "fromSide": "bottom",
       "toSide": "top",
-      "labelDy": 40,
+      "labelDy": 30,
       "labelDx": -5
     },
     {
       "id": "api-to-urlmeta",
       "from": "api",
       "to": "url-meta",
-      "label": "OG 画像取得 (アイコン)",
+      "label": "Fetch OG Image (Icons)",
       "variant": "dashed",
       "fromSide": "bottom",
       "toSide": "top"
@@ -257,31 +257,34 @@
       "id": "frontend-to-analytics",
       "from": "frontend",
       "to": "analytics",
-      "label": "ビーコン送信",
+      "label": "Telemetry Beacon",
       "variant": "dashed"
     }
   ],
   "cards": [
     {
       "dot": "cyan",
-      "title": "クライアント (SPA)",
+      "title": "Client (SPA / PWA)",
       "items": [
         "Next.js 16 App Router + React 19 (Turbopack)",
-        "3 モード: 自由生成 / アイコン / ストーリー"
+        "3 creation modes: Freestyle, Icon Creator, and Story"
       ]
     },
     {
       "dot": "emerald",
-      "title": "サーバー側 (Route Handlers)",
+      "title": "Server (Route Handlers)",
       "items": [
-        "withApiAuth ガード + zod 検証 + インメモリキャッシュ",
-        "Gemini 画像生成 (maxDuration 300s)"
+        "withApiAuth guard + Zod validation + in-memory cache",
+        "Google Gemini image generation (maxDuration 300s)"
       ]
     },
     {
       "dot": "rose",
-      "title": "セキュリティ / 計測",
-      "items": ["Google OAuth + ALLOWED_EMAILS 制限", "CSP ヘッダ + Vercel Analytics / GTM"]
+      "title": "Security & Observability",
+      "items": [
+        "Google OAuth restricted to ALLOWED_EMAILS",
+        "Strict CSP headers + Vercel Analytics / GTM telemetry"
+      ]
     }
   ]
 }
