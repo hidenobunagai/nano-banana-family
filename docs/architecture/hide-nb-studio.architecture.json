@@ -4,10 +4,7 @@
   "meta": {
     "title": "Hide NB Studio — アーキテクチャ概観",
     "quality_profile": "showcase",
-    "viewBox": [
-      1020,
-      600
-    ],
+    "viewBox": [1020, 600],
     "repository": {
       "url": "https://github.com/hidenobunagai/nano-banana-family.git",
       "revision": "0077b346a0ec9edefd901c786a74124e26acba54"
@@ -16,38 +13,19 @@
       {
         "id": "gen-flow",
         "label": "画像生成フロー",
-        "focus": [
-          "family",
-          "auth",
-          "frontend",
-          "api",
-          "cache",
-          "gemini"
-        ],
+        "focus": ["family", "auth", "frontend", "api", "cache", "gemini"],
         "note": "家族の写真とプロンプトが Gemini で画像化され、結果が返るメイン経路"
       },
       {
         "id": "identity",
         "label": "認証とアクセス制御",
-        "focus": [
-          "family",
-          "auth",
-          "google-oauth",
-          "frontend",
-          "api"
-        ],
+        "focus": ["family", "auth", "google-oauth", "frontend", "api"],
         "note": "Google OAuth + ALLOWED_EMAILS とサーバー側セッション検証"
       },
       {
         "id": "guards",
         "label": "ガードレールと計測",
-        "focus": [
-          "api",
-          "cache",
-          "rate-limit",
-          "url-meta",
-          "analytics"
-        ],
+        "focus": ["api", "cache", "rate-limit", "url-meta", "analytics"],
         "note": "バリデーション・レート制限・キャッシュ・OG 取得・計測のサイドパス"
       }
     ]
@@ -58,28 +36,16 @@
       "type": "external",
       "label": "家族メンバー",
       "sublabel": "ブラウザ / スマホ",
-      "pos": [
-        20,
-        300
-      ],
-      "size": [
-        140,
-        64
-      ]
+      "pos": [20, 300],
+      "size": [140, 64]
     },
     {
       "id": "google-oauth",
       "type": "external",
       "label": "Google OAuth 2.0",
       "sublabel": "Google アカウント連携",
-      "pos": [
-        20,
-        140
-      ],
-      "size": [
-        140,
-        56
-      ]
+      "pos": [20, 140],
+      "size": [140, 56]
     },
     {
       "id": "auth",
@@ -95,14 +61,8 @@
           "path": "src/middleware.ts"
         }
       ],
-      "pos": [
-        190,
-        300
-      ],
-      "size": [
-        140,
-        64
-      ]
+      "pos": [190, 300],
+      "size": [140, 64]
     },
     {
       "id": "frontend",
@@ -119,14 +79,8 @@
           "path": "src/components/features/editor/FreestyleEditor.tsx"
         }
       ],
-      "pos": [
-        360,
-        300
-      ],
-      "size": [
-        170,
-        72
-      ]
+      "pos": [360, 300],
+      "size": [170, 72]
     },
     {
       "id": "api",
@@ -145,14 +99,8 @@
           "path": "src/app/api/create-story/route.ts"
         }
       ],
-      "pos": [
-        560,
-        300
-      ],
-      "size": [
-        190,
-        72
-      ]
+      "pos": [560, 300],
+      "size": [190, 72]
     },
     {
       "id": "gemini",
@@ -165,14 +113,8 @@
           "path": "src/utils/server/imageGeneration.ts"
         }
       ],
-      "pos": [
-        790,
-        300
-      ],
-      "size": [
-        170,
-        72
-      ]
+      "pos": [790, 300],
+      "size": [170, 72]
     },
     {
       "id": "cache",
@@ -184,14 +126,8 @@
           "path": "src/utils/server/cache.ts"
         }
       ],
-      "pos": [
-        560,
-        510
-      ],
-      "size": [
-        130,
-        60
-      ]
+      "pos": [560, 510],
+      "size": [130, 60]
     },
     {
       "id": "rate-limit",
@@ -203,14 +139,8 @@
           "path": "src/utils/server/rateLimit.ts"
         }
       ],
-      "pos": [
-        720,
-        510
-      ],
-      "size": [
-        130,
-        60
-      ]
+      "pos": [720, 510],
+      "size": [130, 60]
     },
     {
       "id": "url-meta",
@@ -225,14 +155,8 @@
           "path": "src/utils/server/imageProcessing.ts"
         }
       ],
-      "pos": [
-        880,
-        510
-      ],
-      "size": [
-        120,
-        60
-      ]
+      "pos": [880, 510],
+      "size": [120, 60]
     },
     {
       "id": "analytics",
@@ -245,37 +169,20 @@
           "path": "src/app/layout.tsx"
         }
       ],
-      "pos": [
-        360,
-        140
-      ],
-      "size": [
-        170,
-        56
-      ]
+      "pos": [360, 140],
+      "size": [170, 56]
     }
   ],
   "boundaries": [
     {
       "kind": "region",
       "label": "Vercel デプロイ (Hide NB Studio)",
-      "wraps": [
-        "auth",
-        "frontend",
-        "api",
-        "cache",
-        "rate-limit",
-        "analytics"
-      ]
+      "wraps": ["auth", "frontend", "api", "cache", "rate-limit", "analytics"]
     },
     {
       "kind": "security-group",
       "label": "NextAuth セッション保護",
-      "wraps": [
-        "auth",
-        "frontend",
-        "api"
-      ]
+      "wraps": ["auth", "frontend", "api"]
     }
   ],
   "connections": [
@@ -306,10 +213,7 @@
       "from": "frontend",
       "to": "api",
       "label": "multipart POST",
-      "labelAt": [
-        552,
-        383
-      ]
+      "labelAt": [552, 383]
     },
     {
       "id": "api-to-gemini",
@@ -327,10 +231,7 @@
       "variant": "dashed",
       "fromSide": "bottom",
       "toSide": "top",
-      "labelAt": [
-        640,
-        505
-      ]
+      "labelAt": [640, 505]
     },
     {
       "id": "api-to-rate",
@@ -380,10 +281,7 @@
     {
       "dot": "rose",
       "title": "セキュリティ / 計測",
-      "items": [
-        "Google OAuth + ALLOWED_EMAILS 制限",
-        "CSP ヘッダ + Vercel Analytics / GTM"
-      ]
+      "items": ["Google OAuth + ALLOWED_EMAILS 制限", "CSP ヘッダ + Vercel Analytics / GTM"]
     }
   ]
 }
