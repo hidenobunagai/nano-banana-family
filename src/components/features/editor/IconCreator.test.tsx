@@ -148,7 +148,9 @@ describe("IconCreator", () => {
     fireEvent.click(screen.getByRole("button", { name: /画像を追加/ }));
     const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
     fireEvent.change(fileInput, { target: { files: [makeFile("ref.png")] } });
-    await waitFor(() => expect(fileInput.files?.[0]).toBeTruthy());
+    await waitFor(() =>
+      expect(screen.getByAltText("選択した参考画像のプレビュー")).toBeInTheDocument(),
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "アイコンを生成" }));
     await screen.findByAltText("テスト連絡先 の生成アイコン");

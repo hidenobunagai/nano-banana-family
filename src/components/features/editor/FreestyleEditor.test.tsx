@@ -41,7 +41,9 @@ function mockFetchSuccess() {
 async function uploadFirstFile(container: HTMLElement) {
   const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
   fireEvent.change(fileInput, { target: { files: [makeFile()] } });
-  await waitFor(() => expect(fileInput.files?.[0]).toBeTruthy());
+  await waitFor(() =>
+    expect(screen.getByAltText("選択した参考画像のプレビュー")).toBeInTheDocument(),
+  );
 }
 
 describe("FreestyleEditor", () => {
