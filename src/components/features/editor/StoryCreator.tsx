@@ -166,6 +166,8 @@ export function StoryCreator() {
           prompt: customPrompt.trim(),
           imageBase64: image.slice(commaIndex + 1),
           mimeType: mimeMatch?.[1] || "image/png",
+        }).then((saved) => {
+          if (!saved) toast.error("ギャラリーに保存できませんでした");
         });
       }
     },

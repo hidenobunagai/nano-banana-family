@@ -1,5 +1,8 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ToastProvider } from "@/components/ui/Toast";
+import * as storage from "@/utils/galleryStorage";
+import type { GalleryItem } from "@/utils/galleryStorage";
 import { FreestyleEditor } from "./FreestyleEditor";
 
 vi.mock("@/utils/imageOptimization", () => ({
@@ -149,5 +152,28 @@ describe("FreestyleEditor", () => {
     expect(screen.getByText("生成結果がここに表示されます")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Gemini に生成を依頼" })).toBeDisabled();
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("tells the user when the artwork could not be saved to the gallery", async () => {
+    mockFetchSuccess();
+    const saveSpy = vi
+      .spyOn(storage, "saveToGallery")
+      .mockResolvedValue(null as unknown as GalleryItem);
+    const { container } = render(
+      <ToastProvider>
+        <FreestyleEditor />
+      </ToastProvider>,
+    );
+
+    fireEvent.change(screen.getByPlaceholderText(/仕上がりのイメージ/), {
+      target: { value: "かっこいい感じに" },
+    });
+    await uploadFirstFile(container);
+    fireEvent.click(screen.getByRole("button", { name: "Gemini に生成を依頼" }));
+
+    expect(await screen.findByText("ギャラリーに保存できませんでした")).toBeInTheDocument();
+    expect(saveSpy).toHaveBeenCalledTimes(1);
+
+    saveSpy.mockRestore();
   });
 });

@@ -1,6 +1,8 @@
 /**
  * IndexedDB-backed local gallery for persisting generated images on the client.
- * Falls back to in-memory store in environments where IndexedDB is unavailable (SSR, testing).
+ * Falls back to an in-memory store where IndexedDB is unavailable (SSR, testing).
+ * A failed IndexedDB write is reported to the caller instead of being masked by an
+ * in-memory copy, which would look like a successful save but vanish on reload.
  */
 
 export interface GalleryItem {
@@ -48,11 +50,82 @@ function openDB(): Promise<IDBDatabase> {
 }
 
 /**
+ * Delete the oldest items beyond MAX_GALLERY_ITEMS by walking the createdAt index,
+ * so pruning advances one item at a time instead of loading every stored image.
+ * The index has existed since the first database version, so no migration is needed.
+ */
+function pruneGallery(db: IDBDatabase): Promise<void> {
+  return new Promise((resolve, reject) => {
+    let transaction: IDBTransaction;
+    try {
+      transaction = db.transaction(STORE_NAME, "readwrite");
+    } catch (error) {
+      reject(error);
+      return;
+    }
+
+    const store = transaction.objectStore(STORE_NAME);
+    const countRequest = store.count();
+
+    countRequest.onerror = () => reject(countRequest.error);
+    countRequest.onsuccess = () => {
+      let remainingToDelete = countRequest.result - MAX_GALLERY_ITEMS;
+      if (remainingToDelete <= 0) {
+        resolve();
+        return;
+      }
+
+      // Oldest first: the items to drop are the first ones out of the index.
+      let cursorRequest: IDBRequest<IDBCursorWithValue | null>;
+      try {
+        cursorRequest = store.index("createdAt").openCursor();
+      } catch (error) {
+        reject(error);
+        return;
+      }
+
+      cursorRequest.onerror = () => reject(cursorRequest.error);
+      cursorRequest.onsuccess = () => {
+        const cursor = cursorRequest.result;
+        if (!cursor || remainingToDelete <= 0) {
+          resolve();
+          return;
+        }
+        cursor.delete();
+        remainingToDelete -= 1;
+        cursor.continue();
+      };
+    };
+  });
+}
+
+/**
+ * Put one item and wait for the transaction to commit. A quota failure can be
+ * reported either on the request or as an abort of the whole transaction, so
+ * both are treated as a failed write.
+ */
+function writeItem(db: IDBDatabase, item: GalleryItem): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    const store = tx.objectStore(STORE_NAME);
+
+    tx.oncomplete = () => resolve();
+    tx.onabort = () => reject(tx.error ?? new Error("Gallery transaction aborted"));
+    tx.onerror = () => reject(tx.error ?? new Error("Gallery transaction failed"));
+
+    const putReq = store.put(item);
+    putReq.onerror = () => reject(putReq.error);
+  });
+}
+
+/**
  * Save an artwork to the gallery. Prunes items beyond MAX_GALLERY_ITEMS.
+ * Returns null when IndexedDB is present but the write failed, so callers can
+ * tell the user the artwork was not saved.
  */
 export async function saveToGallery(
   item: Omit<GalleryItem, "id" | "createdAt"> & { id?: string; createdAt?: number },
-): Promise<GalleryItem> {
+): Promise<GalleryItem | null> {
   const newItem: GalleryItem = {
     ...item,
     id: item.id || `art_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
@@ -64,33 +137,29 @@ export async function saveToGallery(
     return newItem;
   }
 
+  let db: IDBDatabase;
   try {
-    const db = await openDB();
-    const tx = db.transaction(STORE_NAME, "readwrite");
-    const store = tx.objectStore(STORE_NAME);
-
-    await new Promise<void>((resolve, reject) => {
-      const putReq = store.put(newItem);
-      putReq.onsuccess = () => resolve();
-      putReq.onerror = () => reject(putReq.error);
-    });
-
-    // Prune oldest items if count exceeds limit
-    const allItems = await loadFromGallery();
-    if (allItems.length > MAX_GALLERY_ITEMS) {
-      const itemsToDelete = allItems.slice(MAX_GALLERY_ITEMS);
-      const deleteTx = db.transaction(STORE_NAME, "readwrite");
-      const delStore = deleteTx.objectStore(STORE_NAME);
-      for (const toDelete of itemsToDelete) {
-        delStore.delete(toDelete.id);
-      }
-    }
-
-    return newItem;
+    db = await openDB();
   } catch {
-    memoryStore.set(newItem.id, newItem);
-    return newItem;
+    // IndexedDB was present but unusable (blocked/denied upgrade); nothing was
+    // persisted, so report the failure rather than pretending to have saved.
+    return null;
   }
+
+  try {
+    await writeItem(db, newItem);
+  } catch {
+    // QuotaExceededError and friends: the artwork is not in the database.
+    return null;
+  }
+
+  try {
+    await pruneGallery(db);
+  } catch {
+    // Pruning is best-effort; the artwork itself was saved.
+  }
+
+  return newItem;
 }
 
 /**
