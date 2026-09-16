@@ -84,7 +84,6 @@ const STORY_PROGRESS_STEPS: ProgressStep[] = [
 ];
 
 const MAX_STORY_UPLOADS = 5;
-const MAX_HISTORY = 4;
 const MAX_RECENT_PROMPTS = 6;
 
 export function StoryCreator() {
@@ -117,9 +116,17 @@ export function StoryCreator() {
     history,
     historyIndex,
     pushResult,
-    navigateTo,
+    canGoBack,
+    canGoForward,
+    goBack,
+    goForward,
     reset: resetHistory,
-  } = useResultHistory(MAX_HISTORY);
+  } = useResultHistory({
+    onNavigate: (image) => {
+      setResultImage(image);
+      setIsComparing(false);
+    },
+  });
 
   const {
     submit,
@@ -227,24 +234,6 @@ export function StoryCreator() {
     void submit();
   };
 
-  const handleBack = () => {
-    if (historyIndex > 0) {
-      const prevIndex = historyIndex - 1;
-      navigateTo(prevIndex);
-      setResultImage(history[prevIndex]);
-      setIsComparing(false);
-    }
-  };
-
-  const handleForward = () => {
-    if (historyIndex < history.length - 1) {
-      const nextIndex = historyIndex + 1;
-      navigateTo(nextIndex);
-      setResultImage(history[nextIndex]);
-      setIsComparing(false);
-    }
-  };
-
   const resetEditor = () => {
     resetUploads();
     resetText();
@@ -272,11 +261,11 @@ export function StoryCreator() {
           history={{
             index: historyIndex,
             total: history.length,
-            canBack: historyIndex > 0,
-            canForward: historyIndex < history.length - 1,
+            canBack: canGoBack,
+            canForward: canGoForward,
           }}
-          onBack={handleBack}
-          onForward={handleForward}
+          onBack={goBack}
+          onForward={goForward}
           downloadFilename={resultFilename}
           downloadLabel="ストーリー画像をダウンロード"
           onRetry={handleRetry}

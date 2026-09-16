@@ -41,6 +41,25 @@ function mockFetchSuccess() {
   return fetchMock;
 }
 
+/** Responds with a different image on every call, so history entries are distinguishable. */
+function mockFetchDistinct() {
+  let call = 0;
+  const fetchMock = vi.fn(async () => {
+    call += 1;
+    return {
+      ok: true,
+      status: 200,
+      text: async () => JSON.stringify({ imageBase64: `SU1H${call}`, mimeType: "image/png" }),
+    };
+  });
+  vi.stubGlobal("fetch", fetchMock);
+  return fetchMock;
+}
+
+function imageSrc(alt: string): string {
+  return (screen.getByAltText(alt) as HTMLImageElement).src;
+}
+
 async function uploadFirstFile(container: HTMLElement) {
   const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
   fireEvent.change(fileInput, { target: { files: [makeFile()] } });
@@ -134,6 +153,38 @@ describe("FreestyleEditor", () => {
     expect(screen.getByRole("button", { name: "同じ内容で再試行" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "最初からやり直す" })).toBeInTheDocument();
     expect(screen.queryByAltText("自由生成の結果画像")).not.toBeInTheDocument();
+  });
+
+  it("steps the result history back and forward with the pane buttons", async () => {
+    mockFetchDistinct();
+    const { container } = render(<FreestyleEditor />);
+
+    fireEvent.change(screen.getByPlaceholderText(/仕上がりのイメージ/), {
+      target: { value: "海賊風のポスターに" },
+    });
+    await uploadFirstFile(container);
+
+    fireEvent.click(screen.getByRole("button", { name: "Gemini に生成を依頼" }));
+    await screen.findByAltText("自由生成の結果画像");
+    const first = imageSrc("自由生成の結果画像");
+
+    fireEvent.click(screen.getByRole("button", { name: "同じ内容でもう一度" }));
+    await waitFor(() => expect(imageSrc("自由生成の結果画像")).not.toBe(first));
+    const second = imageSrc("自由生成の結果画像");
+
+    // Newest result: only "back" is available.
+    expect(screen.getByRole("button", { name: "前の結果" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "次の結果" })).toBeDisabled();
+
+    fireEvent.click(screen.getByRole("button", { name: "前の結果" }));
+    expect(imageSrc("自由生成の結果画像")).toBe(first);
+    expect(screen.getByRole("button", { name: "前の結果" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "次の結果" })).toBeEnabled();
+    expect(window.scrollTo).toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("button", { name: "次の結果" }));
+    expect(imageSrc("自由生成の結果画像")).toBe(second);
+    expect(screen.getByRole("button", { name: "次の結果" })).toBeDisabled();
   });
 
   it("clears the editor when reset is clicked", async () => {

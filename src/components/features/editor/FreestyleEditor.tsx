@@ -44,7 +44,6 @@ const FREESTYLE_PROGRESS_STEPS: ProgressStep[] = [
 ];
 
 const MAX_FREESTYLE_UPLOADS = 5;
-const MAX_HISTORY = 4;
 const MAX_RECENT_PROMPTS = 6;
 
 export function FreestyleEditor() {
@@ -77,9 +76,21 @@ export function FreestyleEditor() {
     history,
     historyIndex,
     pushResult,
-    navigateTo,
+    canGoBack,
+    canGoForward,
+    goBack,
+    goForward,
     reset: resetHistory,
-  } = useResultHistory(MAX_HISTORY);
+  } = useResultHistory({
+    onNavigate: (image) => {
+      setResultImage(image);
+      setIsComparing(false);
+      window.scrollTo({
+        top: 0,
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      });
+    },
+  });
 
   const {
     submit,
@@ -196,33 +207,6 @@ export function FreestyleEditor() {
     hasActiveFiles &&
     !isSubmitting &&
     !isOptimizingAny;
-
-  const canGoBack = historyIndex > 0;
-  const canGoForward = historyIndex < history.length - 1;
-
-  const navigateHistory = useCallback(
-    (index: number) => {
-      if (index < 0 || index >= history.length) return;
-      navigateTo(index);
-      setResultImage(history[index]);
-      setIsComparing(false);
-      window.scrollTo({
-        top: 0,
-        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-      });
-    },
-    [history, navigateTo, setResultImage],
-  );
-
-  const goBack = useCallback(() => {
-    if (!canGoBack) return;
-    navigateHistory(historyIndex - 1);
-  }, [canGoBack, historyIndex, navigateHistory]);
-
-  const goForward = useCallback(() => {
-    if (!canGoForward) return;
-    navigateHistory(historyIndex + 1);
-  }, [canGoForward, historyIndex, navigateHistory]);
 
   const toggleCompare = useCallback(() => {
     const next = !isComparing;

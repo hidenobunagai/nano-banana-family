@@ -38,6 +38,25 @@ function mockFetchSuccess() {
   return fetchMock;
 }
 
+/** Responds with a different image on every call, so history entries are distinguishable. */
+function mockFetchDistinct() {
+  let call = 0;
+  const fetchMock = vi.fn(async () => {
+    call += 1;
+    return {
+      ok: true,
+      status: 200,
+      text: async () => JSON.stringify({ imageBase64: `SU1H${call}`, mimeType: "image/png" }),
+    };
+  });
+  vi.stubGlobal("fetch", fetchMock);
+  return fetchMock;
+}
+
+function imageSrc(alt: string): string {
+  return (screen.getByAltText(alt) as HTMLImageElement).src;
+}
+
 describe("IconCreator", () => {
   beforeEach(() => {
     Object.defineProperty(URL, "createObjectURL", {
@@ -158,6 +177,29 @@ describe("IconCreator", () => {
     const [, init] = fetchMock.mock.calls[0]!;
     const body = init!.body as FormData;
     expect(body.getAll("images")).toHaveLength(1);
+  });
+
+  it("steps the result history back and forward with the pane buttons", async () => {
+    mockFetchDistinct();
+    render(<IconCreator />);
+
+    fireEvent.change(screen.getByPlaceholderText("例: 桜小学校児童クラブ"), {
+      target: { value: "テスト連絡先" },
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "アイコンを生成" }));
+    await screen.findByAltText("テスト連絡先 の生成アイコン");
+    const first = imageSrc("テスト連絡先 の生成アイコン");
+
+    fireEvent.click(screen.getByRole("button", { name: "同じ条件でもう一度" }));
+    await waitFor(() => expect(imageSrc("テスト連絡先 の生成アイコン")).not.toBe(first));
+    const second = imageSrc("テスト連絡先 の生成アイコン");
+
+    fireEvent.click(screen.getByRole("button", { name: "前の結果" }));
+    expect(imageSrc("テスト連絡先 の生成アイコン")).toBe(first);
+
+    fireEvent.click(screen.getByRole("button", { name: "次の結果" }));
+    expect(imageSrc("テスト連絡先 の生成アイコン")).toBe(second);
   });
 
   it("clears uploaded reference images and the name when reset is clicked", async () => {

@@ -38,6 +38,25 @@ function mockFetchSuccess() {
   return fetchMock;
 }
 
+/** Responds with a different image on every call, so history entries are distinguishable. */
+function mockFetchDistinct() {
+  let call = 0;
+  const fetchMock = vi.fn(async () => {
+    call += 1;
+    return {
+      ok: true,
+      status: 200,
+      text: async () => JSON.stringify({ imageBase64: `SU1H${call}`, mimeType: "image/png" }),
+    };
+  });
+  vi.stubGlobal("fetch", fetchMock);
+  return fetchMock;
+}
+
+function imageSrc(alt: string): string {
+  return (screen.getByAltText(alt) as HTMLImageElement).src;
+}
+
 async function uploadFirstFile(container: HTMLElement) {
   const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
   fireEvent.change(fileInput, { target: { files: [makeFile()] } });
@@ -105,5 +124,25 @@ describe("StoryCreator", () => {
     expect(
       screen.getByText(/写真を選ぶと、AI が絵本や漫画のストーリー作品を自動生成します/),
     ).toBeInTheDocument();
+  });
+
+  it("steps the result history back and forward with the pane buttons", async () => {
+    mockFetchDistinct();
+    const { container } = render(<StoryCreator />);
+
+    await uploadFirstFile(container);
+    fireEvent.click(screen.getByRole("button", { name: "ストーリーを生成する" }));
+    await screen.findByAltText("ストーリー生成の結果画像");
+    const first = imageSrc("ストーリー生成の結果画像");
+
+    fireEvent.click(screen.getByRole("button", { name: "同じ写真でもう一度生成" }));
+    await waitFor(() => expect(imageSrc("ストーリー生成の結果画像")).not.toBe(first));
+    const second = imageSrc("ストーリー生成の結果画像");
+
+    fireEvent.click(screen.getByRole("button", { name: "前の結果" }));
+    expect(imageSrc("ストーリー生成の結果画像")).toBe(first);
+
+    fireEvent.click(screen.getByRole("button", { name: "次の結果" }));
+    expect(imageSrc("ストーリー生成の結果画像")).toBe(second);
   });
 });
