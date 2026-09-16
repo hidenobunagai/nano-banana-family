@@ -1,5 +1,3 @@
-"use client";
-
 interface EditorLayoutProps {
   /** Page-level heading (h2) shown above the grid. */
   title?: string;

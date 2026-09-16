@@ -16,7 +16,6 @@ export const DEFAULT_TIPS = [
 ];
 
 export interface ProgressDisplayProps {
-  isVisible: boolean;
   currentStep: number;
   progress: number;
   steps: ProgressStep[];
@@ -25,7 +24,6 @@ export interface ProgressDisplayProps {
 }
 
 export function ProgressDisplay({
-  isVisible,
   currentStep,
   progress,
   steps,
@@ -35,16 +33,11 @@ export function ProgressDisplay({
   const [tipIndex, setTipIndex] = useState(0);
 
   useEffect(() => {
-    if (!isVisible) return;
     const interval = setInterval(() => {
       setTipIndex((prev) => (prev + 1) % DEFAULT_TIPS.length);
     }, 4000);
     return () => clearInterval(interval);
-  }, [isVisible]);
-
-  if (!isVisible) {
-    return null;
-  }
+  }, []);
 
   const currentStepInfo = steps[currentStep];
   const roundedTimeRemaining =

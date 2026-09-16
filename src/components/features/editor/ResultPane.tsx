@@ -169,7 +169,6 @@ export function ResultPane({
     <Section title="仕上がり">
       {isSubmitting ? (
         <ProgressDisplay
-          isVisible={true}
           currentStep={currentStep}
           progress={progress}
           steps={steps}
