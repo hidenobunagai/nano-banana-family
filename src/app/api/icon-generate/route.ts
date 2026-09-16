@@ -5,7 +5,7 @@ import type { IconStyleId } from "@/utils/iconStyles";
 import { withApiAuth } from "@/utils/server/withApiAuth";
 import { validateFormData } from "@/utils/server/api-helpers";
 import { filesToParts, fetchOgImage } from "@/utils/server/imageProcessing";
-import { generateImage } from "@/utils/server/imageGeneration";
+import { generateImage, IMAGE_GENERATION_TIMEOUT_MS } from "@/utils/server/imageGeneration";
 import { fetchUrlMetadata } from "@/utils/server/urlMetadata";
 import { IconGenerateFormSchema } from "@/utils/server/validation";
 import { fileFingerprint, generateCacheKey, imageGenerationCache } from "@/utils/server/cache";
@@ -100,7 +100,7 @@ export async function POST(request: Request) {
       apiKey,
       parts,
       "アイコンの生成に失敗しました。",
-      AbortSignal.timeout(90_000),
+      AbortSignal.timeout(IMAGE_GENERATION_TIMEOUT_MS),
     );
     if ("error" in generationResult) {
       return NextResponse.json(

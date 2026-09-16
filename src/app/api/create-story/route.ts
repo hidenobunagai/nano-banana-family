@@ -1,14 +1,9 @@
 import { NextResponse } from "next/server";
 
-import {
-  authenticateRequest,
-  checkUserRateLimit,
-  validateApiKey,
-  handleApiError,
-  validateFormData,
-} from "@/utils/server/api-helpers";
+import { withApiAuth } from "@/utils/server/withApiAuth";
+import { handleApiError, validateFormData } from "@/utils/server/api-helpers";
 import { filesToParts } from "@/utils/server/imageProcessing";
-import { generateImage } from "@/utils/server/imageGeneration";
+import { generateImage, IMAGE_GENERATION_TIMEOUT_MS } from "@/utils/server/imageGeneration";
 import { CreateStoryFormSchema } from "@/utils/server/validation";
 import { fileFingerprint, generateCacheKey, imageGenerationCache } from "@/utils/server/cache";
 
@@ -16,16 +11,9 @@ export const runtime = "nodejs";
 export const maxDuration = 300;
 
 export async function POST(request: Request) {
-  const authResult = await authenticateRequest();
-  if ("response" in authResult) return authResult.response;
-  const { session } = authResult;
-
-  const rateLimitResult = checkUserRateLimit(session.user?.email ?? "anonymous");
-  if ("response" in rateLimitResult) return rateLimitResult.response;
-
-  const apiKeyResult = validateApiKey();
-  if ("response" in apiKeyResult) return apiKeyResult.response;
-  const apiKey = apiKeyResult.key;
+  const auth = await withApiAuth("create-story");
+  if (!auth.ok) return auth.response;
+  const { session, apiKey } = auth;
 
   const formData = await request.formData();
   const storyType = (formData.get("storyType") as string | null) || "picture-book";
@@ -111,7 +99,7 @@ export async function POST(request: Request) {
       apiKey,
       parts,
       "ストーリー画像の生成に失敗しました。",
-      AbortSignal.timeout(90_000),
+      AbortSignal.timeout(IMAGE_GENERATION_TIMEOUT_MS),
     );
     if ("error" in generationResult) {
       return NextResponse.json(

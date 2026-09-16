@@ -1,9 +1,6 @@
-import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { authOptions } from "@/auth";
-import { checkRateLimit } from "@/utils/server/rateLimit";
 import { logger } from "@/utils/server/logger";
 import {
   MAX_FILE_SIZE_BYTES,
@@ -12,55 +9,10 @@ import {
 } from "@/utils/server/imageValidation";
 import { toAppError, getUserMessage } from "@/utils/errors";
 
-export interface ApiRouteConfig {
-  routeName: string;
-  maxImages?: number;
-  validatePrompt?: boolean;
-}
-
 export interface ValidationResult {
   valid: boolean;
   error?: string;
   status?: number;
-}
-
-export async function authenticateRequest(): Promise<
-  { session: { user: { email?: string | null } } } | { response: NextResponse }
-> {
-  const session = await getServerSession(authOptions);
-  if (!session) {
-    return { response: NextResponse.json({ error: "認証が必要です。" }, { status: 401 }) };
-  }
-  return { session: session as { user: { email?: string | null } } };
-}
-
-export function checkUserRateLimit(userId: string): { allowed: true } | { response: NextResponse } {
-  const rateLimit = checkRateLimit(userId);
-  if (!rateLimit.allowed) {
-    const retryAfter = rateLimit.retryAfter ?? 60;
-    const response = NextResponse.json(
-      {
-        error: `リクエストが多すぎます。${retryAfter}秒後にもう一度お試しください。`,
-      },
-      { status: 429 },
-    );
-    response.headers.set("Retry-After", String(retryAfter));
-    return { response };
-  }
-  return { allowed: true };
-}
-
-export function validateApiKey(): { key: string } | { response: NextResponse } {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    return {
-      response: NextResponse.json(
-        { error: "Gemini API キーが設定されていません。" },
-        { status: 500 },
-      ),
-    };
-  }
-  return { key: apiKey };
 }
 
 export function validateImageFile(file: File, label?: string): ValidationResult {

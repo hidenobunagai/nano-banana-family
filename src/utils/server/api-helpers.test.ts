@@ -1,24 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getServerSession } from "next-auth";
-import { checkRateLimit } from "@/utils/server/rateLimit";
-import {
-  validateImageFile,
-  authenticateRequest,
-  checkUserRateLimit,
-  validateApiKey,
-} from "./api-helpers";
+import { z } from "zod";
+import { validateImageFile, validateFormData, handleApiError } from "./api-helpers";
+import { AppError } from "@/utils/errors";
 
-// Mock the dependencies
-vi.mock("@/auth", () => ({
-  authOptions: {},
-}));
-
-vi.mock("@/utils/server/rateLimit", () => ({
-  checkRateLimit: vi.fn(),
-}));
-
-vi.mock("next-auth", () => ({
-  getServerSession: vi.fn(),
+vi.mock("@/utils/server/logger", () => ({
+  logger: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  },
 }));
 
 vi.mock("next/server", () => ({
@@ -90,78 +80,37 @@ describe("api-helpers", () => {
     });
   });
 
-  describe("authenticateRequest", () => {
-    it("returns 401 JSON response when there is no session", async () => {
-      vi.mocked(getServerSession).mockResolvedValue(null);
+  describe("validateFormData", () => {
+    const schema = z.object({ name: z.string().min(1, "名前は必須です") });
 
-      const result = await authenticateRequest();
-      expect("response" in result).toBe(true);
-      if ("response" in result) {
-        expect(result.response.status).toBe(401);
-        const body = await result.response.json();
-        expect(body.error).toBe("認証が必要です。");
-      }
-    });
-
-    it("returns the session when authenticated", async () => {
-      vi.mocked(getServerSession).mockResolvedValue({
-        user: { email: "test@example.com" },
+    it("returns the parsed data when valid", () => {
+      expect(validateFormData(schema, { name: "テスト" })).toEqual({
+        success: true,
+        data: { name: "テスト" },
       });
+    });
 
-      const result = await authenticateRequest();
-      expect("session" in result).toBe(true);
-      if ("session" in result) {
-        expect(result.session.user?.email).toBe("test@example.com");
-      }
+    it("joins schema issues into a single error message", () => {
+      const result = validateFormData(schema, { name: "" });
+
+      expect(result.success).toBe(false);
+      if (!result.success) expect(result.error).toBe("名前は必須です");
     });
   });
 
-  describe("checkUserRateLimit", () => {
-    it("returns allowed when within the limit", () => {
-      vi.mocked(checkRateLimit).mockReturnValue({ allowed: true });
+  describe("handleApiError", () => {
+    it("returns a JSON response with the AppError status and message", async () => {
+      const res = handleApiError(new AppError("見つかりません", 404), "test-route", "user@media");
 
-      expect(checkUserRateLimit("user@example.com")).toEqual({ allowed: true });
+      expect(res.status).toBe(404);
+      await expect(res.json()).resolves.toEqual({ error: "見つかりません" });
     });
 
-    it("returns 429 JSON response when rate limited", async () => {
-      vi.mocked(checkRateLimit).mockReturnValue({ allowed: false, retryAfter: 30 });
+    it("falls back to a 500 for unexpected errors", async () => {
+      const res = handleApiError(new Error("boom"), "test-route", "user@media");
 
-      const result = checkUserRateLimit("user@example.com");
-      expect("response" in result).toBe(true);
-      if ("response" in result) {
-        expect(result.response.status).toBe(429);
-        const body = await result.response.json();
-        expect(body.error).toContain("30秒後");
-      }
-    });
-  });
-
-  describe("validateApiKey", () => {
-    it("returns the key when set", () => {
-      const previous = process.env.GEMINI_API_KEY;
-      process.env.GEMINI_API_KEY = "test-key";
-      try {
-        expect(validateApiKey()).toEqual({ key: "test-key" });
-      } finally {
-        if (previous === undefined) delete process.env.GEMINI_API_KEY;
-        else process.env.GEMINI_API_KEY = previous;
-      }
-    });
-
-    it("returns 500 JSON response when missing", async () => {
-      const previous = process.env.GEMINI_API_KEY;
-      delete process.env.GEMINI_API_KEY;
-      try {
-        const result = validateApiKey();
-        expect("response" in result).toBe(true);
-        if ("response" in result) {
-          expect(result.response.status).toBe(500);
-          const body = await result.response.json();
-          expect(body.error).toBe("Gemini API キーが設定されていません。");
-        }
-      } finally {
-        if (previous !== undefined) process.env.GEMINI_API_KEY = previous;
-      }
+      expect(res.status).toBe(500);
+      await expect(res.json()).resolves.toEqual({ error: "boom" });
     });
   });
 });

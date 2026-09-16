@@ -13,6 +13,13 @@ function getDefaultModel(): string {
   return process.env.GEMINI_IMAGE_MODEL ?? FALLBACK_MODEL;
 }
 
+/**
+ * Deadline for one image generation call. Image generation takes 10-40s, so
+ * this sits well under `maxDuration` (300s) while still cutting off a stuck
+ * request. Route handlers pass it as `AbortSignal.timeout(...)`.
+ */
+export const IMAGE_GENERATION_TIMEOUT_MS = 90_000;
+
 export interface GeneratedImage {
   imageBase64: string;
   mimeType: string;

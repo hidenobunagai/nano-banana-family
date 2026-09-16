@@ -16,6 +16,7 @@ vi.mock("@/utils/server/imageProcessing", () => ({
 
 vi.mock("@/utils/server/imageGeneration", () => ({
   generateImage: mockGenerateImage,
+  IMAGE_GENERATION_TIMEOUT_MS: 90_000,
 }));
 
 vi.mock("@/utils/server/cache", () => ({

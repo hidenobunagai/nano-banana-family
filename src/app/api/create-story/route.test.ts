@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { NextResponse } from "next/server";
 
 const mockGenerateImage = vi.hoisted(() => vi.fn());
+const mockWithApiAuth = vi.hoisted(() => vi.fn());
 
 function jsonResponse(data: Record<string, unknown>, status: number): NextResponse {
   return new Response(JSON.stringify(data), {
@@ -10,10 +11,11 @@ function jsonResponse(data: Record<string, unknown>, status: number): NextRespon
   }) as unknown as NextResponse;
 }
 
+vi.mock("@/utils/server/withApiAuth", () => ({
+  withApiAuth: mockWithApiAuth,
+}));
+
 vi.mock("@/utils/server/api-helpers", () => ({
-  authenticateRequest: vi.fn(),
-  checkUserRateLimit: vi.fn(),
-  validateApiKey: vi.fn(),
   handleApiError: vi.fn((e) =>
     jsonResponse({ error: e instanceof Error ? e.message : String(e) }, 500),
   ),
@@ -32,6 +34,7 @@ vi.mock("@/utils/server/imageProcessing", () => ({
 
 vi.mock("@/utils/server/imageGeneration", () => ({
   generateImage: mockGenerateImage,
+  IMAGE_GENERATION_TIMEOUT_MS: 90_000,
 }));
 
 vi.mock("@/utils/server/cache", () => ({
@@ -61,28 +64,57 @@ function createRequest(
 
 describe("POST /api/create-story", () => {
   beforeEach(() => {
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
+    mockWithApiAuth.mockResolvedValue({
+      ok: true,
+      session: { user: { email: "test@example.com" } },
+      apiKey: "test-key",
+    });
   });
 
-  it("returns 401 when not authenticated", async () => {
-    const { authenticateRequest } = await import("@/utils/server/api-helpers");
-    vi.mocked(authenticateRequest).mockResolvedValue({
+  it("runs the shared auth guard for create-story", async () => {
+    const { filesToParts } = await import("@/utils/server/imageProcessing");
+    vi.mocked(filesToParts).mockResolvedValue({ parts: [{ text: "processed" }] });
+    mockGenerateImage.mockResolvedValue({ imageBase64: "x", mimeType: "image/png" });
+
+    await POST(createRequest("picture-book", [new File(["a"], "a.png")]));
+
+    expect(mockWithApiAuth).toHaveBeenCalledWith("create-story");
+  });
+
+  it("returns the guard response when not authenticated", async () => {
+    mockWithApiAuth.mockResolvedValue({
+      ok: false,
       response: jsonResponse({ error: "認証が必要です。" }, 401),
     });
 
     const res = await POST(createRequest("picture-book", [new File(["a"], "a.png")]));
     expect(res.status).toBe(401);
+    const { filesToParts } = await import("@/utils/server/imageProcessing");
+    expect(filesToParts).not.toHaveBeenCalled();
+  });
+
+  it("returns the guard response when rate limited", async () => {
+    mockWithApiAuth.mockResolvedValue({
+      ok: false,
+      response: jsonResponse({ error: "リクエストが多すぎます。" }, 429),
+    });
+
+    const res = await POST(createRequest("picture-book", [new File(["a"], "a.png")]));
+    expect(res.status).toBe(429);
+  });
+
+  it("returns the guard response when the API key is missing", async () => {
+    mockWithApiAuth.mockResolvedValue({
+      ok: false,
+      response: jsonResponse({ error: "Gemini API キーが設定されていません。" }, 500),
+    });
+
+    const res = await POST(createRequest("picture-book", [new File(["a"], "a.png")]));
+    expect(res.status).toBe(500);
   });
 
   it("returns 400 when no images uploaded", async () => {
-    const { authenticateRequest, checkUserRateLimit, validateApiKey } =
-      await import("@/utils/server/api-helpers");
-    vi.mocked(authenticateRequest).mockResolvedValue({
-      session: { user: { email: "test@example.com" } },
-    });
-    vi.mocked(checkUserRateLimit).mockReturnValue({ allowed: true });
-    vi.mocked(validateApiKey).mockReturnValue({ key: "test-key" });
-
     const res = await POST(createRequest("picture-book", []));
     expect(res.status).toBe(400);
     const body = await res.json();
@@ -90,16 +122,10 @@ describe("POST /api/create-story", () => {
   });
 
   it("returns 200 on successful story generation", async () => {
-    const { authenticateRequest, checkUserRateLimit, validateApiKey, handleApiError } =
-      await import("@/utils/server/api-helpers");
+    const { handleApiError } = await import("@/utils/server/api-helpers");
     const { filesToParts } = await import("@/utils/server/imageProcessing");
     const { imageGenerationCache } = await import("@/utils/server/cache");
 
-    vi.mocked(authenticateRequest).mockResolvedValue({
-      session: { user: { email: "test@example.com" } },
-    });
-    vi.mocked(checkUserRateLimit).mockReturnValue({ allowed: true });
-    vi.mocked(validateApiKey).mockReturnValue({ key: "test-key" });
     vi.mocked(filesToParts).mockResolvedValue({ parts: [{ text: "processed" }] });
     vi.mocked(imageGenerationCache.get).mockReturnValue(undefined);
     vi.mocked(handleApiError).mockImplementation((e) =>
@@ -115,5 +141,18 @@ describe("POST /api/create-story", () => {
     const body = await res.json();
     expect(body.imageBase64).toBe("story-base64-data");
     expect(body.mimeType).toBe("image/png");
+  });
+
+  it("passes the shared generation deadline to generateImage", async () => {
+    const { filesToParts } = await import("@/utils/server/imageProcessing");
+    const { imageGenerationCache } = await import("@/utils/server/cache");
+    vi.mocked(filesToParts).mockResolvedValue({ parts: [{ text: "processed" }] });
+    vi.mocked(imageGenerationCache.get).mockReturnValue(undefined);
+    mockGenerateImage.mockResolvedValue({ imageBase64: "x", mimeType: "image/png" });
+
+    await POST(createRequest("picture-book", [new File(["a"], "a.png")]));
+
+    const signal = mockGenerateImage.mock.calls[0][3];
+    expect(signal).toBeInstanceOf(AbortSignal);
   });
 });

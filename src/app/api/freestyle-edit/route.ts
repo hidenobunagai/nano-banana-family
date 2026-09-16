@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { withApiAuth } from "@/utils/server/withApiAuth";
 import { filesToParts } from "@/utils/server/imageProcessing";
-import { generateImage } from "@/utils/server/imageGeneration";
+import { generateImage, IMAGE_GENERATION_TIMEOUT_MS } from "@/utils/server/imageGeneration";
 import { FreestyleEditFormSchema } from "@/utils/server/validation";
 import { validateFormData } from "@/utils/server/api-helpers";
 import { fileFingerprint, generateCacheKey, imageGenerationCache } from "@/utils/server/cache";
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
       apiKey,
       parts,
       "画像の生成に失敗しました。",
-      AbortSignal.timeout(90_000),
+      AbortSignal.timeout(IMAGE_GENERATION_TIMEOUT_MS),
     );
     if ("error" in generationResult) {
       return NextResponse.json(
