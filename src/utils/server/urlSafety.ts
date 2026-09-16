@@ -2,6 +2,7 @@
  * URL safety checks to prevent SSRF when fetching user-supplied URLs.
  * Rejects non-http(s) schemes, credentials in the URL, non-standard ports,
  * private/reserved IP literals, private DNS results, and unbounded redirects.
+ * Also caps how much of a response body a caller can read.
  */
 
 import { lookup } from "node:dns/promises";
@@ -139,4 +140,40 @@ export async function fetchWithRedirects(url: string, init: RequestInit = {}): P
 
     currentUrl = await assertSafeUrl(new URL(location, currentUrl).toString());
   }
+}
+
+/**
+ * Read a response body of at most `limit` bytes.
+ * Rejects up front when content-length already exceeds the limit, then stops
+ * reading as soon as the streamed body passes it, so a chunked response that
+ * never ends cannot exhaust memory. Returns null when the body is too large.
+ */
+export async function readBodyWithLimit(response: Response, limit: number): Promise<Buffer | null> {
+  const declared = response.headers.get("content-length");
+  if (declared && Number(declared) > limit) {
+    await response.body?.cancel();
+    return null;
+  }
+
+  if (!response.body) return Buffer.alloc(0);
+
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > limit) {
+        await reader.cancel();
+        return null;
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  return Buffer.concat(chunks, total);
 }

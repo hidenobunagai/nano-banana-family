@@ -1,9 +1,10 @@
 import { type Part } from "@google/genai";
 import { resolveMimeType } from "@/utils/server/imageValidation";
 import { validateImageFile } from "@/utils/server/api-helpers";
-import { fetchWithRedirects } from "@/utils/server/urlSafety";
+import { fetchWithRedirects, readBodyWithLimit } from "@/utils/server/urlSafety";
 
 const OG_IMAGE_FETCH_TIMEOUT_MS = 5000;
+const MAX_OG_IMAGE_BYTES = 4 * 1024 * 1024;
 
 /**
  * Convert files to Gemini API inline data parts with validation.
@@ -48,26 +49,23 @@ export async function fetchOgImage(
   const resolvedUrl =
     baseUrl && !/^https?:\/\//i.test(imageUrl) ? new URL(imageUrl, baseUrl).toString() : imageUrl;
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), OG_IMAGE_FETCH_TIMEOUT_MS);
-
   try {
     const response = await fetchWithRedirects(resolvedUrl, {
-      signal: controller.signal,
+      // Keeps running while the body is read, so a server that stalls after
+      // the headers cannot hold the request open past the budget.
+      signal: AbortSignal.timeout(OG_IMAGE_FETCH_TIMEOUT_MS),
       headers: {
         Accept: "image/*",
       },
     });
-
-    clearTimeout(timeout);
 
     if (!response.ok) return null;
 
     const contentType = response.headers.get("content-type") ?? "";
     if (!contentType.startsWith("image/")) return null;
 
-    const buffer = Buffer.from(await response.arrayBuffer());
-    if (buffer.length > 4 * 1024 * 1024) return null;
+    const buffer = await readBodyWithLimit(response, MAX_OG_IMAGE_BYTES);
+    if (!buffer) return null;
 
     const mimeType = contentType.split(";")[0].trim();
     return {
@@ -75,7 +73,6 @@ export async function fetchOgImage(
       mimeType,
     };
   } catch {
-    clearTimeout(timeout);
     return null;
   }
 }

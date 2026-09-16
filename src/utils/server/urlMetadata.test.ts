@@ -34,6 +34,29 @@ function mockFetch(response: { ok?: boolean; contentType?: string; body?: string
   );
 }
 
+/** Mimics a server that sends headers, then stops sending body bytes. */
+function stalledResponse(signal?: AbortSignal | null): Response {
+  const stream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(new TextEncoder().encode("<html><head><title>Stalled</title>"));
+      signal?.addEventListener("abort", () => controller.error(signal.reason));
+    },
+  });
+  return new Response(stream, {
+    status: 200,
+    headers: { "content-type": "text/html" },
+  });
+}
+
+/** Shortens the request timeout so stalled-body cases stay fast. */
+function useFastTimeout(): void {
+  vi.spyOn(AbortSignal, "timeout").mockImplementation(() => {
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(new Error("timeout")), 10);
+    return controller.signal;
+  });
+}
+
 describe("fetchUrlMetadata", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
@@ -109,5 +132,40 @@ describe("fetchUrlMetadata", () => {
     const result = await fetchUrlMetadata("https://example.com");
 
     expect(result?.description).toBe("reversed desc");
+  });
+
+  it("returns null without reading the body when content-length exceeds the limit", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(htmlTemplate(), {
+        status: 200,
+        headers: {
+          "content-type": "text/html",
+          "content-length": String(3 * 1024 * 1024),
+        },
+      }),
+    );
+
+    const result = await fetchUrlMetadata("https://example.com");
+
+    expect(result).toBeNull();
+  });
+
+  it("returns null when the body exceeds the size limit", async () => {
+    mockFetch({ body: `${htmlTemplate()}${"x".repeat(2 * 1024 * 1024)}` });
+
+    const result = await fetchUrlMetadata("https://example.com");
+
+    expect(result).toBeNull();
+  });
+
+  it("returns null when the body stalls after the headers", async () => {
+    useFastTimeout();
+    vi.spyOn(globalThis, "fetch").mockImplementation((_input, init) =>
+      Promise.resolve(stalledResponse(init?.signal)),
+    );
+
+    const result = await fetchUrlMetadata("https://example.com");
+
+    expect(result).toBeNull();
   });
 });

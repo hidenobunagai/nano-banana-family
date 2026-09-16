@@ -3,7 +3,7 @@
  * Fetches a page and extracts title, description, and OG image.
  */
 
-import { fetchWithRedirects } from "@/utils/server/urlSafety";
+import { fetchWithRedirects, readBodyWithLimit } from "@/utils/server/urlSafety";
 
 export interface UrlMetadata {
   title: string | null;
@@ -12,6 +12,7 @@ export interface UrlMetadata {
 }
 
 const FETCH_TIMEOUT_MS = 5000;
+const MAX_HTML_BYTES = 2 * 1024 * 1024;
 
 /**
  * Fetch a URL and extract metadata (title, meta description, og:image).
@@ -20,22 +21,16 @@ const FETCH_TIMEOUT_MS = 5000;
  */
 export async function fetchUrlMetadata(url: string): Promise<UrlMetadata | null> {
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-
-    let response: Response;
-    try {
-      response = await fetchWithRedirects(url, {
-        signal: controller.signal,
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (compatible; HideNBStudio/1.0; +https://hide-nb-studio.vercel.app)",
-          Accept: "text/html,application/xhtml+xml",
-        },
-      });
-    } finally {
-      clearTimeout(timeout);
-    }
+    const response = await fetchWithRedirects(url, {
+      // Keeps running while the body is read, so a server that stalls after
+      // the headers cannot hold the request open past the budget.
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (compatible; HideNBStudio/1.0; +https://hide-nb-studio.vercel.app)",
+        Accept: "text/html,application/xhtml+xml",
+      },
+    });
 
     if (!response.ok) {
       return null;
@@ -46,7 +41,12 @@ export async function fetchUrlMetadata(url: string): Promise<UrlMetadata | null>
       return null;
     }
 
-    const html = await response.text();
+    const body = await readBodyWithLimit(response, MAX_HTML_BYTES);
+    if (!body) {
+      return null;
+    }
+
+    const html = new TextDecoder().decode(body);
 
     return {
       title: extractTitle(html),
