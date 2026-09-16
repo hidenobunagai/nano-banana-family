@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { MAX_STORY_UPLOADS } from "@/utils/promptConstants";
 import { StoryCreator } from "./StoryCreator";
 
 vi.mock("@/utils/imageOptimization", () => ({
@@ -100,6 +101,25 @@ describe("StoryCreator", () => {
     const cuteToneButton = screen.getByRole("button", { name: "かわいい" });
     fireEvent.click(cuteToneButton);
     expect(cuteToneButton).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("caps upload slots at the shared MAX_STORY_UPLOADS limit", () => {
+    render(<StoryCreator />);
+
+    // Starts with one slot, so the hint counts down from the shared constant.
+    expect(screen.getByText(`画像を追加（あと ${MAX_STORY_UPLOADS - 1} 枚）`)).toBeInTheDocument();
+    // The step hint interpolates the same constant rather than hardcoding "1〜5".
+    expect(
+      screen.getByText(`日常の写真、おでかけの写真を 1〜${MAX_STORY_UPLOADS} 枚選んでください。`),
+    ).toBeInTheDocument();
+
+    for (let i = 0; i < MAX_STORY_UPLOADS - 1; i += 1) {
+      fireEvent.click(screen.getByRole("button", { name: /画像を追加/ }));
+    }
+    expect(screen.queryByRole("button", { name: /画像を追加/ })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /参考画像 \d+ を削除/ })).toHaveLength(
+      MAX_STORY_UPLOADS,
+    );
   });
 
   it("generates a story image on submission and allows reset", async () => {

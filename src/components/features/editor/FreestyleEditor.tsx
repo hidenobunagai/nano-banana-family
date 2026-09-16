@@ -25,7 +25,7 @@ import { useResultHistory } from "@/hooks/useResultHistory";
 import { useTextUndoRedo } from "@/hooks/useTextUndoRedo";
 import { useUndoRedoShortcuts } from "@/hooks/useUndoRedoShortcuts";
 import { useUploadSlots } from "@/hooks/useUploadSlots";
-import { MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
+import { MAX_FREESTYLE_UPLOADS, MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
 import { STYLE_SUGGESTIONS } from "@/utils/server/stylePrompts";
 import { saveToGallery } from "@/utils/galleryStorage";
 import { useToast } from "@/components/ui/Toast";
@@ -43,7 +43,6 @@ const FREESTYLE_PROGRESS_STEPS: ProgressStep[] = [
   { id: "complete", label: "完了", estimatedDuration: 400 },
 ];
 
-const MAX_FREESTYLE_UPLOADS = 5;
 const MAX_RECENT_PROMPTS = 6;
 
 export function FreestyleEditor() {

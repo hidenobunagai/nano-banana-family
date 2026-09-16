@@ -1,10 +1,20 @@
 import { describe, it, expect } from "vitest";
-import { MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
+import {
+  MAX_FREESTYLE_UPLOADS,
+  MAX_ICON_UPLOADS,
+  MAX_PROMPT_LENGTH,
+  MAX_STORY_UPLOADS,
+} from "@/utils/promptConstants";
 import {
   ImageGenerationResponseSchema,
   FreestyleEditFormSchema,
   IconGenerateFormSchema,
+  CreateStoryFormSchema,
 } from "./validation";
+
+function makeFiles(count: number, prefix = "img") {
+  return Array.from({ length: count }, (_, i) => new File([], `${prefix}${i}.png`));
+}
 
 describe("ImageGenerationResponseSchema", () => {
   it("accepts valid response", () => {
@@ -39,12 +49,29 @@ describe("FreestyleEditFormSchema", () => {
   });
 
   it("rejects too many images", () => {
-    const files = Array.from({ length: 6 }, (_, i) => new File([], `img${i}.png`));
     const result = FreestyleEditFormSchema.safeParse({
       prompt: "edit",
-      images: files,
+      images: makeFiles(MAX_FREESTYLE_UPLOADS + 1),
     });
     expect(result.success).toBe(false);
+  });
+
+  it("accepts exactly the shared upload limit and rejects one more", () => {
+    expect(
+      FreestyleEditFormSchema.safeParse({
+        prompt: "edit",
+        images: makeFiles(MAX_FREESTYLE_UPLOADS),
+      }).success,
+    ).toBe(true);
+
+    const tooMany = FreestyleEditFormSchema.safeParse({
+      prompt: "edit",
+      images: makeFiles(MAX_FREESTYLE_UPLOADS + 1),
+    });
+    expect(tooMany.success).toBe(false);
+    expect(JSON.stringify(tooMany.error?.issues)).toContain(
+      `画像は最大${MAX_FREESTYLE_UPLOADS}枚までアップロードできます`,
+    );
   });
 
   it("rejects prompts longer than the client limit", () => {
@@ -74,12 +101,29 @@ describe("IconGenerateFormSchema", () => {
   });
 
   it("rejects too many reference images", () => {
-    const files = Array.from({ length: 4 }, (_, i) => new File([], `img${i}.png`));
     const result = IconGenerateFormSchema.safeParse({
       name: "John",
-      images: files,
+      images: makeFiles(MAX_ICON_UPLOADS + 1),
     });
     expect(result.success).toBe(false);
+  });
+
+  it("accepts exactly the shared upload limit and rejects one more", () => {
+    expect(
+      IconGenerateFormSchema.safeParse({
+        name: "John",
+        images: makeFiles(MAX_ICON_UPLOADS),
+      }).success,
+    ).toBe(true);
+
+    const tooMany = IconGenerateFormSchema.safeParse({
+      name: "John",
+      images: makeFiles(MAX_ICON_UPLOADS + 1),
+    });
+    expect(tooMany.success).toBe(false);
+    expect(JSON.stringify(tooMany.error?.issues)).toContain(
+      `画像は最大${MAX_ICON_UPLOADS}枚までアップロードできます`,
+    );
   });
 
   it("rejects custom prompts longer than the client limit", () => {
@@ -89,5 +133,23 @@ describe("IconGenerateFormSchema", () => {
       images: [],
     });
     expect(result.success).toBe(false);
+  });
+});
+
+describe("CreateStoryFormSchema", () => {
+  it("accepts exactly the shared upload limit and rejects one more", () => {
+    expect(
+      CreateStoryFormSchema.safeParse({
+        images: makeFiles(MAX_STORY_UPLOADS, "photo"),
+      }).success,
+    ).toBe(true);
+
+    const tooMany = CreateStoryFormSchema.safeParse({
+      images: makeFiles(MAX_STORY_UPLOADS + 1, "photo"),
+    });
+    expect(tooMany.success).toBe(false);
+    expect(JSON.stringify(tooMany.error?.issues)).toContain(
+      `写真は最大${MAX_STORY_UPLOADS}枚までアップロードできます`,
+    );
   });
 });

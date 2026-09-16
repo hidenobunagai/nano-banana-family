@@ -14,6 +14,7 @@ import { useResultHistory } from "@/hooks/useResultHistory";
 import { useTextUndoRedo } from "@/hooks/useTextUndoRedo";
 import { useUndoRedoShortcuts } from "@/hooks/useUndoRedoShortcuts";
 import { useUploadSlots } from "@/hooks/useUploadSlots";
+import { MAX_STORY_UPLOADS } from "@/utils/promptConstants";
 import { saveToGallery } from "@/utils/galleryStorage";
 import { useToast } from "@/components/ui/Toast";
 import {
@@ -83,7 +84,6 @@ const STORY_PROGRESS_STEPS: ProgressStep[] = [
   { id: "complete", label: "完成！", estimatedDuration: 400 },
 ];
 
-const MAX_STORY_UPLOADS = 5;
 const MAX_RECENT_PROMPTS = 6;
 
 export function StoryCreator() {
@@ -305,7 +305,7 @@ export function StoryCreator() {
         {/* Step 1: Upload Photos */}
         <Section title="1. 家族の写真をアップロード">
           <p className="text-dns-14 text-[var(--color-neutral-500)] mb-3">
-            日常の写真、おでかけの写真を 1〜5 枚選んでください。
+            日常の写真、おでかけの写真を 1〜{MAX_STORY_UPLOADS} 枚選んでください。
           </p>
           <ImageUploadGrid
             uploads={uploads}

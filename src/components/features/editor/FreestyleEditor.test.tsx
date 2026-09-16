@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { MAX_FREESTYLE_UPLOADS } from "@/utils/promptConstants";
 import { ToastProvider } from "@/components/ui/Toast";
 import * as storage from "@/utils/galleryStorage";
 import type { GalleryItem } from "@/utils/galleryStorage";
@@ -185,6 +186,23 @@ describe("FreestyleEditor", () => {
     fireEvent.click(screen.getByRole("button", { name: "次の結果" }));
     expect(imageSrc("自由生成の結果画像")).toBe(second);
     expect(screen.getByRole("button", { name: "次の結果" })).toBeDisabled();
+  });
+
+  it("caps upload slots at the shared MAX_FREESTYLE_UPLOADS limit", () => {
+    render(<FreestyleEditor />);
+
+    // Starts with one slot, so the hint counts down from the shared constant.
+    expect(
+      screen.getByText(`画像を追加（あと ${MAX_FREESTYLE_UPLOADS - 1} 枚）`),
+    ).toBeInTheDocument();
+
+    for (let i = 0; i < MAX_FREESTYLE_UPLOADS - 1; i += 1) {
+      fireEvent.click(screen.getByRole("button", { name: /画像を追加/ }));
+    }
+    expect(screen.queryByRole("button", { name: /画像を追加/ })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /参考画像 \d+ を削除/ })).toHaveLength(
+      MAX_FREESTYLE_UPLOADS,
+    );
   });
 
   it("clears the editor when reset is clicked", async () => {

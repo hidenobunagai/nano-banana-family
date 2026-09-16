@@ -1,6 +1,11 @@
 import { z } from "zod";
 
-import { MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
+import {
+  MAX_FREESTYLE_UPLOADS,
+  MAX_ICON_UPLOADS,
+  MAX_PROMPT_LENGTH,
+  MAX_STORY_UPLOADS,
+} from "@/utils/promptConstants";
 
 /**
  * Zod schemas for API request/response validation
@@ -18,7 +23,7 @@ export const FreestyleEditFormSchema = z.object({
   images: z
     .array(z.instanceof(File))
     .min(1, "画像を1枚以上アップロードしてください")
-    .max(5, "画像は最大5枚までアップロードできます"),
+    .max(MAX_FREESTYLE_UPLOADS, `画像は最大${MAX_FREESTYLE_UPLOADS}枚までアップロードできます`),
 });
 
 // Icon generate form data schema
@@ -27,7 +32,9 @@ export const IconGenerateFormSchema = z.object({
   url: z.string().url().optional().or(z.literal("")),
   style: z.string().optional(),
   customPrompt: z.string().max(MAX_PROMPT_LENGTH).optional(),
-  images: z.array(z.instanceof(File)).max(3, "画像は最大3枚までアップロードできます"),
+  images: z
+    .array(z.instanceof(File))
+    .max(MAX_ICON_UPLOADS, `画像は最大${MAX_ICON_UPLOADS}枚までアップロードできます`),
 });
 
 // Create story form data schema
@@ -39,5 +46,5 @@ export const CreateStoryFormSchema = z.object({
   images: z
     .array(z.instanceof(File))
     .min(1, "写真を1枚以上アップロードしてください")
-    .max(5, "写真は最大5枚までアップロードできます"),
+    .max(MAX_STORY_UPLOADS, `写真は最大${MAX_STORY_UPLOADS}枚までアップロードできます`),
 });

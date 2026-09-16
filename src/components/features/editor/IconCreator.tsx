@@ -19,7 +19,7 @@ import { useTextUndoRedo } from "@/hooks/useTextUndoRedo";
 import { useUndoRedoShortcuts } from "@/hooks/useUndoRedoShortcuts";
 import { useUploadSlots } from "@/hooks/useUploadSlots";
 import { ICON_STYLES } from "@/utils/iconStyles";
-import { MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
+import { MAX_ICON_UPLOADS, MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
 import { saveToGallery } from "@/utils/galleryStorage";
 import { useToast } from "@/components/ui/Toast";
 import { Check, Globe, Loader2, Sparkles, User, X } from "lucide-react";
@@ -51,7 +51,6 @@ const ICON_PROGRESS_STEPS: ProgressStep[] = [
   { id: "complete", label: "完了", estimatedDuration: 400 },
 ];
 
-const MAX_ICON_UPLOADS = 3;
 const MAX_RECENT_PROMPTS = 6;
 
 export function IconCreator() {

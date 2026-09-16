@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { MAX_ICON_UPLOADS } from "@/utils/promptConstants";
 import { IconCreator } from "./IconCreator";
 
 vi.mock("@/utils/imageOptimization", () => ({
@@ -155,6 +156,25 @@ describe("IconCreator", () => {
     expect(await screen.findByText("テスト用エラー")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "同じ条件で再試行" })).toBeInTheDocument();
     expect(screen.getByText("アイコンがここに表示されます")).toBeInTheDocument();
+  });
+
+  it("caps upload slots at the shared MAX_ICON_UPLOADS limit", () => {
+    render(<IconCreator />);
+
+    // The add button reports the slots still available from the shared constant.
+    expect(screen.getByText(`画像を追加（あと ${MAX_ICON_UPLOADS} 枚）`)).toBeInTheDocument();
+
+    for (let i = 0; i < MAX_ICON_UPLOADS - 1; i += 1) {
+      fireEvent.click(screen.getByRole("button", { name: /画像を追加/ }));
+    }
+    expect(screen.getByText("画像を追加（あと 1 枚）")).toBeInTheDocument();
+
+    // The last allowed slot can still be added, then the button disappears.
+    fireEvent.click(screen.getByRole("button", { name: /画像を追加/ }));
+    expect(screen.queryByRole("button", { name: /画像を追加/ })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /参考画像 \d+ を削除/ })).toHaveLength(
+      MAX_ICON_UPLOADS,
+    );
   });
 
   it("includes uploaded reference images in the request", async () => {
