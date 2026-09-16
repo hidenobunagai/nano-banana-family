@@ -3,6 +3,12 @@
  * Rejects non-http(s) schemes, credentials in the URL, non-standard ports,
  * private/reserved IP literals, private DNS results, and unbounded redirects.
  * Also caps how much of a response body a caller can read.
+ *
+ * Limitation: resolved addresses are validated but not pinned to the socket, so
+ * a hostname that resolves to a public address here and to a private one at
+ * connect time (DNS rebinding TOCTOU) is still reachable. Pinning would mean
+ * connecting to the resolved address while passing the hostname in the Host
+ * header; that is a larger change and is deliberately not done here.
  */
 
 import { lookup } from "node:dns/promises";
@@ -35,13 +41,51 @@ function isPrivateIpv4(ip: string): boolean {
   );
 }
 
+/**
+ * Canonicalize an IPv6 literal to the compressed lowercase form Node uses, so
+ * equivalent spellings compare equal: "0:0:0:0:0:ffff:7f00:1",
+ * "0:0:0:0:0:ffff:127.0.0.1" and "::FFFF:127.0.0.1" all become "::ffff:7f00:1".
+ * The WHATWG URL parser is reused for the compression instead of hand-rolling
+ * it. Returns null when the input is not an IPv6 literal (e.g. it carries a
+ * scope/zone suffix such as "fe80::1%eth0", which the URL parser refuses).
+ */
+function canonicalizeIpv6(ip: string): string | null {
+  try {
+    const { hostname } = new URL(`http://[${ip}]/`);
+    if (!hostname.startsWith("[") || !hostname.endsWith("]")) return null;
+    return hostname.slice(1, -1).toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Extract the embedded IPv4 octets of an IPv4-mapped IPv6 address in canonical
+ * form ("::ffff:7f00:1" -> "127.0.0.1"). Returns null for any other address.
+ */
+function mappedIpv4Of(canonicalIpv6: string): string | null {
+  const match = /^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/.exec(canonicalIpv6);
+  if (!match) return null;
+  const high = Number.parseInt(match[1], 16);
+  const low = Number.parseInt(match[2], 16);
+  return `${high >> 8}.${high & 0xff}.${low >> 8}.${low & 0xff}`;
+}
+
 function isPrivateIpv6(ip: string): boolean {
-  const lower = ip.toLowerCase();
-  if (lower.startsWith("::")) return true;
-  if (lower.startsWith("fe80") || lower.startsWith("fc") || lower.startsWith("fd")) {
+  const canonical = canonicalizeIpv6(ip) ?? ip.toLowerCase();
+
+  // IPv4-mapped addresses (::ffff:a.b.c.d) are routed to the embedded IPv4
+  // address, so judge that address instead of the wrapper: that both rejects
+  // internal targets and keeps public ones reachable.
+  const mapped = mappedIpv4Of(canonical);
+  if (mapped !== null) return isPrivateIpv4(mapped);
+
+  // any other ::-prefixed form (::1, ::, ::7f00:1) stays private
+  if (canonical.startsWith("::")) return true;
+  if (canonical.startsWith("fe80") || canonical.startsWith("fc") || canonical.startsWith("fd")) {
     return true;
   }
-  if (lower.startsWith("ff")) return true;
+  if (canonical.startsWith("ff")) return true;
   return false;
 }
 

@@ -55,6 +55,17 @@ describe("assertSafeUrl", () => {
     await expect(assertSafeUrl("http://[fc00::1]/")).rejects.toThrow(UnsafeUrlError);
   });
 
+  it("rejects IPv4-mapped IPv6 literals embedding private addresses", async () => {
+    await expect(assertSafeUrl("http://[::ffff:127.0.0.1]/")).rejects.toThrow(UnsafeUrlError);
+    await expect(assertSafeUrl("http://[::ffff:169.254.169.254]/")).rejects.toThrow(UnsafeUrlError);
+  });
+
+  it("allows IPv4-mapped IPv6 literals embedding public addresses", async () => {
+    await expect(assertSafeUrl("http://[::ffff:8.8.8.8]/")).resolves.toBe(
+      "http://[::ffff:808:808]/",
+    );
+  });
+
   it("rejects private hostnames", async () => {
     await expect(assertSafeUrl("http://localhost/")).rejects.toThrow(UnsafeUrlError);
     await expect(assertSafeUrl("http://foo.localhost/")).rejects.toThrow(UnsafeUrlError);
@@ -69,6 +80,20 @@ describe("assertSafeUrl", () => {
   it("rejects hostnames resolving to IPv6 private addresses", async () => {
     mockLookup.mockResolvedValue([{ address: "::1", family: 6 }]);
     await expect(assertSafeUrl("http://evil.example.com/")).rejects.toThrow(UnsafeUrlError);
+  });
+
+  it("judges equivalent spellings of an IPv4-mapped address identically", async () => {
+    // the resolver emits the dotted form; expanded/canonical spellings must not
+    // be a way around the check
+    for (const address of [
+      "::ffff:127.0.0.1",
+      "::ffff:7f00:1",
+      "0:0:0:0:0:ffff:7f00:1",
+      "0:0:0:0:0:ffff:127.0.0.1",
+    ]) {
+      mockLookup.mockResolvedValue([{ address, family: 6 }]);
+      await expect(assertSafeUrl("http://evil.example.com/")).rejects.toThrow(UnsafeUrlError);
+    }
   });
 
   it("rejects invalid URLs", async () => {
