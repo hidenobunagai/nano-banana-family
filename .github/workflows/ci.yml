@@ -14,7 +14,7 @@ jobs:
       GEMINI_API_KEY: ci-dummy-key
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
       - name: Install dependencies
@@ -28,7 +28,7 @@ jobs:
       - name: Test with coverage
         run: bun run test:coverage
       - name: Upload coverage report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: coverage-report
