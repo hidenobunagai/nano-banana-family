@@ -16,7 +16,8 @@ interface UseResultHistoryOptions {
 
 /**
  * Bounded history of generated result images with navigation.
- * The current position is always the last item after a push.
+ * A push drops anything after the current position, so the current position is
+ * always the last item afterwards.
  */
 export function useResultHistory({
   maxItems = MAX_HISTORY,
@@ -30,7 +31,9 @@ export function useResultHistory({
   const pushResult = useCallback(
     (image: string) => {
       setState((prev) => {
-        const nextItems = [...prev.items, image];
+        // Regenerating from an older item abandons the results after it: keep
+        // them and "next result" would still step into replaced images.
+        const nextItems = [...prev.items.slice(0, prev.index + 1), image];
         const bounded =
           nextItems.length > maxItems ? nextItems.slice(nextItems.length - maxItems) : nextItems;
         return {

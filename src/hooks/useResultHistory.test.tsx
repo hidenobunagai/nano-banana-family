@@ -173,9 +173,56 @@ describe("useResultHistory", () => {
     act(() => result.current.navigateTo(0));
     expect(result.current.historyIndex).toBe(0);
 
-    // Push a 3rd item
+    // Push a 3rd item: the abandoned img2 is gone, so img3 follows img1.
     act(() => result.current.pushResult("img3"));
-    expect(result.current.history).toEqual(["img1", "img2", "img3"]);
+    expect(result.current.history).toEqual(["img1", "img3"]);
+    expect(result.current.historyIndex).toBe(1);
+  });
+
+  it("drops the forward entries when a result is pushed after navigating back", () => {
+    const { result } = renderHook(() => useResultHistory({ maxItems: 4 }));
+
+    act(() => result.current.pushResult("img1"));
+    act(() => result.current.pushResult("img2"));
+    act(() => result.current.pushResult("img3"));
+
+    act(() => result.current.goBack());
+    expect(result.current.historyIndex).toBe(1);
+    expect(result.current.canGoForward).toBe(true);
+
+    // Regenerating here replaces the future: img3 was superseded, so "next
+    // result" must not step into it.
+    act(() => result.current.pushResult("img4"));
+    expect(result.current.history).toEqual(["img1", "img2", "img4"]);
     expect(result.current.historyIndex).toBe(2);
+    expect(result.current.canGoForward).toBe(false);
+
+    // Stepping back still reaches the two kept entries, and forward returns to
+    // the new result instead of the replaced one.
+    act(() => result.current.goBack());
+    expect(result.current.historyIndex).toBe(1);
+    act(() => result.current.goBack());
+    expect(result.current.historyIndex).toBe(0);
+    act(() => result.current.goForward());
+    act(() => result.current.goForward());
+    expect(result.current.historyIndex).toBe(2);
+    expect(result.current.canGoForward).toBe(false);
+  });
+
+  it("keeps the newest maxItems results when pushing truncates the future", () => {
+    const { result } = renderHook(() => useResultHistory({ maxItems: 2 }));
+
+    act(() => result.current.pushResult("img1"));
+    act(() => result.current.pushResult("img2"));
+    act(() => result.current.goBack());
+
+    act(() => result.current.pushResult("img3"));
+    expect(result.current.history).toEqual(["img1", "img3"]);
+    expect(result.current.historyIndex).toBe(1);
+
+    // The bound still applies to the truncated list.
+    act(() => result.current.pushResult("img4"));
+    expect(result.current.history).toEqual(["img3", "img4"]);
+    expect(result.current.historyIndex).toBe(1);
   });
 });
