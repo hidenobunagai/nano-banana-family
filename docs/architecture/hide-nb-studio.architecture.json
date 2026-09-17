@@ -7,14 +7,14 @@
     "viewBox": [1020, 510],
     "repository": {
       "url": "https://github.com/hidenobunagai/nano-banana-family.git",
-      "revision": "52e03c3ed5d3154831d339565b3797db95fb1442"
+      "revision": "f6c25a23262c70fdfc833ab95ac2a8935bf0e86e"
     },
     "views": [
       {
         "id": "gen-flow",
         "label": "Image Generation Flow",
-        "focus": ["family", "auth", "frontend", "api", "cache", "gemini"],
-        "note": "Main path where family photos and creative prompts are converted by Gemini API into generated images"
+        "focus": ["family", "auth", "frontend", "api", "cache", "gemini", "gallery"],
+        "note": "Main path where family photos and creative prompts are converted by Gemini API into generated images, then saved to the browser gallery"
       },
       {
         "id": "identity",
@@ -25,8 +25,8 @@
       {
         "id": "guards",
         "label": "Guardrails & Observability",
-        "focus": ["api", "cache", "rate-limit", "url-meta", "analytics"],
-        "note": "Side-paths for validation, rate limiting, in-memory caching, OG metadata fetching, and analytics"
+        "focus": ["api", "cache", "url-meta", "analytics"],
+        "note": "Side-paths for request validation, in-memory caching, OG metadata fetching, and analytics"
       }
     ]
   },
@@ -86,7 +86,7 @@
       "id": "api",
       "type": "backend",
       "label": "API Route Handlers",
-      "sublabel": "freestyle-edit / icon-generate / create-story",
+      "sublabel": "freestyle / icon / story / health",
       "tag": "maxDuration 300s",
       "sources": [
         {
@@ -120,26 +120,13 @@
       "id": "cache",
       "type": "database",
       "label": "In-Memory Cache",
-      "sublabel": "5-min TTL · cache key",
+      "sublabel": "10-min TTL · content key",
       "sources": [
         {
           "path": "src/utils/server/cache.ts"
         }
       ],
       "pos": [560, 420],
-      "size": [130, 60]
-    },
-    {
-      "id": "rate-limit",
-      "type": "security",
-      "label": "Rate Limiter",
-      "sublabel": "10 req/min per user",
-      "sources": [
-        {
-          "path": "src/utils/server/rateLimit.ts"
-        }
-      ],
-      "pos": [720, 420],
       "size": [130, 60]
     },
     {
@@ -171,13 +158,30 @@
       ],
       "pos": [360, 110],
       "size": [170, 56]
+    },
+    {
+      "id": "gallery",
+      "type": "database",
+      "label": "Browser Gallery",
+      "sublabel": "IndexedDB · max 50 items",
+      "tag": "client-local store",
+      "sources": [
+        {
+          "path": "src/utils/galleryStorage.ts"
+        },
+        {
+          "path": "src/components/features/gallery/GalleryModal.tsx"
+        }
+      ],
+      "pos": [20, 420],
+      "size": [140, 60]
     }
   ],
   "boundaries": [
     {
       "kind": "region",
       "label": "Vercel Deployment (Hide NB Studio)",
-      "wraps": ["auth", "frontend", "api", "cache", "rate-limit", "analytics"]
+      "wraps": ["auth", "frontend", "api", "cache", "analytics"]
     },
     {
       "kind": "security-group",
@@ -234,17 +238,6 @@
       "labelAt": [640, 415]
     },
     {
-      "id": "api-to-rate",
-      "from": "api",
-      "to": "rate-limit",
-      "label": "Sliding Window Check",
-      "variant": "security",
-      "fromSide": "bottom",
-      "toSide": "top",
-      "labelDy": 30,
-      "labelDx": -5
-    },
-    {
       "id": "api-to-urlmeta",
       "from": "api",
       "to": "url-meta",
@@ -259,6 +252,15 @@
       "to": "analytics",
       "label": "Telemetry Beacon",
       "variant": "dashed"
+    },
+    {
+      "id": "frontend-to-gallery",
+      "from": "frontend",
+      "to": "gallery",
+      "label": "save / load artworks",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top"
     }
   ],
   "cards": [
