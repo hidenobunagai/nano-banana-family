@@ -14,14 +14,12 @@ type AuthModule = {
 async function importAuth({
   allowedEmails,
   withGoogleConfig = true,
-  secret = "test-secret",
 }: {
   allowedEmails?: string;
   withGoogleConfig?: boolean;
-  secret?: string;
 } = {}): Promise<AuthModule> {
   vi.resetModules();
-  vi.stubEnv("AUTH_SECRET", secret);
+  vi.stubEnv("AUTH_SECRET", "test-secret");
   vi.stubEnv("NEXTAUTH_SECRET", undefined);
   vi.stubEnv("ALLOWED_EMAILS", allowedEmails);
   vi.stubEnv("AUTH_GOOGLE_ID", withGoogleConfig ? "google-client-id" : "");
