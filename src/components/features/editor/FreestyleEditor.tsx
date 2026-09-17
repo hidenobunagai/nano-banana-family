@@ -18,20 +18,13 @@ import { ToneChips } from "@/components/ui/ToneChips";
 import { STARTER_PROMPTS } from "@/utils/starterPrompts";
 import { TONE_PROMPTS } from "@/utils/tonePrompts";
 import { Section } from "@/components/ui/Section";
-import { useEditorSubmit } from "@/hooks/useEditorSubmit";
-import { useProgressSimulation } from "@/hooks/useProgressSimulation";
-import { useRecentPrompts } from "@/hooks/useRecentPrompts";
-import { useResultHistory } from "@/hooks/useResultHistory";
-import { useTextUndoRedo } from "@/hooks/useTextUndoRedo";
-import { useUndoRedoShortcuts } from "@/hooks/useUndoRedoShortcuts";
-import { useUploadSlots } from "@/hooks/useUploadSlots";
+import { useEditorController } from "@/hooks/useEditorController";
 import { MAX_FREESTYLE_UPLOADS, MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
 import { STYLE_SUGGESTIONS } from "@/utils/server/stylePrompts";
-import { saveToGallery } from "@/utils/galleryStorage";
 import { useToast } from "@/components/ui/Toast";
 import { BookOpen, Copy, Download, Loader2, Wand2, X } from "lucide-react";
 import Image from "next/image";
-import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import type { ProgressStep } from "@/components/ProgressDisplay";
 
 const FREESTYLE_PROGRESS_STEPS: ProgressStep[] = [
@@ -43,163 +36,88 @@ const FREESTYLE_PROGRESS_STEPS: ProgressStep[] = [
   { id: "complete", label: "完了", estimatedDuration: 400 },
 ];
 
-const MAX_RECENT_PROMPTS = 6;
-
 export function FreestyleEditor() {
   const toast = useToast();
   const [isComparing, setIsComparing] = useState(false);
   const [showReferencePicker, setShowReferencePicker] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const { recentPrompts, pushRecent } = useRecentPrompts(
-    "freestyle-recent-prompts",
-    MAX_RECENT_PROMPTS,
-  );
   const starterPrompts = STARTER_PROMPTS.filter((p) => p.modes.includes("freestyle"));
   const tonePrompts = TONE_PROMPTS.filter((p) => p.modes.includes("freestyle"));
-  const applyTone = (suffix: string) => {
-    handlePromptChange(prompt.trim() ? `${prompt.trim()}、${suffix}` : suffix);
-  };
+
   const {
-    value: prompt,
-    handleChange: handlePromptChange,
+    recentPrompts,
+    prompt,
+    handlePromptChange,
     undo: handleUndo,
     redo: handleRedo,
     canUndo,
     canRedo,
-    clearStacks,
-    reset: resetText,
-  } = useTextUndoRedo("");
-  useUndoRedoShortcuts(handleUndo, handleRedo);
-  const {
     history,
     historyIndex,
-    pushResult,
     canGoBack,
     canGoForward,
     goBack,
     goForward,
-    reset: resetHistory,
-  } = useResultHistory({
-    onNavigate: (image) => {
-      setResultImage(image);
-      setIsComparing(false);
-      window.scrollTo({
-        top: 0,
-        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-      });
-    },
-  });
-
-  const {
     submit,
     isSubmitting,
     errorMessage,
     resultImage,
     resultFilename,
     setResultImage,
-    setErrorMessage,
-    setIsSubmitting,
-    reset,
-  } = useEditorSubmit({
-    validate: () => {
-      if (!prompt.trim()) return "仕上がりのイメージを入力してください。";
-      if (!hasActiveFiles) return "少なくとも1枚の参考画像を追加してください。";
+    resetSubmit,
+    uploads,
+    isOptimizingAny,
+    optimizingIds,
+    addUploadSlot,
+    removeUploadSlot,
+    handleFileChange,
+    hasActiveFiles,
+    progress,
+    currentStep,
+    timeRemaining,
+    handleSubmit,
+    resetEditor,
+  } = useEditorController({
+    recentStorageKey: "freestyle-recent-prompts",
+    progressSteps: FREESTYLE_PROGRESS_STEPS,
+    maxUploads: MAX_FREESTYLE_UPLOADS,
+    initialUploadSlots: 1,
+    pasteToUpload: true,
+    endpoint: "/api/freestyle-edit",
+    errorFallback: "画像の生成に失敗しました。内容を少し変えてもう一度お試しください。",
+    downloadPrefix: "freestyle",
+    validate: (ctx) => {
+      if (!ctx.prompt.trim()) return "仕上がりのイメージを入力してください。";
+      if (!ctx.hasActiveFiles) return "少なくとも1枚の参考画像を追加してください。";
       return null;
     },
-    buildFormData: () => {
+    buildFormData: (ctx) => {
       const formData = new FormData();
-      formData.append("prompt", prompt.trim());
-      activeUploads.forEach((upload) => {
+      formData.append("prompt", ctx.prompt.trim());
+      ctx.activeUploads.forEach((upload) => {
         if (upload.file) formData.append("images", upload.file);
       });
       return formData;
     },
-    endpoint: "/api/freestyle-edit",
-    errorFallback: "画像の生成に失敗しました。内容を少し変えてもう一度お試しください。",
-    downloadPrefix: "freestyle",
-    onBeforeSubmit: () => {
-      clearStacks();
+    recentPrompt: (ctx) => ctx.prompt,
+    galleryEntry: (ctx) => ({ mode: "freestyle", prompt: ctx.prompt }),
+    onBeforeSubmit: () => setIsComparing(false),
+    onNavigate: () => {
       setIsComparing(false);
+      window.scrollTo({
+        top: 0,
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      });
     },
-    onSuccess: (image) => {
-      pushRecent(prompt);
-      pushResult(image);
-      const commaIndex = image.indexOf(",");
-      const mimeMatch = image.match(/^data:([^;]+);base64,/);
-      if (commaIndex !== -1) {
-        void saveToGallery({
-          mode: "freestyle",
-          prompt,
-          imageBase64: image.slice(commaIndex + 1),
-          mimeType: mimeMatch?.[1] || "image/png",
-        }).then((saved) => {
-          if (!saved) toast.error("ギャラリーに保存できませんでした");
-        });
-      }
-    },
-    onFinished: (elapsedMs) => completeProgress(elapsedMs),
+    resetFields: () => setIsComparing(false),
+    scrollToTopOnReset: true,
   });
 
-  const {
-    uploads,
-    activeUploads,
-    isOptimizingAny,
-    optimizingIds,
-    addUploadSlot,
-    addFile,
-    removeUploadSlot,
-    handleFileChange,
-    resetUploads,
-  } = useUploadSlots({
-    maxSlots: MAX_FREESTYLE_UPLOADS,
-    initialSlots: 1,
-    onBeforeChange: () => reset(),
-    onFileError: setErrorMessage,
-  });
+  const applyTone = (suffix: string) => {
+    handlePromptChange(prompt.trim() ? `${prompt.trim()}、${suffix}` : suffix);
+  };
 
-  // Global paste support for screenshots
-  useEffect(() => {
-    const handleWindowPaste = (e: ClipboardEvent) => {
-      const target = e.target as HTMLElement;
-      if (
-        (target.tagName === "INPUT" || target.tagName === "TEXTAREA") &&
-        e.clipboardData?.types.includes("text/plain") &&
-        !e.clipboardData?.types.includes("Files")
-      ) {
-        return;
-      }
-      if (e.clipboardData?.files && e.clipboardData.files.length > 0) {
-        const imageFile = Array.from(e.clipboardData.files).find((f) =>
-          f.type.startsWith("image/"),
-        );
-        if (imageFile) {
-          e.preventDefault();
-          void addFile(imageFile).then((added) => {
-            if (added) {
-              toast.success("クリップボードの画像を参考画像に追加しました！");
-            }
-          });
-        }
-      }
-    };
-    window.addEventListener("paste", handleWindowPaste);
-    return () => window.removeEventListener("paste", handleWindowPaste);
-  }, [addFile, toast]);
-
-  const handleProgressComplete = useCallback(() => setIsSubmitting(false), [setIsSubmitting]);
-  const {
-    progress,
-    currentStep,
-    timeRemaining,
-    complete: completeProgress,
-  } = useProgressSimulation({
-    isActive: isSubmitting,
-    onComplete: handleProgressComplete,
-    steps: FREESTYLE_PROGRESS_STEPS,
-  });
-
-  const hasActiveFiles = activeUploads.length > 0;
   const canSubmit =
     prompt.trim().length > 0 &&
     prompt.length <= MAX_PROMPT_LENGTH &&
@@ -215,24 +133,13 @@ export function FreestyleEditor() {
     setResultImage(next ? previous : currentImage);
   }, [history, historyIndex, resultImage, isComparing, setResultImage]);
 
-  const resetEditor = useCallback(() => {
-    resetUploads();
-    resetText();
-    resetHistory();
-    reset();
-    setIsComparing(false);
-    if (typeof window !== "undefined") {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  }, [resetUploads, resetText, resetHistory, reset]);
-
   const handleRemoveUploadSlot = useCallback(
     (id: string) => {
       if (uploads.length <= 1) return;
       removeUploadSlot(id);
-      reset();
+      resetSubmit();
     },
-    [uploads.length, removeUploadSlot, reset],
+    [uploads.length, removeUploadSlot, resetSubmit],
   );
 
   const handleReferenceSelect = useCallback(
@@ -260,11 +167,6 @@ export function FreestyleEditor() {
     },
     [handlePromptChange, prompt, toast],
   );
-
-  const handleSubmit = (event: FormEvent) => {
-    event.preventDefault();
-    void submit();
-  };
 
   return (
     <EditorLayout

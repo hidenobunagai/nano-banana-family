@@ -11,20 +11,13 @@ import { ToneChips } from "@/components/ui/ToneChips";
 import { STARTER_PROMPTS } from "@/utils/starterPrompts";
 import { TONE_PROMPTS } from "@/utils/tonePrompts";
 import { Section } from "@/components/ui/Section";
-import { useEditorSubmit } from "@/hooks/useEditorSubmit";
-import { useProgressSimulation } from "@/hooks/useProgressSimulation";
-import { useRecentPrompts } from "@/hooks/useRecentPrompts";
-import { useResultHistory } from "@/hooks/useResultHistory";
-import { useTextUndoRedo } from "@/hooks/useTextUndoRedo";
-import { useUndoRedoShortcuts } from "@/hooks/useUndoRedoShortcuts";
-import { useUploadSlots } from "@/hooks/useUploadSlots";
+import { useEditorController } from "@/hooks/useEditorController";
 import { ICON_STYLES } from "@/utils/iconStyles";
 import { MAX_ICON_UPLOADS, MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
-import { saveToGallery } from "@/utils/galleryStorage";
 import { useToast } from "@/components/ui/Toast";
 import { Check, Globe, Loader2, Sparkles, User, X } from "lucide-react";
 import Image from "next/image";
-import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import type { ProgressStep } from "@/components/ProgressDisplay";
 
 const FAMILY_CONTACT_PRESETS = [
@@ -51,8 +44,6 @@ const ICON_PROGRESS_STEPS: ProgressStep[] = [
   { id: "complete", label: "完了", estimatedDuration: 400 },
 ];
 
-const MAX_RECENT_PROMPTS = 6;
-
 export function IconCreator() {
   const toast = useToast();
   const [name, setName] = useState("");
@@ -60,146 +51,82 @@ export function IconCreator() {
   const [selectedStyle, setSelectedStyle] = useState("auto");
   const customPromptTextareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const { recentPrompts, pushRecent } = useRecentPrompts("icon-recent-prompts", MAX_RECENT_PROMPTS);
-  const starterPrompts = STARTER_PROMPTS.filter((p) => p.modes.includes("icon"));
-  const tonePrompts = TONE_PROMPTS.filter((p) => p.modes.includes("icon"));
-  const applyTone = (suffix: string) => {
-    handlePromptChange(customPrompt.trim() ? `${customPrompt.trim()}、${suffix}` : suffix);
-  };
-
   const {
-    value: customPrompt,
-    handleChange: handlePromptChange,
+    recentPrompts,
+    prompt: customPrompt,
+    handlePromptChange,
     undo: handleUndo,
     redo: handleRedo,
     canUndo,
     canRedo,
-    clearStacks,
-    reset: resetText,
-  } = useTextUndoRedo("");
-  useUndoRedoShortcuts(handleUndo, handleRedo);
-  const {
     history,
     historyIndex,
-    pushResult,
     canGoBack,
     canGoForward,
     goBack,
     goForward,
-    reset: resetHistory,
-  } = useResultHistory({
-    onNavigate: (image) => {
-      setResultImage(image);
-      window.scrollTo({
-        top: 0,
-        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-      });
-    },
-  });
-
-  const {
     submit,
     isSubmitting,
     errorMessage,
     resultImage,
     resultFilename,
-    setResultImage,
-    setErrorMessage,
-    setIsSubmitting,
-    reset,
-  } = useEditorSubmit({
+    resetSubmit,
+    uploads,
+    isOptimizingAny,
+    optimizingIds,
+    addUploadSlot,
+    removeUploadSlot,
+    handleFileChange,
+    progress,
+    currentStep,
+    timeRemaining,
+    handleSubmit,
+    resetEditor,
+  } = useEditorController({
+    recentStorageKey: "icon-recent-prompts",
+    progressSteps: ICON_PROGRESS_STEPS,
+    maxUploads: MAX_ICON_UPLOADS,
+    pasteToUpload: true,
+    endpoint: "/api/icon-generate",
+    errorFallback: "アイコンの生成に失敗しました。情報を少し減らしてもう一度お試しください。",
+    downloadPrefix: "icon",
     validate: () => (name.trim() ? null : "連絡先名を入力してください。"),
-    buildFormData: () => {
+    buildFormData: (ctx) => {
       const formData = new FormData();
       formData.append("name", name.trim());
       formData.append("style", selectedStyle);
       if (url.trim()) formData.append("url", url.trim());
-      if (customPrompt.trim()) formData.append("customPrompt", customPrompt.trim());
-      activeUploads.forEach((upload) => {
+      if (ctx.prompt.trim()) formData.append("customPrompt", ctx.prompt.trim());
+      ctx.activeUploads.forEach((upload) => {
         if (upload.file) formData.append("images", upload.file);
       });
       return formData;
     },
-    endpoint: "/api/icon-generate",
-    errorFallback: "アイコンの生成に失敗しました。情報を少し減らしてもう一度お試しください。",
-    downloadPrefix: "icon",
-    onBeforeSubmit: clearStacks,
-    onSuccess: (image) => {
-      if (customPrompt.trim()) pushRecent(customPrompt.trim());
-      pushResult(image);
-      const commaIndex = image.indexOf(",");
-      const mimeMatch = image.match(/^data:([^;]+);base64,/);
-      if (commaIndex !== -1) {
-        void saveToGallery({
-          mode: "icon",
-          title: name.trim() || "アイコン",
-          prompt: customPrompt.trim(),
-          imageBase64: image.slice(commaIndex + 1),
-          mimeType: mimeMatch?.[1] || "image/png",
-        }).then((saved) => {
-          if (!saved) toast.error("ギャラリーに保存できませんでした");
-        });
-      }
+    recentPrompt: (ctx) => ctx.prompt.trim() || null,
+    galleryEntry: (ctx) => ({
+      mode: "icon",
+      title: name.trim() || "アイコン",
+      prompt: ctx.prompt.trim(),
+    }),
+    onNavigate: () => {
+      window.scrollTo({
+        top: 0,
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      });
     },
-    onFinished: (elapsedMs) => completeProgress(elapsedMs),
+    resetFields: () => {
+      setName("");
+      setUrl("");
+      setSelectedStyle("auto");
+    },
+    scrollToTopOnReset: true,
   });
 
-  const {
-    uploads,
-    activeUploads,
-    isOptimizingAny,
-    optimizingIds,
-    addUploadSlot,
-    addFile,
-    removeUploadSlot,
-    handleFileChange,
-    resetUploads,
-  } = useUploadSlots({
-    maxSlots: MAX_ICON_UPLOADS,
-    onBeforeChange: () => reset(),
-    onFileError: setErrorMessage,
-  });
-
-  // Global paste support for screenshots
-  useEffect(() => {
-    const handleWindowPaste = (e: ClipboardEvent) => {
-      const target = e.target as HTMLElement;
-      if (
-        (target.tagName === "INPUT" || target.tagName === "TEXTAREA") &&
-        e.clipboardData?.types.includes("text/plain") &&
-        !e.clipboardData?.types.includes("Files")
-      ) {
-        return;
-      }
-      if (e.clipboardData?.files && e.clipboardData.files.length > 0) {
-        const imageFile = Array.from(e.clipboardData.files).find((f) =>
-          f.type.startsWith("image/"),
-        );
-        if (imageFile) {
-          e.preventDefault();
-          void addFile(imageFile).then((added) => {
-            if (added) {
-              toast.success("クリップボードの画像を参考画像に追加しました！");
-            }
-          });
-        }
-      }
-    };
-    window.addEventListener("paste", handleWindowPaste);
-    return () => window.removeEventListener("paste", handleWindowPaste);
-  }, [addFile, toast]);
-
-  const handleProgressComplete = useCallback(() => setIsSubmitting(false), [setIsSubmitting]);
-  const {
-    progress,
-    currentStep,
-    timeRemaining,
-    complete: completeProgress,
-  } = useProgressSimulation({
-    isActive: isSubmitting,
-    onComplete: handleProgressComplete,
-    steps: ICON_PROGRESS_STEPS,
-  });
+  const starterPrompts = STARTER_PROMPTS.filter((p) => p.modes.includes("icon"));
+  const tonePrompts = TONE_PROMPTS.filter((p) => p.modes.includes("icon"));
+  const applyTone = (suffix: string) => {
+    handlePromptChange(customPrompt.trim() ? `${customPrompt.trim()}、${suffix}` : suffix);
+  };
 
   const canSubmit =
     name.trim().length > 0 &&
@@ -211,25 +138,12 @@ export function IconCreator() {
     [selectedStyle],
   );
 
-  const resetEditor = useCallback(() => {
-    setName("");
-    setUrl("");
-    setSelectedStyle("auto");
-    resetText();
-    resetHistory();
-    resetUploads();
-    reset();
-    if (typeof window !== "undefined") {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  }, [resetText, resetHistory, resetUploads, reset]);
-
   const handleRemoveUploadSlot = useCallback(
     (id: string) => {
       removeUploadSlot(id);
-      reset();
+      resetSubmit();
     },
-    [removeUploadSlot, reset],
+    [removeUploadSlot, resetSubmit],
   );
 
   const handleRecentSelect = useCallback(
@@ -239,11 +153,6 @@ export function IconCreator() {
     },
     [handlePromptChange],
   );
-
-  const handleSubmit = (event: FormEvent) => {
-    event.preventDefault();
-    void submit();
-  };
 
   return (
     <EditorLayout

@@ -7,15 +7,8 @@ import { Button, cn } from "@/components/ui/Button";
 import { ImageUploadGrid } from "@/components/ui/ImageUploadGrid";
 import { PromptTextarea } from "@/components/ui/PromptTextarea";
 import { Section } from "@/components/ui/Section";
-import { useEditorSubmit } from "@/hooks/useEditorSubmit";
-import { useProgressSimulation } from "@/hooks/useProgressSimulation";
-import { useRecentPrompts } from "@/hooks/useRecentPrompts";
-import { useResultHistory } from "@/hooks/useResultHistory";
-import { useTextUndoRedo } from "@/hooks/useTextUndoRedo";
-import { useUndoRedoShortcuts } from "@/hooks/useUndoRedoShortcuts";
-import { useUploadSlots } from "@/hooks/useUploadSlots";
+import { useEditorController } from "@/hooks/useEditorController";
 import { MAX_STORY_UPLOADS } from "@/utils/promptConstants";
-import { saveToGallery } from "@/utils/galleryStorage";
 import { useToast } from "@/components/ui/Toast";
 import {
   BookOpen,
@@ -32,7 +25,7 @@ import {
   Wand2,
 } from "lucide-react";
 import Image from "next/image";
-import { type FormEvent, useCallback, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import type { ProgressStep } from "@/components/ProgressDisplay";
 
 const STORY_TYPES = [
@@ -84,8 +77,6 @@ const STORY_PROGRESS_STEPS: ProgressStep[] = [
   { id: "complete", label: "完成！", estimatedDuration: 400 },
 ];
 
-const MAX_RECENT_PROMPTS = 6;
-
 export function StoryCreator() {
   const toast = useToast();
   const [storyType, setStoryType] = useState<"picture-book" | "comic" | "newspaper">(
@@ -96,127 +87,74 @@ export function StoryCreator() {
   const [isComparing, setIsComparing] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const { recentPrompts, pushRecent } = useRecentPrompts(
-    "story-recent-prompts",
-    MAX_RECENT_PROMPTS,
-  );
   const {
-    value: customPrompt,
-    handleChange: handlePromptChange,
+    recentPrompts,
+    prompt: customPrompt,
+    handlePromptChange,
     undo: handleUndo,
     redo: handleRedo,
     canUndo,
     canRedo,
-    clearStacks,
-    reset: resetText,
-  } = useTextUndoRedo("");
-  useUndoRedoShortcuts(handleUndo, handleRedo);
-
-  const {
     history,
     historyIndex,
-    pushResult,
     canGoBack,
     canGoForward,
     goBack,
     goForward,
-    reset: resetHistory,
-  } = useResultHistory({
-    onNavigate: (image) => {
-      setResultImage(image);
-      setIsComparing(false);
-    },
-  });
-
-  const {
     submit,
     isSubmitting,
     errorMessage,
     resultImage,
     resultFilename,
-    setResultImage,
-    setErrorMessage,
-    setIsSubmitting,
-    reset: resetSubmit,
-  } = useEditorSubmit({
-    validate: () => {
-      if (!hasActiveFiles) return "少なくとも1枚の写真をアップロードしてください。";
-      return null;
-    },
-    buildFormData: () => {
-      const formData = new FormData();
-      formData.append("storyType", storyType);
-      formData.append("tone", tone);
-      formData.append("language", language);
-      if (customPrompt.trim()) formData.append("customPrompt", customPrompt.trim());
-      activeUploads.forEach((upload) => {
-        if (upload.file) formData.append("images", upload.file);
-      });
-      return formData;
-    },
-    endpoint: "/api/create-story",
-    errorFallback: "ストーリー画像の生成に失敗しました。写真を変えてもう一度お試しください。",
-    downloadPrefix: `story-${storyType}`,
-    onBeforeSubmit: () => {
-      clearStacks();
-      setIsComparing(false);
-    },
-    onSuccess: (image) => {
-      if (customPrompt.trim()) pushRecent(customPrompt.trim());
-      pushResult(image);
-      const commaIndex = image.indexOf(",");
-      const mimeMatch = image.match(/^data:([^;]+);base64,/);
-      if (commaIndex !== -1) {
-        void saveToGallery({
-          mode: "story",
-          title: `${storyType === "picture-book" ? "絵本" : storyType === "comic" ? "4コマ漫画" : "家族新聞"} (${tone})`,
-          prompt: customPrompt.trim(),
-          imageBase64: image.slice(commaIndex + 1),
-          mimeType: mimeMatch?.[1] || "image/png",
-        }).then((saved) => {
-          if (!saved) toast.error("ギャラリーに保存できませんでした");
-        });
-      }
-    },
-    onFinished: (elapsedMs) => completeProgress(elapsedMs),
-  });
-
-  const {
     uploads,
-    activeUploads,
     isOptimizingAny,
     optimizingIds,
     addUploadSlot,
     removeUploadSlot,
     handleFileChange,
-    resetUploads,
-  } = useUploadSlots({
-    maxSlots: MAX_STORY_UPLOADS,
-    initialSlots: 1,
-    onBeforeChange: () => resetSubmit(),
-    onFileError: setErrorMessage,
-  });
-
-  const hasActiveFiles = activeUploads.length > 0;
-  const canSubmit = hasActiveFiles && !isSubmitting && !isOptimizingAny;
-
-  const handleProgressComplete = useCallback(() => setIsSubmitting(false), [setIsSubmitting]);
-
-  const {
+    hasActiveFiles,
     progress,
     currentStep,
     timeRemaining,
-    complete: completeProgress,
-  } = useProgressSimulation({
-    isActive: isSubmitting,
-    steps: STORY_PROGRESS_STEPS,
-    onComplete: handleProgressComplete,
+    handleSubmit,
+    resetEditor,
+  } = useEditorController({
+    recentStorageKey: "story-recent-prompts",
+    progressSteps: STORY_PROGRESS_STEPS,
+    maxUploads: MAX_STORY_UPLOADS,
+    initialUploadSlots: 1,
+    pasteToUpload: false,
+    endpoint: "/api/create-story",
+    errorFallback: "ストーリー画像の生成に失敗しました。写真を変えてもう一度お試しください。",
+    downloadPrefix: `story-${storyType}`,
+    validate: (ctx) => {
+      if (!ctx.hasActiveFiles) return "少なくとも1枚の写真をアップロードしてください。";
+      return null;
+    },
+    buildFormData: (ctx) => {
+      const formData = new FormData();
+      formData.append("storyType", storyType);
+      formData.append("tone", tone);
+      formData.append("language", language);
+      if (ctx.prompt.trim()) formData.append("customPrompt", ctx.prompt.trim());
+      ctx.activeUploads.forEach((upload) => {
+        if (upload.file) formData.append("images", upload.file);
+      });
+      return formData;
+    },
+    recentPrompt: (ctx) => ctx.prompt.trim() || null,
+    galleryEntry: (ctx) => ({
+      mode: "story",
+      title: `${storyType === "picture-book" ? "絵本" : storyType === "comic" ? "4コマ漫画" : "家族新聞"} (${tone})`,
+      prompt: ctx.prompt.trim(),
+    }),
+    onBeforeSubmit: () => setIsComparing(false),
+    onNavigate: () => setIsComparing(false),
+    resetFields: () => setIsComparing(false),
+    scrollToTopOnReset: false,
   });
 
-  const handleSubmit = (event: FormEvent) => {
-    event.preventDefault();
-    void submit();
-  };
+  const canSubmit = hasActiveFiles && !isSubmitting && !isOptimizingAny;
 
   const handleRecentSelect = (selectedPrompt: string) => {
     handlePromptChange(selectedPrompt);
@@ -232,15 +170,6 @@ export function StoryCreator() {
   const handleRetry = () => {
     if (!canSubmit) return;
     void submit();
-  };
-
-  const resetEditor = () => {
-    resetUploads();
-    resetText();
-    clearStacks();
-    resetHistory();
-    resetSubmit();
-    setIsComparing(false);
   };
 
   const displayedImage = isComparing && historyIndex > 0 ? history[historyIndex - 1] : resultImage;
