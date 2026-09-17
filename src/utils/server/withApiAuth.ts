@@ -2,7 +2,6 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
 import { authOptions } from "@/auth";
-import { checkRateLimit } from "@/utils/server/rateLimit";
 import { logger } from "@/utils/server/logger";
 
 /**
@@ -24,21 +23,7 @@ export async function withApiAuth(
     };
   }
 
-  const userId = session.user?.email ?? "anonymous";
-
-  // 2. Rate limit
-  const rl = checkRateLimit(userId);
-  if (!rl.allowed) {
-    const retryAfter = rl.retryAfter ?? 60;
-    const response = NextResponse.json(
-      { error: `リクエストが多すぎます。${retryAfter}秒後にもう一度お試しください。` },
-      { status: 429 },
-    );
-    response.headers.set("Retry-After", String(retryAfter));
-    return { ok: false, response };
-  }
-
-  // 3. API key
+  // 2. API key
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     logger.error(`${routeName}: missing GEMINI_API_KEY`);
