@@ -30,7 +30,7 @@ Family-only image editing studio built with Next.js and Google Gemini. It authen
 - `src/components/layout` houses layout primitives (shell, dock, editor frame), `src/components/features/editor` holds the three creation modes (`FreestyleEditor`, `IconCreator`, `StoryCreator`), `src/components/features/gallery` holds `GalleryModal`, and `src/components/ui` keeps reusable controls.
 - `src/hooks` contains the hooks the three editors share: submit, upload slots, progress simulation, recent prompts, result history, and text undo/redo.
 - `src/utils` includes shared helpers, with `src/utils/server` reserved for server-only logic. The client-side gallery lives in `src/utils/galleryStorage.ts`, and `src/utils/server/storyPromptBuilder.ts` builds the story prompts.
-- `src/auth.ts` configures NextAuth, `src/middleware.ts` guards every route except the login page and static assets, and `src/utils/promptConstants.ts` defines shared prompt constants.
+- `src/auth.ts` configures NextAuth, `src/proxy.ts` (the Next.js proxy, formerly the middleware convention) guards every route except the login page and static assets, and `src/utils/promptConstants.ts` defines shared prompt constants.
 
 ## Architecture Diagram
 
@@ -50,7 +50,7 @@ The three generation routes are `POST` multipart handlers on the Node.js runtime
 - `POST /api/freestyle-edit` edits up to five uploaded images based on a freeform prompt.
 - `POST /api/icon-generate` generates contact icons from up to three uploaded images plus name, style, and an optional custom prompt, enriching the prompt with the supplied URL's metadata and OG image when that page exposes one.
 - `POST /api/create-story` renders a picture book (`picture-book`), four-panel comic (`comic`), or family newspaper (`newspaper`) from up to five uploaded photos, driven by `storyType`, `tone`, `language`, and an optional `customPrompt`.
-- `GET /api/health` returns a liveness payload (`{ "status": "ok", "timestamp": "<ISO 8601>" }`). It is not exempt from `src/middleware.ts`, so it sits behind the NextAuth session check like every other non-static route.
+- `GET /api/health` returns a liveness payload (`{ "status": "ok", "timestamp": "<ISO 8601>" }`). It is not exempt from `src/proxy.ts`, so it sits behind the NextAuth session check like every other non-static route.
 - `GET|POST /api/auth/*` handles NextAuth Google sign-in.
 
 ## Getting Started
