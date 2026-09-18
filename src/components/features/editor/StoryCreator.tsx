@@ -124,7 +124,7 @@ export function StoryCreator() {
     progressSteps: STORY_PROGRESS_STEPS,
     maxUploads: MAX_STORY_UPLOADS,
     initialUploadSlots: 1,
-    pasteToUpload: false,
+    pasteToUpload: true,
     endpoint: "/api/create-story",
     errorFallback: "ストーリー画像の生成に失敗しました。写真を変えてもう一度お試しください。",
     downloadPrefix: `story-${storyType}`,

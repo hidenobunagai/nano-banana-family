@@ -91,6 +91,33 @@ describe("StoryCreator", () => {
     expect(submitButton).toBeEnabled();
   });
 
+  it("adds a screenshot pasted anywhere in the window as a photo", async () => {
+    render(<StoryCreator />);
+    const submitButton = screen.getByRole("button", { name: "ストーリーを生成する" });
+    expect(submitButton).toBeDisabled();
+
+    // The window listener, not the upload slot, catches the paste: nothing is focused.
+    fireEvent.paste(window, {
+      clipboardData: { files: [makeFile("screenshot.png")], types: ["Files"] },
+    });
+
+    await waitFor(() =>
+      expect(screen.getByAltText("選択した参考画像のプレビュー")).toBeInTheDocument(),
+    );
+    expect(submitButton).toBeEnabled();
+  });
+
+  it("leaves text pasted into the story settings field to the browser", () => {
+    render(<StoryCreator />);
+
+    fireEvent.paste(screen.getByLabelText("追加のストーリー設定"), {
+      clipboardData: { files: [], types: ["text/plain"], getData: () => "こんにちは" },
+    });
+
+    // Plain text must not be swallowed as a photo.
+    expect(screen.queryByAltText("選択した参考画像のプレビュー")).not.toBeInTheDocument();
+  });
+
   it("changes story format and tone options", async () => {
     render(<StoryCreator />);
 
