@@ -14,7 +14,7 @@ interface GalleryModalProps {
 }
 
 export function GalleryModal({ isOpen, onClose, onSelectImage }: GalleryModalProps) {
-  const toast = useToast();
+  const { error: showError, success: showSuccess } = useToast();
   const [items, setItems] = useState<GalleryItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -24,18 +24,28 @@ export function GalleryModal({ isOpen, onClose, onSelectImage }: GalleryModalPro
   useEffect(() => {
     let ignore = false;
     if (isOpen) {
-      loadFromGallery().then((loaded) => {
-        if (!ignore) {
-          setItems(loaded);
-          setIsLoading(false);
-        }
-      });
+      loadFromGallery()
+        .then((loaded) => {
+          if (!ignore) {
+            setItems(loaded);
+            setIsLoading(false);
+          }
+        })
+        .catch(() => {
+          // IndexedDB can reject on a failed read; report it and fall back to the
+          // empty state instead of leaving the spinner up forever.
+          if (!ignore) {
+            setItems([]);
+            setIsLoading(false);
+            showError("ギャラリーを読み込めませんでした");
+          }
+        });
       closeButtonRef.current?.focus();
     }
     return () => {
       ignore = true;
     };
-  }, [isOpen]);
+  }, [isOpen, showError]);
 
   // Focus trap and Escape handler
   useEffect(() => {
@@ -74,14 +84,21 @@ export function GalleryModal({ isOpen, onClose, onSelectImage }: GalleryModalPro
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const success = await deleteFromGallery(id);
-    if (success) {
-      setItems((prev) => prev.filter((item) => item.id !== id));
-      if (selectedItem?.id === id) {
-        setSelectedItem(null);
-      }
-      toast.success("ギャラリーから削除しました");
+    let success = false;
+    try {
+      success = await deleteFromGallery(id);
+    } catch {
+      // A rejected delete is reported the same way as a false result.
     }
+    if (!success) {
+      showError("削除できませんでした");
+      return;
+    }
+    setItems((prev) => prev.filter((item) => item.id !== id));
+    if (selectedItem?.id === id) {
+      setSelectedItem(null);
+    }
+    showSuccess("ギャラリーから削除しました");
   };
 
   const handleCopy = async (item: GalleryItem) => {
@@ -89,9 +106,9 @@ export function GalleryModal({ isOpen, onClose, onSelectImage }: GalleryModalPro
       const response = await fetch(`data:${item.mimeType};base64,${item.imageBase64}`);
       const blob = await response.blob();
       await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
-      toast.success("画像をクリップボードにコピーしました！");
+      showSuccess("画像をクリップボードにコピーしました！");
     } catch {
-      toast.error("画像のコピーに失敗しました");
+      showError("画像のコピーに失敗しました");
     }
   };
 

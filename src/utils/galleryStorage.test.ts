@@ -23,6 +23,10 @@ interface FakeOptions {
   abortTransactionOnPut?: DOMException;
   /** Fail `indexedDB.open` (blocked upgrade, private browsing). */
   failOpen?: DOMException;
+  /** Fail every `getAll` request, the way an unreadable store surfaces. */
+  failGetAllWith?: DOMException;
+  /** Fail every `delete` request. */
+  failDeleteWith?: DOMException;
 }
 
 interface FakeIndexedDB {
@@ -95,9 +99,9 @@ function createFakeIndexedDB(options: FakeOptions = {}): FakeIndexedDB {
             request(() => {
               state.getAllCalls += 1;
               return [...records.values()];
-            }),
+            }, options.failGetAllWith ?? null),
           index: () => ({ openCursor: () => makeCursor() }),
-          delete: (id: string) => request(() => records.delete(id)),
+          delete: (id: string) => request(() => records.delete(id), options.failDeleteWith ?? null),
         };
 
         return tx;
@@ -246,6 +250,24 @@ describe("galleryStorage", () => {
     });
 
     expect(saved).toBeNull();
+  });
+
+  it("rejects when loading fails, so the caller can report the read error", async () => {
+    const fake = createFakeIndexedDB({
+      failGetAllWith: new DOMException("UnknownError", "UnknownError"),
+    });
+    vi.stubGlobal("indexedDB", fake.factory);
+
+    await expect(loadFromGallery()).rejects.toThrow("UnknownError");
+  });
+
+  it("rejects when deleting fails, so the caller can report the delete error", async () => {
+    const fake = createFakeIndexedDB({
+      failDeleteWith: new DOMException("UnknownError", "UnknownError"),
+    });
+    vi.stubGlobal("indexedDB", fake.factory);
+
+    await expect(deleteFromGallery("art-1")).rejects.toThrow("UnknownError");
   });
 
   it("prunes the oldest overflow through the createdAt cursor without reading every item", async () => {
