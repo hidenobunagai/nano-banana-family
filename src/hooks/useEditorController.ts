@@ -73,13 +73,11 @@ export interface UseEditorControllerReturn {
   resultFilename: string | null;
   setResultImage: (image: string | null) => void;
   uploads: UploadSlot[];
-  activeUploads: UploadSlot[];
   isOptimizingAny: boolean;
   optimizingIds: string[];
   addUploadSlot: () => void;
   removeUploadSlot: (id: string) => void;
   handleFileChange: (event: ChangeEvent<HTMLInputElement>, id: string) => Promise<void>;
-  resetUploads: () => void;
   hasActiveFiles: boolean;
   progress: number;
   currentStep: number;
@@ -305,13 +303,11 @@ export function useEditorController(
     resultFilename,
     setResultImage,
     uploads,
-    activeUploads,
     isOptimizingAny,
     optimizingIds,
     addUploadSlot,
     removeUploadSlot,
     handleFileChange,
-    resetUploads,
     hasActiveFiles,
     progress,
     currentStep,
