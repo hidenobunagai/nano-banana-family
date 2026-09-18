@@ -4,6 +4,7 @@ import { withApiAuth } from "@/utils/server/withApiAuth";
 import { filesToParts } from "@/utils/server/imageProcessing";
 import { generateImage, IMAGE_GENERATION_TIMEOUT_MS } from "@/utils/server/imageGeneration";
 import { FreestyleEditFormSchema } from "@/utils/server/validation";
+import { buildFreestylePrompt } from "@/utils/server/freestylePromptBuilder";
 import { validateFormData } from "@/utils/server/api-helpers";
 import { fileFingerprint, generateCacheKey, imageGenerationCache } from "@/utils/server/cache";
 
@@ -47,17 +48,7 @@ export async function POST(request: Request) {
     }
     const parts = partsResult.parts;
 
-    parts.push({
-      text: [
-        "あなたはHide NB Studioファミリーアプリのクリエイティブな画像編集アシスタントです。",
-        "重要な指示: アップロードされた参照画像の人物の顔の特徴、アイデンティティ、類似性を正確に保持してください。生成される人物は参照画像と100%同一である必要があります。",
-        "アップロードされた画像は純粋に視覚的な参照として使用します。",
-        "各参照の主要な要素を順番にブレンドし、最初のアップロードを最も強いガイダンスとして保持してください。",
-        "ユーザーの指示に正確に従い、完成した画像を1枚返してください。",
-        "ユーザーの指示:",
-        trimmedPrompt,
-      ].join("\n"),
-    });
+    parts.push({ text: buildFreestylePrompt({ prompt: trimmedPrompt }) });
 
     const generationResult = await generateImage(
       apiKey,
