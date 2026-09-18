@@ -55,6 +55,27 @@ describe("assertSafeUrl", () => {
     await expect(assertSafeUrl("http://[fc00::1]/")).rejects.toThrow(UnsafeUrlError);
   });
 
+  it("rejects every block of the fe80::/10 link-local range", async () => {
+    // the /10 spans fe80:: through febf::, so prefix-matching "fe80" is not enough
+    for (const address of ["fe80::1", "fe8f::1", "fe90::1", "febf::1", "FE90::1"]) {
+      await expect(assertSafeUrl(`http://[${address}]/`)).rejects.toThrow(UnsafeUrlError);
+    }
+    mockLookup.mockResolvedValue([{ address: "fe90::1", family: 6 }]);
+    await expect(assertSafeUrl("http://evil.example.com/")).rejects.toThrow(UnsafeUrlError);
+  });
+
+  it("rejects the fc00::/7 unique-local range and multicast", async () => {
+    for (const address of ["fc00::1", "fdff::1", "ff02::1"]) {
+      await expect(assertSafeUrl(`http://[${address}]/`)).rejects.toThrow(UnsafeUrlError);
+    }
+  });
+
+  it("allows public IPv6 literals outside the reserved blocks", async () => {
+    await expect(assertSafeUrl("http://[2001:4860:4860::8888]/")).resolves.toBe(
+      "http://[2001:4860:4860::8888]/",
+    );
+  });
+
   it("rejects IPv4-mapped IPv6 literals embedding private addresses", async () => {
     await expect(assertSafeUrl("http://[::ffff:127.0.0.1]/")).rejects.toThrow(UnsafeUrlError);
     await expect(assertSafeUrl("http://[::ffff:169.254.169.254]/")).rejects.toThrow(UnsafeUrlError);

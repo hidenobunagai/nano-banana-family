@@ -82,11 +82,18 @@ function isPrivateIpv6(ip: string): boolean {
 
   // any other ::-prefixed form (::1, ::, ::7f00:1) stays private
   if (canonical.startsWith("::")) return true;
-  if (canonical.startsWith("fe80") || canonical.startsWith("fc") || canonical.startsWith("fd")) {
-    return true;
-  }
-  if (canonical.startsWith("ff")) return true;
-  return false;
+
+  // Judge the leading 16 bits numerically rather than by string prefix: the
+  // link-local block is the /10 fe80:: through febf::, so matching "fe80"
+  // only caught its first sixteenth and let fe8f::1 / fe90::1 / febf::1
+  // through. A non-hextet head is impossible here (canonical IPv6 that does
+  // not start with "::"), and NaN matches no mask anyway.
+  const head = Number.parseInt(canonical.split(":", 1)[0], 16);
+  return (
+    (head & 0xffc0) === 0xfe80 || // fe80::/10 link-local
+    (head & 0xfe00) === 0xfc00 || // fc00::/7 unique local
+    (head & 0xff00) === 0xff00 // ff00::/8 multicast
+  );
 }
 
 function isPrivateHostname(hostname: string): boolean {
