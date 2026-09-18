@@ -24,11 +24,9 @@ describe("ProgressDisplay", () => {
     expect(labels.length).toBeGreaterThanOrEqual(1);
   });
 
-  it("shows custom title", () => {
-    render(
-      <ProgressDisplay currentStep={0} progress={50} steps={sampleSteps} title="Custom Title" />,
-    );
-    expect(screen.getByText("Custom Title")).toBeInTheDocument();
+  it("shows the default title", () => {
+    render(<ProgressDisplay currentStep={0} progress={50} steps={sampleSteps} />);
+    expect(screen.getByText("Gemini が画像を生成中...")).toBeInTheDocument();
   });
 
   it("shows time remaining", () => {

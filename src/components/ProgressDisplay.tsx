@@ -19,7 +19,6 @@ export interface ProgressDisplayProps {
   currentStep: number;
   progress: number;
   steps: ProgressStep[];
-  title?: string;
   timeRemaining?: number;
 }
 
@@ -27,7 +26,6 @@ export function ProgressDisplay({
   currentStep,
   progress,
   steps,
-  title,
   timeRemaining,
 }: ProgressDisplayProps) {
   const [tipIndex, setTipIndex] = useState(0);
@@ -47,9 +45,7 @@ export function ProgressDisplay({
     <div className="bg-white border border-[var(--color-neutral-300)] rounded-[var(--radius-lg)] p-6 shadow-[var(--shadow-level-1)] space-y-6">
       <div className="space-y-4">
         <div className="flex items-center justify-between gap-4 text-dns-14">
-          <h3 className="font-bold text-[var(--color-primary-600)]">
-            {title ?? "Gemini が画像を生成中..."}
-          </h3>
+          <h3 className="font-bold text-[var(--color-primary-600)]">Gemini が画像を生成中...</h3>
           <span className="font-mono text-[var(--color-neutral-500)] tabular-nums">
             {Math.round(progress)}%
           </span>
