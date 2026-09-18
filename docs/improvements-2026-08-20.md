@@ -151,13 +151,20 @@
 
 - **P3-1 77KB のプロンプトライブラリが eager ロード** — `src/promptReferences.ts`
   (77KB)を静的 import。`next/dynamic` で PromptReferencePicker を遅延化。
+  → 解消済み `4630d0c`(2026-08-29、FreestyleEditor.tsx:5-8 で `next/dynamic`)。
 - **P3-2 manifest theme_color 不整合** — `src/app/manifest.ts:13` `#0f172a` vs
   layout.tsx/globals.css の `#f5f6f8`(08-19 から未着手)。1行。
+  → 解消済み `6076cbb`(2026-08-29)。manifest.ts:12 / layout.tsx:47 /
+  globals.css:56 はいずれも `#f5f6f8`、`0f172a` は src に 0 件。
 - **P3-3 sw.ts の API ルールが POST も捕捉** — `src/app/sw.ts:144-159` の
   NetworkFirst がメソッド不問。将来 POST ルート追加時に `cache.put` が非 GET で
   怒られる(下記 P3-6 で SW 整理するなら同時対応)。
+  → 解消済み `f6c25a2`(2026-09-17)。全 4 ルールが `method: "GET"` を明示
+  (sw.ts は 177→84 行)。P3-6 の SW 整理も同コミットで実施済み。
 - **P3-4 useResultHistory の未来分岐** — 戻った状態から生成しても履歴を truncate
   しないため「次の結果」が置き換え済みの古い結果を表示する。設計判断。
+  → 解消済み `c77706c`(2026-09-17)。push 時に
+  `prev.items.slice(0, prev.index + 1)` で未来分岐を破棄(useResultHistory.ts:36)。
 - **P3-5 生成結果の自動スクロールで `setTimeout` を使用** — アンマウント後の発火は
   08-16 で修正済み。`requestAnimationFrame` への置換は任意。
 
@@ -213,13 +220,18 @@
 
 `net: -1360 行、-0 deps 可能(要判断の SW 全削除を含めると -3 deps)`
 
+> 2026-09-18 追記(現物 grep で裏取り): #5 / #6 / #7 の履歴ナビ部分 / #8 / #9 /
+> #10 / #11 / #12 / #13 / #14 / #16 は解消済み(「実装済み (2026-08-29 〜 09-18)」
+> 参照)。未消化は **#4**(要判断)、**#15**(logger、実消費 2 箇所)、
+> **#7 のプロンプト追記ハンドラ統合**(`applyTone` が両エディタに残存)。
+
 ## 08-19 からの持ち越し確認
 
 - **auth.ts カバレッジ 57%** — 今回の指摘で触れる箇所はないため、P2 のまま保留。
 - **prefers-reduced-motion** — 未対応を確認 → 新規 P2-4 として統合。
 - **next/image `unoptimized`** — data: URL に `<img>` が望ましいのは変わらず。
   幅高さ固定 + unoptimized でレイアウトシフトは防がれており、動作上の問題なし(継続)。
-- **manifest theme_color** — 不整合のまま → 新規 P3-2。
+- **manifest theme_color** — 不整合のまま → 新規 P3-2(後に `6076cbb` で解消)。
 - **next-auth v4→v5 / モデル名 / Graph 警告 / future-directions** — 変更なし、P3 保留。
 
 ## 検証
@@ -269,9 +281,56 @@ bun run build      # PASS (CSS 変更の妥当性を含む)
   `hidden`→`sr-only` でタブ順序に復帰、置換オーバーレイは `focus-within` で
   キーボードフォーカス時にも表示
 
+## 実装済み (2026-08-29 〜 09-18)
+
+2026-09-18 に各項目を現物 grep で裏取りし、解決済みのものを集約(いずれも
+`main` 上のコミット)。
+
+- **P3-1 プロンプトライブラリの遅延化** — `4630d0c`(2026-08-29)
+  `FreestyleEditor.tsx:5-8` の `next/dynamic` で PromptReferencePicker を遅延化。
+- **P3-2 manifest theme_color** — `6076cbb`(2026-08-29)
+  `manifest.ts:12` / `layout.tsx:47` / `globals.css:56` が `#f5f6f8` で一致
+  (`0f172a` は src に 0 件)。
+- **P3-3 sw.ts の POST 捕捉 / 過剰設計 #5(部分)** — `f6c25a2`(2026-09-17)
+  全 4 ルールが `method: "GET"`。手調整ランタイムキャッシュは 177→84 行に縮小
+  (SW 自体の全削除は要判断のため未実施)。
+- **P3-4 useResultHistory の未来分岐** — `c77706c`(2026-09-17)
+  生成時に `slice(0, index + 1)` で未来分岐を破棄(`useResultHistory.ts:36`)。
+- **過剰設計 #6 rateLimit 削除** — `49b7847`(2026-09-17)
+  `src/utils/server/rateLimit.ts` と `checkUserRateLimit` 呼び出しを削除(0 件)。
+- **過剰設計 #8 アップロード grid の重複** — `b024348`(2026-08-29)
+  `ImageUploadGrid` を抽出し 3 エディタで再利用。
+- **過剰設計 #9 死にクラス** — `5c17a61`(2026-08-29)
+  `animate-in fade-in slide-in-from-bottom-*` は src に 0 件。
+- **過剰設計 #12 手書き fetch ラッパー** — `c14845c`(2026-09-16)
+  `AbortSignal.timeout` 化(`urlMetadata.ts:27`、`imageProcessing.ts:56`)。
+- **過剰設計 #13 アップロード上限のドリフト** — `e949c7e`(2026-09-16)
+  `validation.ts` が `MAX_FREESTYLE_UPLOADS` / `MAX_ICON_UPLOADS` を参照。
+- **過剰設計 #14 / #16 未使用 export と不要な `"use client"`** — `03615d5`
+  (2026-09-16)`buttonVariants` は非 export 化(内部利用のみ)、
+  `Section.tsx` から `"use client"` を削除(`EditorLayout.tsx` は現存しない)。
+- **過剰設計 #10 `canGoBack` / `canGoForward`** — `e7b0027`(2026-09-17)
+  `useEditorController.ts:119-120,295-296` が消費(未使用ではなくなった)。
+- **過剰設計 #11 ProgressDisplay の props** — `0837c76`(2026-09-18)
+  `isVisible` / `title` とも現存しない。
+- **過剰設計 #7 の履歴ナビ部分** — `7b4d074`(2026-09-16)
+  履歴ナビを `useResultHistory` へ集約。プロンプト追記の join も `868fd8c`
+  (2026-09-18)で `promptText.ts` に共有済み。
+
 ## 次のステップ
 
 - [x] P0-1〜P0-3 / P1-1 / P1-3 / P1-5 / P1-6 / 過剰設計 #1 / #2 / #3、P2 系 — 実装済み
+- [x] 過剰設計 #6: rateLimit 削除 — `49b7847`(2026-09-17)
+- [x] P3-1: PromptReferencePicker の遅延化 — `4630d0c`(2026-08-29)
+- [x] P3-2: manifest theme_color — `6076cbb`(2026-08-29)
+- [x] P3-3: sw.ts の POST 捕捉 — `f6c25a2`(2026-09-17)
+- [x] P3-4: useResultHistory の未来分岐 — `c77706c`(2026-09-17)
+- [x] 過剰設計 #8 / #9 / #10 / #11 / #12 / #13 / #14 / #16 — 上記「実装済み」参照
 - [ ] 過剰設計 #4: useTextUndoRedo の非制御化 — 挙動変更のためユーザー確認してから
-- [ ] 過剰設計 #6: rateLimit 削除 — 家族専用が前提なら削除で妥当(要判断)
-- [ ] P3 系: manifest theme_color(P3-2)、sw.ts POST ルール(P3-3)は未着手
+      (未着手。`useTextUndoRedo.ts` / `useUndoRedoShortcuts.ts` は現存)
+- [ ] 過剰設計 #7: プロンプト追記ハンドラの統合 — join は共有済みだが `applyTone` が
+      `FreestyleEditor.tsx:118` と `IconCreator.tsx:128` に同型で残存(未着手)
+- [ ] 過剰設計 #15: logger 抽象の削除 — 実消費は `api-helpers.ts:64` と
+      `withApiAuth.ts:29` の 2 箇所(未着手)
+- [ ] 過剰設計 #5: sw.ts の全削除 — ルール縮小(`f6c25a2`)まで完了。SW 自体を
+      消すかは要判断
