@@ -14,6 +14,7 @@ import { Section } from "@/components/ui/Section";
 import { useEditorController } from "@/hooks/useEditorController";
 import { ICON_STYLES } from "@/utils/iconStyles";
 import { MAX_ICON_UPLOADS, MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
+import { appendPromptTag } from "@/utils/promptText";
 import { useToast } from "@/components/ui/Toast";
 import { Check, Globe, Loader2, Sparkles, User, X } from "lucide-react";
 import Image from "next/image";
@@ -125,7 +126,7 @@ export function IconCreator() {
   const starterPrompts = STARTER_PROMPTS.filter((p) => p.modes.includes("icon"));
   const tonePrompts = TONE_PROMPTS.filter((p) => p.modes.includes("icon"));
   const applyTone = (suffix: string) => {
-    handlePromptChange(customPrompt.trim() ? `${customPrompt.trim()}、${suffix}` : suffix);
+    handlePromptChange(appendPromptTag(customPrompt, suffix));
   };
 
   const canSubmit =

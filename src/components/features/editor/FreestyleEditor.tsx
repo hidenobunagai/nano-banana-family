@@ -20,6 +20,7 @@ import { TONE_PROMPTS } from "@/utils/tonePrompts";
 import { Section } from "@/components/ui/Section";
 import { useEditorController } from "@/hooks/useEditorController";
 import { MAX_FREESTYLE_UPLOADS, MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
+import { appendPromptTag } from "@/utils/promptText";
 import { STYLE_SUGGESTIONS } from "@/utils/server/stylePrompts";
 import { useToast } from "@/components/ui/Toast";
 import { BookOpen, Copy, Download, Loader2, Wand2, X } from "lucide-react";
@@ -115,7 +116,7 @@ export function FreestyleEditor() {
   });
 
   const applyTone = (suffix: string) => {
-    handlePromptChange(prompt.trim() ? `${prompt.trim()}、${suffix}` : suffix);
+    handlePromptChange(appendPromptTag(prompt, suffix));
   };
 
   const canSubmit =

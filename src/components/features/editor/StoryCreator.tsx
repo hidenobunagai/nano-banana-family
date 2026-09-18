@@ -9,6 +9,7 @@ import { PromptTextarea } from "@/components/ui/PromptTextarea";
 import { Section } from "@/components/ui/Section";
 import { useEditorController } from "@/hooks/useEditorController";
 import { MAX_STORY_UPLOADS } from "@/utils/promptConstants";
+import { appendPromptTag } from "@/utils/promptText";
 import { useToast } from "@/components/ui/Toast";
 import {
   BookOpen,
@@ -162,7 +163,7 @@ export function StoryCreator() {
   };
 
   const appendTag = (tag: string) => {
-    const next = customPrompt.trim() ? `${customPrompt.trim()}、${tag}` : tag;
+    const next = appendPromptTag(customPrompt, tag);
     handlePromptChange(next);
     toast.info(`「${tag}」を追加しました`);
   };
