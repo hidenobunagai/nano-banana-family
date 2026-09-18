@@ -54,6 +54,6 @@
     "tailwindcss": "^4.1.18",
     "typescript": "npm:typescript@^6.0.2",
     "@typescript/native": "npm:typescript@^7.0.2",
-    "vitest": "^3.2.6"
+    "vitest": "^3.2.7"
   }
 }
