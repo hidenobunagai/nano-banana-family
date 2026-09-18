@@ -54,15 +54,12 @@ export interface UseEditorControllerOptions {
 
 export interface UseEditorControllerReturn {
   recentPrompts: readonly string[];
-  pushRecent: (text: string) => void;
   prompt: string;
   handlePromptChange: (next: string) => void;
   undo: () => void;
   redo: () => void;
   canUndo: boolean;
   canRedo: boolean;
-  resetText: () => void;
-  clearStacks: () => void;
   history: string[];
   historyIndex: number;
   canGoBack: boolean;
@@ -75,13 +72,11 @@ export interface UseEditorControllerReturn {
   resultImage: string | null;
   resultFilename: string | null;
   setResultImage: (image: string | null) => void;
-  setErrorMessage: (message: string | null) => void;
   uploads: UploadSlot[];
   activeUploads: UploadSlot[];
   isOptimizingAny: boolean;
   optimizingIds: string[];
   addUploadSlot: () => void;
-  addFile: (file: File) => Promise<boolean>;
   removeUploadSlot: (id: string) => void;
   handleFileChange: (event: ChangeEvent<HTMLInputElement>, id: string) => Promise<void>;
   resetUploads: () => void;
@@ -92,7 +87,6 @@ export interface UseEditorControllerReturn {
   handleSubmit: (event: FormEvent) => void;
   resetEditor: () => void;
   resetSubmit: () => void;
-  reset: () => void;
 }
 
 const MAX_RECENT_PROMPTS = 6;
@@ -292,15 +286,12 @@ export function useEditorController(
 
   return {
     recentPrompts,
-    pushRecent,
     prompt,
     handlePromptChange,
     undo,
     redo,
     canUndo,
     canRedo,
-    resetText,
-    clearStacks,
     history,
     historyIndex,
     canGoBack,
@@ -313,13 +304,11 @@ export function useEditorController(
     resultImage,
     resultFilename,
     setResultImage,
-    setErrorMessage,
     uploads,
     activeUploads,
     isOptimizingAny,
     optimizingIds,
     addUploadSlot,
-    addFile,
     removeUploadSlot,
     handleFileChange,
     resetUploads,
@@ -330,6 +319,5 @@ export function useEditorController(
     handleSubmit,
     resetEditor,
     resetSubmit,
-    reset: resetSubmit,
   };
 }
