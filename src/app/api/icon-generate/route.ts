@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { buildIconPrompt } from "@/utils/server/iconPromptBuilder";
 import type { IconStyleId } from "@/utils/iconStyles";
 import { withApiAuth } from "@/utils/server/withApiAuth";
-import { validateFormData } from "@/utils/server/api-helpers";
+import { handleApiError, validateFormData } from "@/utils/server/api-helpers";
 import { filesToParts, fetchOgImage } from "@/utils/server/imageProcessing";
 import { generateImage, IMAGE_GENERATION_TIMEOUT_MS } from "@/utils/server/imageGeneration";
 import { fetchUrlMetadata } from "@/utils/server/urlMetadata";
@@ -112,10 +112,6 @@ export async function POST(request: Request) {
     imageGenerationCache.set(cacheKey, generationResult);
     return NextResponse.json(generationResult);
   } catch (error) {
-    return (await import("@/utils/server/api-helpers")).handleApiError(
-      error,
-      "icon-generate",
-      session.user?.email ?? "unknown",
-    );
+    return handleApiError(error, "icon-generate", session.user?.email ?? "unknown");
   }
 }

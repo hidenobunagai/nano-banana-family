@@ -5,7 +5,7 @@ import { filesToParts } from "@/utils/server/imageProcessing";
 import { generateImage, IMAGE_GENERATION_TIMEOUT_MS } from "@/utils/server/imageGeneration";
 import { FreestyleEditFormSchema } from "@/utils/server/validation";
 import { buildFreestylePrompt } from "@/utils/server/freestylePromptBuilder";
-import { validateFormData } from "@/utils/server/api-helpers";
+import { handleApiError, validateFormData } from "@/utils/server/api-helpers";
 import { fileFingerprint, generateCacheKey, imageGenerationCache } from "@/utils/server/cache";
 
 export const runtime = "nodejs";
@@ -66,7 +66,6 @@ export async function POST(request: Request) {
     imageGenerationCache.set(cacheKey, generationResult);
     return NextResponse.json(generationResult);
   } catch (error) {
-    const { handleApiError } = await import("@/utils/server/api-helpers");
     return handleApiError(error, "freestyle-edit", session.user?.email ?? "unknown");
   }
 }
