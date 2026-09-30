@@ -88,6 +88,12 @@ bun run build       # pass, turbopack.root 警告解消を確認
 
 ## 次のステップ
 
-- [ ] P2 の `prefers-reduced-motion` と `auth.ts` テスト追加をやるか判断
+- [x] P2 の `prefers-reduced-motion` と `auth.ts` テスト追加をやるか判断 — どちらも実装済み。
+      reduced-motion は `42c4845`(2026-08-21): `providers.tsx:10` の `MotionConfig reducedMotion="user"`、
+      `useEditorSubmit.ts:82,86` の matchMedia 分岐、`globals.css:355,372` の CSS ガード。
+      `auth.ts` は `095c291`(2026-09-17): `src/auth.test.ts` に 6 ケース（51 / 68 / 76 / 86 / 98 / 111 行）。
 - [x] GTM は残すと判断（GA4 `G-ZSC10WFSXX` のレポートを見ているため。2026-09-30 判断）。noscript iframe は CSP の `frame-src 'none'` で既に死んでいたので削除（8a4a05a）。
-- [ ] `docs/plans/2026-03-22-future-directions.md` から1案選んで PoC
+- [x] `docs/plans/2026-03-22-future-directions.md` から1案選んで PoC — 判断済みで
+      クローズ（「新規機能追加は終了し安定運用とする」2026-09-17）。なお4案のうち案A（絵本/漫画）と
+      案C（家族新聞）相当は、`e96d38a`(2026-08-29) の story モードとして既に実装済み
+      （`StoryCreator.tsx:34,41,48` の `picture-book` / `comic` / `newspaper`）。
