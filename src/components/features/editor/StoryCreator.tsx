@@ -187,7 +187,7 @@ export function StoryCreator() {
           progress={progress}
           timeRemaining={timeRemaining}
           resultImage={displayedImage}
-          emptyIcon={<BookOpen className="w-12 h-12 text-[var(--color-neutral-400)]" />}
+          emptyIcon={<BookOpen className="w-12 h-12 text-[var(--color-neutral-500)]" />}
           emptyText="写真を選ぶと、AI が絵本や漫画のストーリー作品を自動生成します"
           history={{
             index: historyIndex,

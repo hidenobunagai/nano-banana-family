@@ -138,7 +138,7 @@ export function GalleryModal({ isOpen, onClose, onSelectImage }: GalleryModalPro
             <ImageIcon className="w-5 h-5 text-[var(--color-primary-600)]" />
             <h2
               id="gallery-modal-title"
-              className="text-std-18 font-bold text-[var(--color-neutral-900)]"
+              className="text-std-20 font-bold text-[var(--color-neutral-900)]"
             >
               作品ギャラリー ({items.length}件)
             </h2>
@@ -209,10 +209,10 @@ export function GalleryModal({ isOpen, onClose, onSelectImage }: GalleryModalPro
                       <button
                         type="button"
                         onClick={(e) => handleDelete(item.id, e)}
-                        className="p-1 rounded-full text-[var(--color-neutral-400)] hover:text-[var(--color-error-dark)] hover:bg-[var(--color-error-light)] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-error-dark)]"
+                        className="p-2 rounded-full text-[var(--color-neutral-600)] hover:text-[var(--color-error-dark)] hover:bg-[var(--color-error-light)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error-dark)]"
                         aria-label="削除"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -237,7 +237,7 @@ export function GalleryModal({ isOpen, onClose, onSelectImage }: GalleryModalPro
                       ? "アイコン"
                       : "ストーリー"}
                 </span>
-                <p className="text-std-14 text-[var(--color-neutral-700)] max-w-lg line-clamp-2">
+                <p className="text-dns-14 text-[var(--color-neutral-700)] max-w-lg line-clamp-2">
                   {selectedItem.title || selectedItem.prompt || "無題の作品"}
                 </p>
               </div>

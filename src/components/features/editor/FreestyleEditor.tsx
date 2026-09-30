@@ -180,7 +180,7 @@ export function FreestyleEditor() {
           progress={progress}
           timeRemaining={timeRemaining}
           resultImage={resultImage}
-          emptyIcon={<Download className="w-6 h-6 text-[var(--color-neutral-300)]" />}
+          emptyIcon={<Download className="w-6 h-6 text-[var(--color-neutral-500)]" />}
           emptyText="生成結果がここに表示されます"
           history={{
             index: historyIndex,

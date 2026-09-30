@@ -49,7 +49,7 @@ export default function Home() {
                 <div className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-xl bg-[var(--color-primary-50)] text-[var(--color-primary-600)]">
                   <Palette className="w-5 h-5" />
                 </div>
-                <span className="text-std-14 sm:text-std-16 font-medium text-[var(--color-neutral-800)]">
+                <span className="text-dns-14 sm:text-std-16 font-medium text-[var(--color-neutral-800)]">
                   自由生成
                 </span>
               </div>
@@ -57,7 +57,7 @@ export default function Home() {
                 <div className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-xl bg-[var(--color-primary-50)] text-[var(--color-primary-600)]">
                   <UserCircle className="w-5 h-5" />
                 </div>
-                <span className="text-std-14 sm:text-std-16 font-medium text-[var(--color-neutral-800)]">
+                <span className="text-dns-14 sm:text-std-16 font-medium text-[var(--color-neutral-800)]">
                   アイコン
                 </span>
               </div>
@@ -65,7 +65,7 @@ export default function Home() {
                 <div className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-xl bg-[var(--color-primary-50)] text-[var(--color-primary-600)]">
                   <BookOpen className="w-5 h-5" />
                 </div>
-                <span className="text-std-14 sm:text-std-16 font-medium text-[var(--color-neutral-800)]">
+                <span className="text-dns-14 sm:text-std-16 font-medium text-[var(--color-neutral-800)]">
                   ストーリー
                 </span>
               </div>

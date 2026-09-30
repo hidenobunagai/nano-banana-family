@@ -166,7 +166,7 @@ export function IconCreator() {
           progress={progress}
           timeRemaining={timeRemaining}
           resultImage={resultImage}
-          emptyIcon={<User className="w-6 h-6 text-[var(--color-neutral-300)]" />}
+          emptyIcon={<User className="w-6 h-6 text-[var(--color-neutral-500)]" />}
           emptyText="アイコンがここに表示されます"
           history={{
             index: historyIndex,
@@ -244,7 +244,7 @@ export function IconCreator() {
                   setName(preset);
                   toast.info(`「${preset}」を入力しました`);
                 }}
-                className="inline-flex items-center px-2.5 py-1 rounded-full text-dns-14 bg-[var(--color-neutral-100)] text-[var(--color-neutral-700)] hover:bg-[var(--color-primary-50)] hover:text-[var(--color-primary-700)] hover:border-[var(--color-primary-300)] border border-[var(--color-neutral-200)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]"
+                className="inline-flex items-center min-h-9 px-3 rounded-full text-dns-14 bg-[var(--color-neutral-100)] text-[var(--color-neutral-700)] hover:bg-[var(--color-primary-50)] hover:text-[var(--color-primary-700)] hover:border-[var(--color-primary-300)] border border-[var(--color-neutral-200)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]"
               >
                 + {preset}
               </button>
@@ -366,7 +366,7 @@ export function IconCreator() {
                   type="button"
                   size="sm"
                   variant="ghost"
-                  className="h-7 rounded-full border border-[var(--color-neutral-300)] px-2 text-dns-14"
+                  className="min-h-9 rounded-full border border-[var(--color-neutral-300)] bg-white px-3 text-dns-14 text-[var(--color-neutral-700)] transition-colors hover:border-[var(--color-neutral-400)] hover:bg-[var(--color-neutral-100)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)] disabled:cursor-not-allowed disabled:opacity-50"
                   onClick={() => handleRecentSelect(recent)}
                   disabled={isSubmitting || isOptimizingAny}
                 >

@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
+import { Redo2, Undo2 } from "lucide-react";
 import { MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
 import type { Ref } from "react";
 
@@ -46,7 +47,7 @@ export function PromptTextarea({
           autoComplete="off"
           spellCheck={false}
           maxLength={MAX_PROMPT_LENGTH}
-          className={`w-full rounded-[var(--radius-md)] bg-white border border-[var(--color-neutral-300)] p-4 pr-12 text-[var(--color-neutral-900)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30 focus:border-[var(--color-primary-500)] transition-shadow text-std-16 ${textareaClassName}`}
+          className={`w-full rounded-[var(--radius-md)] bg-white border border-[var(--color-neutral-300)] p-4 pb-12 text-[var(--color-neutral-900)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/30 focus:border-[var(--color-primary-500)] transition-shadow text-std-16 ${textareaClassName}`}
           aria-label={ariaLabel}
           placeholder={placeholder}
           value={value}
@@ -59,10 +60,10 @@ export function PromptTextarea({
             variant="ghost"
             onClick={onUndo}
             disabled={!canUndo || disabled}
-            className="h-8 w-8 p-0"
+            className="h-9 w-9 p-0"
             aria-label="元に戻す"
           >
-            <span className="text-dns-15 font-bold text-[var(--color-neutral-500)]">↶</span>
+            <Undo2 className="w-4 h-4" aria-hidden="true" />
           </Button>
           <Button
             type="button"
@@ -70,10 +71,10 @@ export function PromptTextarea({
             variant="ghost"
             onClick={onRedo}
             disabled={!canRedo || disabled}
-            className="h-8 w-8 p-0"
+            className="h-9 w-9 p-0"
             aria-label="やり直す"
           >
-            <span className="text-dns-15 font-bold text-[var(--color-neutral-500)]">↷</span>
+            <Redo2 className="w-4 h-4" aria-hidden="true" />
           </Button>
         </div>
       </div>

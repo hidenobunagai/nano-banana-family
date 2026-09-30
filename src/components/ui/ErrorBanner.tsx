@@ -28,7 +28,7 @@ export function ErrorBanner({
       />
       <div className="min-w-0 flex-1">
         <p className="font-bold">{message}</p>
-        <p className="mt-1 opacity-80">{hint}</p>
+        <p className="mt-1">{hint}</p>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <Button type="button" size="sm" onClick={onRetry} disabled={!canRetry}>
             {retryLabel}
