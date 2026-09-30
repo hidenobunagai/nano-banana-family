@@ -125,6 +125,7 @@ export function StoryCreator() {
     maxUploads: MAX_STORY_UPLOADS,
     initialUploadSlots: 1,
     pasteToUpload: true,
+    uploadNoun: "写真",
     endpoint: "/api/create-story",
     errorFallback: "ストーリー画像の生成に失敗しました。写真を変えてもう一度お試しください。",
     downloadPrefix: `story-${storyType}`,
@@ -244,6 +245,7 @@ export function StoryCreator() {
             onFileChange={handleFileChange}
             onRemoveSlot={removeUploadSlot}
             onAddSlot={addUploadSlot}
+            labelPrefix="写真"
           />
         </Section>
 

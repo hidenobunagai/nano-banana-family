@@ -33,6 +33,8 @@ export interface UseEditorControllerOptions {
   initialUploadSlots?: number;
   /** enable the window "paste" listener that adds clipboard screenshots as uploads */
   pasteToUpload?: boolean;
+  /** noun for the uploads in the paste toast; editors that call them "写真" override it */
+  uploadNoun?: string;
   endpoint: string;
   errorFallback: string;
   downloadPrefix: string;
@@ -208,7 +210,7 @@ export function useEditorController(
     onFileError: setErrorMessage,
   });
 
-  const { pasteToUpload } = options;
+  const { pasteToUpload, uploadNoun = "参考画像" } = options;
   useEffect(() => {
     if (!pasteToUpload) return;
     const handleWindowPaste = (e: ClipboardEvent) => {
@@ -228,7 +230,7 @@ export function useEditorController(
           e.preventDefault();
           void addFile(imageFile).then((added) => {
             if (added) {
-              toast.success("クリップボードの画像を参考画像に追加しました！");
+              toast.success(`クリップボードの画像を${uploadNoun}に追加しました！`);
             }
           });
         }
@@ -236,7 +238,7 @@ export function useEditorController(
     };
     window.addEventListener("paste", handleWindowPaste);
     return () => window.removeEventListener("paste", handleWindowPaste);
-  }, [pasteToUpload, addFile, toast]);
+  }, [pasteToUpload, uploadNoun, addFile, toast]);
 
   const handleProgressComplete = useCallback(() => setIsSubmitting(false), [setIsSubmitting]);
 

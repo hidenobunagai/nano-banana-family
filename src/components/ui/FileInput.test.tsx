@@ -107,4 +107,16 @@ describe("FileInput", () => {
     expect(screen.getByAltText("選択した参考画像のプレビュー")).toBeInTheDocument();
     expect(screen.getByText("画像を変更")).toBeInTheDocument();
   });
+
+  it("uses imageAlt for the preview when given one", () => {
+    render(
+      <FileInput
+        previewUrl="blob:mock-preview"
+        isOptimizing={false}
+        onChange={vi.fn()}
+        imageAlt="選択した写真のプレビュー"
+      />,
+    );
+    expect(screen.getByAltText("選択した写真のプレビュー")).toBeInTheDocument();
+  });
 });

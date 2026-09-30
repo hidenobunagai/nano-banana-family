@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MAX_STORY_UPLOADS } from "@/utils/promptConstants";
+import { ToastProvider } from "@/components/ui/Toast";
 import { StoryCreator } from "./StoryCreator";
 
 vi.mock("@/utils/imageOptimization", () => ({
@@ -61,9 +62,7 @@ function imageSrc(alt: string): string {
 async function uploadFirstFile(container: HTMLElement) {
   const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
   fireEvent.change(fileInput, { target: { files: [makeFile()] } });
-  await waitFor(() =>
-    expect(screen.getByAltText("選択した参考画像のプレビュー")).toBeInTheDocument(),
-  );
+  await waitFor(() => expect(screen.getByAltText("選択した写真のプレビュー")).toBeInTheDocument());
 }
 
 describe("StoryCreator", () => {
@@ -92,7 +91,11 @@ describe("StoryCreator", () => {
   });
 
   it("adds a screenshot pasted anywhere in the window as a photo", async () => {
-    render(<StoryCreator />);
+    render(
+      <ToastProvider>
+        <StoryCreator />
+      </ToastProvider>,
+    );
     const submitButton = screen.getByRole("button", { name: "ストーリーを生成する" });
     expect(submitButton).toBeDisabled();
 
@@ -102,9 +105,11 @@ describe("StoryCreator", () => {
     });
 
     await waitFor(() =>
-      expect(screen.getByAltText("選択した参考画像のプレビュー")).toBeInTheDocument(),
+      expect(screen.getByAltText("選択した写真のプレビュー")).toBeInTheDocument(),
     );
     expect(submitButton).toBeEnabled();
+    // The paste toast follows the story wording instead of the shared "参考画像" default.
+    expect(screen.getByText("クリップボードの画像を写真に追加しました！")).toBeInTheDocument();
   });
 
   it("leaves text pasted into the story settings field to the browser", () => {
@@ -115,7 +120,7 @@ describe("StoryCreator", () => {
     });
 
     // Plain text must not be swallowed as a photo.
-    expect(screen.queryByAltText("選択した参考画像のプレビュー")).not.toBeInTheDocument();
+    expect(screen.queryByAltText("選択した写真のプレビュー")).not.toBeInTheDocument();
   });
 
   it("changes story format and tone options", async () => {
@@ -133,6 +138,8 @@ describe("StoryCreator", () => {
   it("caps upload slots at the shared MAX_STORY_UPLOADS limit", () => {
     render(<StoryCreator />);
 
+    // Slots are labelled as photos, the wording the rest of this screen uses.
+    expect(screen.getByText("写真 1")).toBeInTheDocument();
     // Starts with one slot, so the hint counts down from the shared constant.
     expect(screen.getByText(`画像を追加（あと ${MAX_STORY_UPLOADS - 1} 枚）`)).toBeInTheDocument();
     // The step hint interpolates the same constant rather than hardcoding "1〜5".
@@ -144,7 +151,7 @@ describe("StoryCreator", () => {
       fireEvent.click(screen.getByRole("button", { name: /画像を追加/ }));
     }
     expect(screen.queryByRole("button", { name: /画像を追加/ })).not.toBeInTheDocument();
-    expect(screen.getAllByRole("button", { name: /参考画像 \d+ を削除/ })).toHaveLength(
+    expect(screen.getAllByRole("button", { name: /写真 \d+ を削除/ })).toHaveLength(
       MAX_STORY_UPLOADS,
     );
   });

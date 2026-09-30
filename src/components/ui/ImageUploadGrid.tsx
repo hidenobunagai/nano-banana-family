@@ -38,6 +38,7 @@ export function ImageUploadGrid({
         <div key={slot.id} className="relative group">
           <FileInput
             subLabel={`${labelPrefix} ${index + 1}`}
+            imageAlt={`選択した${labelPrefix}のプレビュー`}
             previewUrl={slot.previewUrl}
             isOptimizing={optimizingIds.includes(slot.id)}
             onChange={(event) => onFileChange(event, slot.id)}

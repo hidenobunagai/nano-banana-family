@@ -74,4 +74,20 @@ describe("ImageUploadGrid", () => {
 
     expect(screen.queryByText(/画像を追加/)).not.toBeInTheDocument();
   });
+
+  it("labels slots and previews with a custom labelPrefix", () => {
+    render(
+      <ImageUploadGrid
+        uploads={[{ id: "slot-1", file: null, previewUrl: "blob:mock-preview" }]}
+        maxUploads={2}
+        onFileChange={vi.fn()}
+        onRemoveSlot={vi.fn()}
+        onAddSlot={vi.fn()}
+        labelPrefix="写真"
+      />,
+    );
+
+    expect(screen.getByText("写真 1")).toBeInTheDocument();
+    expect(screen.getByAltText("選択した写真のプレビュー")).toBeInTheDocument();
+  });
 });

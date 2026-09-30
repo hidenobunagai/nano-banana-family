@@ -12,6 +12,8 @@ interface FileInputProps {
   isOptimizing: boolean;
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
   accept?: string;
+  /** alt for the preview image; editors with other wording (e.g. "写真") override it */
+  imageAlt?: string;
 }
 
 /** Label block above an upload slot; shared so columns align without hacks. */
@@ -34,6 +36,7 @@ export function FileInput({
   isOptimizing,
   onChange,
   accept = "image/jpeg,image/png,image/webp",
+  imageAlt = "選択した参考画像のプレビュー",
 }: FileInputProps) {
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -138,7 +141,7 @@ export function FileInput({
           >
             <Image
               src={previewUrl}
-              alt="選択した参考画像のプレビュー"
+              alt={imageAlt}
               width={800}
               height={600}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
