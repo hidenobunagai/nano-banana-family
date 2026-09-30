@@ -5,6 +5,7 @@ import { useEditorSubmit } from "./useEditorSubmit";
 describe("useEditorSubmit", () => {
   beforeEach(() => {
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   function setup(overrides: Partial<Parameters<typeof useEditorSubmit>[0]> = {}) {
@@ -183,10 +184,9 @@ describe("useEditorSubmit", () => {
   });
 
   it("reports a timeout and still finishes when the request exceeds the deadline", async () => {
-    vi.stubGlobal("AbortSignal", {
-      ...AbortSignal,
-      timeout: () => AbortSignal.abort(),
-    });
+    // Spy on the static instead of replacing the global: AbortSignal's statics
+    // are non-enumerable, so `{ ...AbortSignal }` would drop abort/any/timeout.
+    vi.spyOn(AbortSignal, "timeout").mockImplementation(() => AbortSignal.abort());
     const abortError = new Error("aborted");
     abortError.name = "AbortError";
     vi.stubGlobal(
