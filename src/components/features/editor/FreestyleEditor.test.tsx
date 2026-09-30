@@ -1,6 +1,8 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { PROMPT_REFERENCES } from "@/promptReferences";
 import { MAX_FREESTYLE_UPLOADS } from "@/utils/promptConstants";
+import { STYLE_SUGGESTIONS } from "@/utils/server/stylePrompts";
 import { ToastProvider } from "@/components/ui/Toast";
 import * as storage from "@/utils/galleryStorage";
 import type { GalleryItem } from "@/utils/galleryStorage";
@@ -221,6 +223,24 @@ describe("FreestyleEditor", () => {
     expect(screen.getByText("生成結果がここに表示されます")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Gemini に生成を依頼" })).toBeDisabled();
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("trims trailing whitespace when appending a reference prompt or a style suggestion", async () => {
+    render(<FreestyleEditor />);
+    const textarea = screen.getByPlaceholderText(/仕上がりのイメージ/) as HTMLTextAreaElement;
+
+    // 参照例（PromptReferencePicker 経由）
+    fireEvent.change(textarea, { target: { value: "abc  " } });
+    fireEvent.click(screen.getByRole("button", { name: "もっと見る" }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: new RegExp(PROMPT_REFERENCES[0].title) }),
+    );
+    expect(textarea.value).toBe(`abc\n\n${PROMPT_REFERENCES[0].prompt}`);
+
+    // スタイル候補（STYLE_SUGGESTIONS 経由）
+    fireEvent.change(textarea, { target: { value: "abc  " } });
+    fireEvent.click(screen.getByRole("button", { name: STYLE_SUGGESTIONS[0].label }));
+    expect(textarea.value).toBe(`abc\n\n${STYLE_SUGGESTIONS[0].prompt}`);
   });
 
   it("tells the user when the artwork could not be saved to the gallery", async () => {

@@ -145,7 +145,9 @@ export function FreestyleEditor() {
 
   const handleReferenceSelect = useCallback(
     (referencePrompt: string) => {
-      handlePromptChange(prompt.trim() ? `${prompt}\n\n${referencePrompt}` : referencePrompt);
+      handlePromptChange(
+        prompt.trim() ? `${prompt.trim()}\n\n${referencePrompt}` : referencePrompt,
+      );
       textareaRef.current?.focus();
       toast.info("プロンプト例を挿入しました");
     },
