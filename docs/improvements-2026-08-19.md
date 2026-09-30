@@ -29,7 +29,7 @@ turbopack: {
 `src/app/layout.tsx:10,58` で `GTM-NP6VPKT6` を注入しているのに `connect-src` が `https://*.vercel.live` のみで `*.google-analytics.com` がブロックされていた。
 `connect-src` に `https://www.googletagmanager.com https://*.google-analytics.com https://*.googletagmanager.com` を追加。
 `@vercel/analytics` (`layout.tsx:97`) と併用前提で GTM 維持を選択。不要なら GTM 18行削除がより lazy。
-→ skipped: GTM 全削除 / add when: GTM 不要が確定したら
+→ 決着（2026-09-30）: 維持で確定。GA4 `G-ZSC10WFSXX` を見ているため。noscript iframe のみ削除（8a4a05a）。
 
 ### P0-3 削除済み6ファイルの確定 — `git status`
 
@@ -89,5 +89,5 @@ bun run build       # pass, turbopack.root 警告解消を確認
 ## 次のステップ
 
 - [ ] P2 の `prefers-reduced-motion` と `auth.ts` テスト追加をやるか判断
-- [ ] GTM が本当に必要か再確認 — 不要なら `layout.tsx` の GTM 18行削除で CSP を元に戻せる
+- [x] GTM は残すと判断（GA4 `G-ZSC10WFSXX` のレポートを見ているため。2026-09-30 判断）。noscript iframe は CSP の `frame-src 'none'` で既に死んでいたので削除（8a4a05a）。
 - [ ] `docs/plans/2026-03-22-future-directions.md` から1案選んで PoC
