@@ -75,7 +75,6 @@ export function useEditorSubmit({
 
     setIsSubmitting(true);
     setErrorMessage(null);
-    setResultImage(null);
     onBeforeSubmit?.();
 
     if (typeof window !== "undefined" && window.innerWidth < 1280) {
