@@ -231,4 +231,92 @@ describe("useEditorSubmit", () => {
     expect(result.current.errorMessage).toBeNull();
     expect(result.current.resultFilename).toBeNull();
   });
+
+  it("preserves the previous result image on HTTP error", async () => {
+    mockFetchResponse({
+      ok: true,
+      status: 200,
+      body: { imageBase64: "QUJD", mimeType: "image/png" },
+    });
+    const { result, onSuccess } = setup();
+
+    await act(async () => {
+      await result.current.submit();
+    });
+
+    expect(result.current.resultImage).toBe("data:image/png;base64,QUJD");
+    expect(onSuccess).toHaveBeenCalledTimes(1);
+
+    mockFetchResponse({
+      ok: false,
+      status: 500,
+      body: { error: "サーバーエラー" },
+    });
+
+    await act(async () => {
+      await result.current.submit();
+    });
+
+    expect(result.current.resultImage).toBe("data:image/png;base64,QUJD");
+    expect(result.current.errorMessage).toBe("サーバーエラー");
+    expect(onSuccess).toHaveBeenCalledTimes(1);
+  });
+
+  it("preserves the previous result image on network error", async () => {
+    mockFetchResponse({
+      ok: true,
+      status: 200,
+      body: { imageBase64: "QUJD", mimeType: "image/png" },
+    });
+    const { result } = setup();
+
+    await act(async () => {
+      await result.current.submit();
+    });
+
+    expect(result.current.resultImage).toBe("data:image/png;base64,QUJD");
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => Promise.reject(new TypeError("Failed to fetch"))),
+    );
+
+    await act(async () => {
+      await result.current.submit();
+    });
+
+    expect(result.current.resultImage).toBe("data:image/png;base64,QUJD");
+    expect(result.current.errorMessage).toBe(
+      "通信に失敗しました。ネットワーク接続を確認してもう一度お試しください。",
+    );
+  });
+
+  it("replaces the result image when a subsequent submission succeeds", async () => {
+    mockFetchResponse({
+      ok: true,
+      status: 200,
+      body: { imageBase64: "QUJD", mimeType: "image/png" },
+    });
+    const { result, onSuccess } = setup();
+
+    await act(async () => {
+      await result.current.submit();
+    });
+
+    expect(result.current.resultImage).toBe("data:image/png;base64,QUJD");
+
+    mockFetchResponse({
+      ok: true,
+      status: 200,
+      body: { imageBase64: "WFla", mimeType: "image/png" },
+    });
+
+    await act(async () => {
+      await result.current.submit();
+    });
+
+    expect(result.current.resultImage).toBe("data:image/png;base64,WFla");
+    expect(onSuccess).toHaveBeenCalledTimes(2);
+    expect(result.current.errorMessage).toBeNull();
+  });
 });
