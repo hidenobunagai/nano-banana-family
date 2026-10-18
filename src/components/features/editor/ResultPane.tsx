@@ -150,11 +150,11 @@ export function ResultPane({
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
-          title: "Hide NB Studio で作成した画像",
+          title: "Nano Banana Family で作成した画像",
         });
       } else {
         await navigator.share({
-          title: "Hide NB Studio で作成した画像",
+          title: "Nano Banana Family で作成した画像",
           url: window.location.href,
         });
       }

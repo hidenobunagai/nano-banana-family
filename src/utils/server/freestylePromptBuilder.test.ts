@@ -4,9 +4,9 @@ describe("buildFreestylePrompt", () => {
   it("includes the identity-preservation instructions", () => {
     const prompt = buildFreestylePrompt({ prompt: "テスト指示" });
 
-    expect(prompt).toContain("Hide NB Studio");
+    expect(prompt).toContain("Nano Banana Family");
     expect(prompt).toContain(
-      "あなたはHide NB Studioファミリーアプリのクリエイティブな画像編集アシスタントです。",
+      "あなたはNano Banana Familyアプリのクリエイティブな画像編集アシスタントです。",
     );
     expect(prompt).toContain(
       "重要な指示: アップロードされた参照画像の人物の顔の特徴、アイデンティティ、類似性を正確に保持してください。生成される人物は参照画像と100%同一である必要があります。",
@@ -55,7 +55,7 @@ describe("buildFreestylePrompt", () => {
 
     expect(lines).toHaveLength(7);
     expect(lines[0]).toBe(
-      "あなたはHide NB Studioファミリーアプリのクリエイティブな画像編集アシスタントです。",
+      "あなたはNano Banana Familyアプリのクリエイティブな画像編集アシスタントです。",
     );
     expect(lines[1]).toBe(
       "重要な指示: アップロードされた参照画像の人物の顔の特徴、アイデンティティ、類似性を正確に保持してください。生成される人物は参照画像と100%同一である必要があります。",

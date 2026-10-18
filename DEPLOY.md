@@ -1,4 +1,4 @@
-# Deployment Guide for Hide NB Studio
+# Deployment Guide for Nano Banana Family
 
 ## Prerequisites
 

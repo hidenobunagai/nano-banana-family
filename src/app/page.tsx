@@ -38,7 +38,7 @@ export default function Home() {
             {/* Header */}
             <div className="text-center space-y-2">
               <h1 className="text-4xl font-display font-bold text-[var(--color-neutral-900)]">
-                Hide NB Studio
+                Nano Banana Family
               </h1>
               <p className="text-[var(--color-neutral-500)]">家族専用の AI 画像スタジオ</p>
             </div>

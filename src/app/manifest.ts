@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Hide NB Studio",
-    short_name: "Hide NB",
+    name: "Nano Banana Family",
+    short_name: "Nano Banana",
     description:
       "Family-only image editing studio powered by Google Gemini and curated prompt presets.",
     start_url: "/",

@@ -23,15 +23,15 @@ const notoSansMono = Noto_Sans_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Hide NB Studio",
-    template: "%s | Hide NB Studio",
+    default: "Nano Banana Family",
+    template: "%s | Nano Banana Family",
   },
   description: "Family-only Gemini image editor with guided prompt presets.",
-  applicationName: "Hide NB Studio",
+  applicationName: "Nano Banana Family",
   manifest: "/manifest.webmanifest?v=2",
   appleWebApp: {
     capable: true,
-    title: "Hide NB Studio",
+    title: "Nano Banana Family",
     statusBarStyle: "default",
   },
   formatDetection: {

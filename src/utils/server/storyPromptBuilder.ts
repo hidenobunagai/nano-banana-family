@@ -42,7 +42,7 @@ export function buildStoryPrompt({
   const trimmedCustomPrompt = customPrompt?.trim();
 
   return [
-    "あなたは家族専用アプリ「Hide NB Studio」の専属ストーリー作家・イラストレーターです。",
+    "あなたは家族専用アプリ「Nano Banana Family」の専属ストーリー作家・イラストレーターです。",
     "【最重要指示】アップロードされた写真の人物の顔の特徴、表情、アイデンティティを正確に保持し、写真に写っている家族メンバーが主人公となる作品を作成してください。",
     `【制作形式】: ${TYPE_DESCRIPTIONS[storyType]}`,
     `【トーン】: ${TONE_DESCRIPTIONS[tone]}`,

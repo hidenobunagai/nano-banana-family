@@ -83,7 +83,11 @@ export async function legalPageResponse(page: LegalPage): Promise<Response> {
  */
 function fallback(page: LegalPage): Response {
   const title =
-    page === "home" ? "Hide NB Studio" : page === "privacy" ? "プライバシーポリシー" : "利用規約";
+    page === "home"
+      ? "Nano Banana Family"
+      : page === "privacy"
+        ? "プライバシーポリシー"
+        : "利用規約";
   const body = `<!DOCTYPE html>
 <html lang="ja">
 <head>

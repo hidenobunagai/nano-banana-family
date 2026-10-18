@@ -24,7 +24,7 @@ export function buildIconPrompt({
 
   const contextLines: string[] = [];
 
-  contextLines.push("You are a professional icon designer for the Hide NB Studio family app.");
+  contextLines.push("You are a professional icon designer for the Nano Banana Family app.");
   contextLines.push(
     "CRITICAL INSTRUCTION: You MUST preserve the exact facial features, identity, and likeness of the person in the uploaded reference image(s). The generated person MUST look 100% identical to the reference.",
   );

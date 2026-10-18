@@ -2,7 +2,7 @@
   "schema_version": 1,
   "diagram_type": "architecture",
   "meta": {
-    "title": "Hide NB Studio — Architecture Overview",
+    "title": "Nano Banana Family — Architecture Overview",
     "quality_profile": "showcase",
     "viewBox": [1020, 510],
     "repository": {
@@ -67,7 +67,7 @@
     {
       "id": "frontend",
       "type": "frontend",
-      "label": "Hide NB Studio UI",
+      "label": "Nano Banana Family UI",
       "sublabel": "Next.js 16 App Router / React 19",
       "tag": "Serwist PWA",
       "brand": "next-js",
@@ -180,7 +180,7 @@
   "boundaries": [
     {
       "kind": "region",
-      "label": "Vercel Deployment (Hide NB Studio)",
+      "label": "Vercel Deployment (Nano Banana Family)",
       "wraps": ["auth", "frontend", "api", "cache", "analytics"]
     },
     {

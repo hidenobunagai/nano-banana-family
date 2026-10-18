@@ -26,7 +26,7 @@ export function Shell({ children, onSignOut, navMode, onNavModeChange }: ShellPr
         <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-4 sm:px-8 bg-white/95 backdrop-blur-xl border-b border-[var(--color-neutral-300)]">
           <div>
             <h1 className="text-std-20 font-bold text-[var(--color-neutral-900)] tracking-tight">
-              Hide NB Studio
+              Nano Banana Family
             </h1>
           </div>
 

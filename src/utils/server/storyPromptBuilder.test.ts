@@ -8,7 +8,7 @@ describe("buildStoryPrompt", () => {
       language: "ja",
     });
 
-    expect(prompt).toContain("Hide NB Studio");
+    expect(prompt).toContain("Nano Banana Family");
     expect(prompt).toContain("【最重要指示】");
     expect(prompt).toContain("アイデンティティを正確に保持");
     expect(prompt).toContain("1枚の完成作品画像を生成してください。");
