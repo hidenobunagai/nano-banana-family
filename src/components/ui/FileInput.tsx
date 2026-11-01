@@ -75,6 +75,13 @@ export function FileInput({
     }
   };
 
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    onChange(e);
+    // Clear the value after handling it: the browser does not fire a change
+    // event when the same file is picked again while the value is unchanged.
+    e.target.value = "";
+  };
+
   return (
     <div>
       <FileInputLabel label={label} subLabel={subLabel} />
@@ -127,7 +134,7 @@ export function FileInput({
               type="file"
               className="sr-only"
               accept={accept}
-              onChange={onChange}
+              onChange={handleInputChange}
               disabled={isOptimizing}
             />
           </motion.label>
@@ -157,7 +164,7 @@ export function FileInput({
                   type="file"
                   className="sr-only"
                   accept={accept}
-                  onChange={onChange}
+                  onChange={handleInputChange}
                   aria-label="画像を変更"
                 />
               </label>
