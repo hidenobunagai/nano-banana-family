@@ -15,13 +15,21 @@ function extractErrorMessage(payload: unknown): string | null {
   return typeof error === "string" && error.trim().length > 0 ? error.trim() : null;
 }
 
+const SESSION_MESSAGE = "セッションの確認が必要です。もう一度サインインしてからお試しください。";
+
 export function getRequestErrorMessage({
   status,
   payload,
   fallback,
 }: RequestErrorMessageOptions): string {
-  if (status === 401 || status === 403) {
-    return "セッションの確認が必要です。もう一度サインインしてからお試しください。";
+  if (status === 401) {
+    return SESSION_MESSAGE;
+  }
+
+  // A 403 from the API means the account is signed in but not on the allow
+  // list; the server explains that, and signing in again would not help.
+  if (status === 403) {
+    return extractErrorMessage(payload) ?? SESSION_MESSAGE;
   }
 
   if (status === 413) {

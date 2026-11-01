@@ -12,7 +12,7 @@ describe("getRequestErrorMessage", () => {
     ).toBe("セッションの確認が必要です。もう一度サインインしてからお試しください。");
   });
 
-  it("returns auth message for 403", () => {
+  it("returns auth message for 403 without a server message", () => {
     expect(
       getRequestErrorMessage({
         status: 403,
@@ -20,6 +20,16 @@ describe("getRequestErrorMessage", () => {
         fallback: "error",
       }),
     ).toBe("セッションの確認が必要です。もう一度サインインしてからお試しください。");
+  });
+
+  it("shows the server message for 403 so a removed account is told why", () => {
+    expect(
+      getRequestErrorMessage({
+        status: 403,
+        payload: { error: "このアカウントは利用が許可されていません。" },
+        fallback: "error",
+      }),
+    ).toBe("このアカウントは利用が許可されていません。");
   });
 
   it("returns size message for 413", () => {
