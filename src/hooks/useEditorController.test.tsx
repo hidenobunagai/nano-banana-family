@@ -1,7 +1,8 @@
-import { act, renderHook } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useEditorController } from "./useEditorController";
 import type { ProgressStep } from "@/components/ProgressDisplay";
+import { saveToGallery, type GalleryItem } from "@/utils/galleryStorage";
 
 vi.mock("@/utils/galleryStorage", () => ({
   saveToGallery: vi.fn(async () => ({ id: "art-1" })),
@@ -53,6 +54,17 @@ function imageFile(name = "pasted.png") {
   return new File([new Uint8Array([1])], name, { type: "image/png" });
 }
 
+function mockFetchSuccess() {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      text: async () => JSON.stringify({ imageBase64: "QUJD", mimeType: "image/png" }),
+    })),
+  );
+}
+
 describe("useEditorController", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -86,6 +98,94 @@ describe("useEditorController", () => {
       expect(result.current.hasActiveFiles).toBe(false);
       expect(result.current.uploads).toHaveLength(0);
       expect(toastSuccess).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("reset", () => {
+    it("scrolls the main content region to the top", () => {
+      const container = document.createElement("div");
+      container.id = "main-content";
+      const scrollTo = vi.fn();
+      container.scrollTo = scrollTo;
+      document.body.appendChild(container);
+
+      try {
+        const { result } = renderHook(() =>
+          useEditorController({ ...OPTIONS, scrollToTopOnReset: true }),
+        );
+
+        act(() => result.current.resetEditor());
+
+        expect(scrollTo).toHaveBeenCalledWith({ top: 0, behavior: "smooth" });
+      } finally {
+        container.remove();
+      }
+    });
+
+    it("does not scroll when the editor does not ask for it", () => {
+      const container = document.createElement("div");
+      container.id = "main-content";
+      const scrollTo = vi.fn();
+      container.scrollTo = scrollTo;
+      document.body.appendChild(container);
+
+      try {
+        const { result } = renderHook(() => useEditorController(OPTIONS));
+
+        act(() => result.current.resetEditor());
+
+        expect(scrollTo).not.toHaveBeenCalled();
+      } finally {
+        container.remove();
+      }
+    });
+  });
+
+  describe("gallery", () => {
+    const galleryOptions = {
+      ...OPTIONS,
+      galleryEntry: () => ({ mode: "freestyle" as const, prompt: "テストプロンプト" }),
+    };
+
+    it("saves the generated image to the gallery", async () => {
+      mockFetchSuccess();
+      vi.mocked(saveToGallery).mockResolvedValue({
+        id: "art-1",
+        createdAt: 1,
+        mode: "freestyle",
+        prompt: "テストプロンプト",
+        imageBase64: "QUJD",
+        mimeType: "image/png",
+      } as GalleryItem);
+
+      const { result } = renderHook(() => useEditorController(galleryOptions));
+
+      await act(async () => {
+        await result.current.submit();
+      });
+
+      expect(saveToGallery).toHaveBeenCalledWith({
+        mode: "freestyle",
+        prompt: "テストプロンプト",
+        imageBase64: "QUJD",
+        mimeType: "image/png",
+      });
+      expect(toastError).not.toHaveBeenCalled();
+    });
+
+    it("reports a failed gallery save", async () => {
+      mockFetchSuccess();
+      vi.mocked(saveToGallery).mockResolvedValue(null);
+
+      const { result } = renderHook(() => useEditorController(galleryOptions));
+
+      await act(async () => {
+        await result.current.submit();
+      });
+
+      await waitFor(() =>
+        expect(toastError).toHaveBeenCalledWith("ギャラリーに保存できませんでした"),
+      );
     });
   });
 });
