@@ -52,6 +52,12 @@ function createRequest(prompt: string, images: File[] = []): Request {
   return { formData: () => Promise.resolve(fd) } as unknown as Request;
 }
 
+function createMalformedRequest(): Request {
+  return {
+    formData: () => Promise.reject(new TypeError("Could not parse content as FormData")),
+  } as unknown as Request;
+}
+
 describe("POST /api/freestyle-edit", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -89,5 +95,13 @@ describe("POST /api/freestyle-edit", () => {
     const res = await POST(req);
 
     expect(res.status).toBe(502);
+  });
+
+  it("returns 400 when the request body is not a valid form", async () => {
+    const res = await POST(createMalformedRequest());
+
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toContain("形式");
   });
 });

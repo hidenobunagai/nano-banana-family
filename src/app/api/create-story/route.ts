@@ -6,6 +6,7 @@ import { filesToParts } from "@/utils/server/imageProcessing";
 import { generateImage, IMAGE_GENERATION_TIMEOUT_MS } from "@/utils/server/imageGeneration";
 import { CreateStoryFormSchema } from "@/utils/server/validation";
 import { buildStoryPrompt } from "@/utils/server/storyPromptBuilder";
+import { readFormData } from "@/utils/server/requestFormData";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -15,7 +16,9 @@ export async function POST(request: Request) {
   if (!auth.ok) return auth.response;
   const { session, apiKey } = auth;
 
-  const formData = await request.formData();
+  const formResult = await readFormData(request);
+  if (!formResult.ok) return formResult.response;
+  const formData = formResult.formData;
   const storyType = (formData.get("storyType") as string | null) || "picture-book";
   const tone = (formData.get("tone") as string | null) || "funny";
   const language = (formData.get("language") as string | null) || "ja";

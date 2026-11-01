@@ -6,6 +6,7 @@ import { generateImage, IMAGE_GENERATION_TIMEOUT_MS } from "@/utils/server/image
 import { FreestyleEditFormSchema } from "@/utils/server/validation";
 import { buildFreestylePrompt } from "@/utils/server/freestylePromptBuilder";
 import { handleApiError, validateFormData } from "@/utils/server/api-helpers";
+import { readFormData } from "@/utils/server/requestFormData";
 
 export const runtime = "nodejs";
 // Image generation takes 10-40s; the Vercel hobby default (10s) kills every call.
@@ -16,7 +17,9 @@ export async function POST(request: Request) {
   if (!auth.ok) return auth.response;
   const { session, apiKey } = auth;
 
-  const formData = await request.formData();
+  const formResult = await readFormData(request);
+  if (!formResult.ok) return formResult.response;
+  const formData = formResult.formData;
   const prompt = (formData.get("prompt") as string | null) || "";
   const imageEntries = formData.getAll("images");
 

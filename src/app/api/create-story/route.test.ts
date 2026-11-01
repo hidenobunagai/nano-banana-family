@@ -53,6 +53,12 @@ function createRequest(
   return { formData: () => Promise.resolve(fd) } as unknown as Request;
 }
 
+function createMalformedRequest(): Request {
+  return {
+    formData: () => Promise.reject(new TypeError("Could not parse content as FormData")),
+  } as unknown as Request;
+}
+
 describe("POST /api/create-story", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -126,6 +132,14 @@ describe("POST /api/create-story", () => {
     const body = await res.json();
     expect(body.imageBase64).toBe("story-base64-data");
     expect(body.mimeType).toBe("image/png");
+  });
+
+  it("returns 400 when the request body is not a valid form", async () => {
+    const res = await POST(createMalformedRequest());
+
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toContain("形式");
   });
 
   it("passes the shared generation deadline to generateImage", async () => {

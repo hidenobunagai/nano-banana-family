@@ -8,6 +8,7 @@ import { filesToParts, fetchOgImage } from "@/utils/server/imageProcessing";
 import { generateImage, IMAGE_GENERATION_TIMEOUT_MS } from "@/utils/server/imageGeneration";
 import { fetchUrlMetadata } from "@/utils/server/urlMetadata";
 import { IconGenerateFormSchema } from "@/utils/server/validation";
+import { readFormData } from "@/utils/server/requestFormData";
 
 export const runtime = "nodejs";
 // Image generation takes 10-40s; the Vercel hobby default (10s) kills every call.
@@ -18,7 +19,9 @@ export async function POST(request: Request) {
   if (!auth.ok) return auth.response;
   const { session, apiKey } = auth;
 
-  const formData = await request.formData();
+  const formResult = await readFormData(request);
+  if (!formResult.ok) return formResult.response;
+  const formData = formResult.formData;
   const name = (formData.get("name") as string | null) || "";
   const url = (formData.get("url") as string | null) || undefined;
   const style = (formData.get("style") as IconStyleId | null) || undefined;
