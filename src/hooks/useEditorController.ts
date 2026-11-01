@@ -214,6 +214,9 @@ export function useEditorController(
   useEffect(() => {
     if (!pasteToUpload) return;
     const handleWindowPaste = (e: ClipboardEvent) => {
+      // A component already handled this paste (the upload slot calls
+      // preventDefault), so the image must not be added a second time.
+      if (e.defaultPrevented) return;
       const target = e.target as HTMLElement;
       if (
         (target.tagName === "INPUT" || target.tagName === "TEXTAREA") &&
