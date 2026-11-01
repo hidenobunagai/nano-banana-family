@@ -12,7 +12,6 @@ src/promptReferences.ts
 # Generated architecture docs (archify output — pre-formatted HTML)
 docs/architecture/*.html
 
-# Agent configuration files (managed outside this repo)
 .claude/
 .codebuddy/
 .cursor/
@@ -20,8 +19,6 @@ docs/architecture/*.html
 .kiro/
 .qoder/
 .vscode/
-.mcp.json
-opencode.jsonc
 CODEBUDDY.md
 GEMINI.md
 QODER.md
