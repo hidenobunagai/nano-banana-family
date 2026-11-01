@@ -66,15 +66,31 @@ const SAFETY_BLOCK_REASONS = new Set<string>([
 ]);
 
 /**
+ * Markers of a 400 that is caused by the server's own setup (an invalid or
+ * revoked API key, billing or region preconditions) rather than by the
+ * user's input. These must not tell the family to change their photos.
+ */
+const CONFIGURATION_ERROR_MARKERS = ["API_KEY_INVALID", "API key", "FAILED_PRECONDITION"];
+
+function isConfigurationError(error: ApiError): boolean {
+  return CONFIGURATION_ERROR_MARKERS.some((marker) => error.message.includes(marker));
+}
+
+/**
  * Translate an SDK failure into a user-facing failure.
  *
- * Only the numeric status is used: the SDK message may name models, quotas or
- * internal URLs, so it never reaches the client. Unmapped statuses keep the
- * generic error path.
+ * The mapping is chosen by the numeric status. The SDK message may name
+ * models, quotas or internal URLs, so it is only inspected to recognize
+ * configuration errors and never reaches the client. Unmapped statuses and
+ * configuration errors keep the generic error path.
  */
 function mapGeminiError(error: ApiError): GenerationFailure | null {
   switch (error.status) {
     case 400:
+      // The message is only inspected, never returned to the client.
+      if (isConfigurationError(error)) {
+        return null;
+      }
       return { error: GENERATION_ERROR_MESSAGES.invalidRequest, status: 400 };
     case 429:
       return { error: GENERATION_ERROR_MESSAGES.rateLimited, status: 429 };

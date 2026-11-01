@@ -146,6 +146,19 @@ describe("generateImage", () => {
       });
     });
 
+    it.each([
+      "API key not valid. Please pass a valid API key. [reason: API_KEY_INVALID]",
+      "FAILED_PRECONDITION: User location is not supported for the API use.",
+    ])("keeps a configuration 400 on the generic path: %s", async (message) => {
+      mockGenerateContent.mockRejectedValue(new ApiError({ message, status: 400 }));
+
+      // A misconfigured key must surface as a server error, not as a request
+      // the family could fix by changing photos or text.
+      await expect(
+        generateImage("test-key", [{ text: "prompt" }], "失敗メッセージ"),
+      ).rejects.toBeInstanceOf(ApiError);
+    });
+
     it.each([500, 503, 504])("maps an upstream %i to a 503 failure", async (status) => {
       mockGenerateContent.mockRejectedValue(
         new ApiError({ message: "internal error at api_single_request", status }),
