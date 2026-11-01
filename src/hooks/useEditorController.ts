@@ -6,6 +6,7 @@ import { useEditorSubmit } from "@/hooks/useEditorSubmit";
 import { useProgressSimulation } from "@/hooks/useProgressSimulation";
 import { useRecentPrompts } from "@/hooks/useRecentPrompts";
 import { useResultHistory } from "@/hooks/useResultHistory";
+import { scrollMainContentToTop } from "@/hooks/scrollToMainContent";
 import { useTextUndoRedo } from "@/hooks/useTextUndoRedo";
 import { useUndoRedoShortcuts } from "@/hooks/useUndoRedoShortcuts";
 import { type UploadSlot, useUploadSlots } from "@/hooks/useUploadSlots";
@@ -275,7 +276,7 @@ export function useEditorController(
     resetSubmit();
     resetFields?.();
     if (scrollToTopOnReset && typeof window !== "undefined") {
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      scrollMainContentToTop();
     }
   }, [
     resetUploads,

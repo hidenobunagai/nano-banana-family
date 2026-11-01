@@ -12,6 +12,7 @@ import { STARTER_PROMPTS } from "@/utils/starterPrompts";
 import { TONE_PROMPTS } from "@/utils/tonePrompts";
 import { Section } from "@/components/ui/Section";
 import { useEditorController } from "@/hooks/useEditorController";
+import { scrollMainContentToTop } from "@/hooks/scrollToMainContent";
 import { ICON_STYLES } from "@/utils/iconStyles";
 import { MAX_ICON_UPLOADS, MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
 import { appendPromptTag } from "@/utils/promptText";
@@ -110,10 +111,7 @@ export function IconCreator() {
       prompt: ctx.prompt.trim(),
     }),
     onNavigate: () => {
-      window.scrollTo({
-        top: 0,
-        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-      });
+      scrollMainContentToTop();
     },
     resetFields: () => {
       setName("");

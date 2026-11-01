@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import { PROMPT_REFERENCES } from "@/promptReferences";
 import { MAX_FREESTYLE_UPLOADS } from "@/utils/promptConstants";
 import { STYLE_SUGGESTIONS } from "@/utils/server/stylePrompts";
@@ -72,6 +72,9 @@ async function uploadFirstFile(container: HTMLElement) {
 }
 
 describe("FreestyleEditor", () => {
+  // Element.scrollTo is overloaded; a rest-unknown signature fits both forms.
+  let mainContentScrollTo: Mock<(...args: unknown[]) => void>;
+
   beforeEach(() => {
     Object.defineProperty(URL, "createObjectURL", {
       writable: true,
@@ -83,7 +86,17 @@ describe("FreestyleEditor", () => {
       writable: true,
       value: vi.fn(),
     });
+    // The shell scrolls this region, not the document.
+    mainContentScrollTo = vi.fn();
+    const mainContent = document.createElement("div");
+    mainContent.id = "main-content";
+    mainContent.scrollTo = mainContentScrollTo;
+    document.body.appendChild(mainContent);
     vi.unstubAllGlobals();
+  });
+
+  afterEach(() => {
+    document.getElementById("main-content")?.remove();
   });
 
   it("disables submit until a prompt and an image are provided", async () => {
@@ -183,7 +196,7 @@ describe("FreestyleEditor", () => {
     expect(imageSrc("自由生成の結果画像")).toBe(first);
     expect(screen.getByRole("button", { name: "前の結果" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "次の結果" })).toBeEnabled();
-    expect(window.scrollTo).toHaveBeenCalled();
+    expect(mainContentScrollTo).toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole("button", { name: "次の結果" }));
     expect(imageSrc("自由生成の結果画像")).toBe(second);
