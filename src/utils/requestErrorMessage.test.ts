@@ -1,3 +1,4 @@
+import { GENERATION_ERROR_MESSAGES } from "./generationErrorMessages";
 import { getRequestErrorMessage } from "./requestErrorMessage";
 
 describe("getRequestErrorMessage", () => {
@@ -71,5 +72,45 @@ describe("getRequestErrorMessage", () => {
         fallback: "fallback",
       }),
     ).toBe("fallback");
+  });
+
+  it("falls back to the rate limit message for a 429 without an error body", () => {
+    expect(
+      getRequestErrorMessage({
+        status: 429,
+        payload: null,
+        fallback: "fallback",
+      }),
+    ).toBe(GENERATION_ERROR_MESSAGES.rateLimited);
+  });
+
+  it("falls back to the busy message for a 503 without an error body", () => {
+    expect(
+      getRequestErrorMessage({
+        status: 503,
+        payload: { message: "platform error page" },
+        fallback: "fallback",
+      }),
+    ).toBe(GENERATION_ERROR_MESSAGES.serviceUnavailable);
+  });
+
+  it("shows the server message for a 429 when the body carries one", () => {
+    expect(
+      getRequestErrorMessage({
+        status: 429,
+        payload: { error: "server rate limit message" },
+        fallback: "fallback",
+      }),
+    ).toBe("server rate limit message");
+  });
+
+  it("shows the server message for a 503 when the body carries one", () => {
+    expect(
+      getRequestErrorMessage({
+        status: 503,
+        payload: { error: "server busy message" },
+        fallback: "fallback",
+      }),
+    ).toBe("server busy message");
   });
 });

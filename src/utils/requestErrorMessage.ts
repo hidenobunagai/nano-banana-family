@@ -1,3 +1,5 @@
+import { GENERATION_ERROR_MESSAGES } from "@/utils/generationErrorMessages";
+
 interface RequestErrorMessageOptions {
   status: number;
   payload: unknown;
@@ -26,5 +28,20 @@ export function getRequestErrorMessage({
     return "画像サイズが大きすぎる可能性があります。別の画像に変えるか、そのままでもう一度お試しください。";
   }
 
-  return extractErrorMessage(payload) ?? fallback;
+  const message = extractErrorMessage(payload);
+  if (message) {
+    return message;
+  }
+
+  // Platform error pages (or an empty body) carry no JSON error field, so the
+  // status alone has to describe the failure.
+  if (status === 429) {
+    return GENERATION_ERROR_MESSAGES.rateLimited;
+  }
+
+  if (status === 503) {
+    return GENERATION_ERROR_MESSAGES.serviceUnavailable;
+  }
+
+  return fallback;
 }
