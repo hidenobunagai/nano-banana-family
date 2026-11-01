@@ -180,6 +180,31 @@ describe("StoryCreator", () => {
     ).toBeInTheDocument();
   });
 
+  it("clears the generated result when a photo slot is removed", async () => {
+    mockFetchSuccess();
+    const { container } = render(<StoryCreator />);
+
+    await uploadFirstFile(container);
+    fireEvent.click(screen.getByRole("button", { name: /画像を追加/ }));
+
+    const placeholderInputs = Array.from(container.querySelectorAll('input[type="file"]')).filter(
+      (input) => !input.getAttribute("aria-label"),
+    );
+    fireEvent.change(placeholderInputs[placeholderInputs.length - 1] as HTMLInputElement, {
+      target: { files: [makeFile("photo2.png")] },
+    });
+    await waitFor(() => expect(screen.getAllByAltText("選択した写真のプレビュー")).toHaveLength(2));
+
+    fireEvent.click(screen.getByRole("button", { name: "ストーリーを生成する" }));
+    expect(await screen.findByAltText("ストーリー生成の結果画像")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "写真 1 を削除" }));
+
+    await waitFor(() =>
+      expect(screen.queryByAltText("ストーリー生成の結果画像")).not.toBeInTheDocument(),
+    );
+  });
+
   it("steps the result history back and forward with the pane buttons", async () => {
     mockFetchDistinct();
     const { container } = render(<StoryCreator />);

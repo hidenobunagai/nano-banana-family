@@ -26,7 +26,7 @@ import {
   Wand2,
 } from "lucide-react";
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import type { ProgressStep } from "@/components/ProgressDisplay";
 
 const STORY_TYPES = [
@@ -107,6 +107,7 @@ export function StoryCreator() {
     errorMessage,
     resultImage,
     resultFilename,
+    resetSubmit,
     uploads,
     isOptimizingAny,
     optimizingIds,
@@ -157,6 +158,15 @@ export function StoryCreator() {
   });
 
   const canSubmit = hasActiveFiles && !isSubmitting && !isOptimizingAny;
+
+  const handleRemoveUploadSlot = useCallback(
+    (id: string) => {
+      removeUploadSlot(id);
+      // The generated image belongs to the photos that were used for it.
+      resetSubmit();
+    },
+    [removeUploadSlot, resetSubmit],
+  );
 
   const handleRecentSelect = (selectedPrompt: string) => {
     handlePromptChange(selectedPrompt);
@@ -243,7 +253,7 @@ export function StoryCreator() {
             maxUploads={MAX_STORY_UPLOADS}
             optimizingIds={optimizingIds}
             onFileChange={handleFileChange}
-            onRemoveSlot={removeUploadSlot}
+            onRemoveSlot={handleRemoveUploadSlot}
             onAddSlot={addUploadSlot}
             labelPrefix="写真"
           />
