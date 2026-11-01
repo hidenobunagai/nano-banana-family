@@ -20,15 +20,6 @@ vi.mock("@/utils/server/imageGeneration", () => ({
   IMAGE_GENERATION_TIMEOUT_MS: 90_000,
 }));
 
-vi.mock("@/utils/server/cache", () => ({
-  fileFingerprint: vi.fn().mockResolvedValue("fingerprint123"),
-  generateCacheKey: vi.fn().mockReturnValue("cache-key"),
-  imageGenerationCache: {
-    get: vi.fn().mockReturnValue(null),
-    set: vi.fn(),
-  },
-}));
-
 vi.mock("@/utils/server/urlMetadata", () => ({
   fetchUrlMetadata: vi.fn().mockResolvedValue(null),
 }));

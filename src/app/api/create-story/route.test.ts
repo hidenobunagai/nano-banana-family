@@ -37,15 +37,6 @@ vi.mock("@/utils/server/imageGeneration", () => ({
   IMAGE_GENERATION_TIMEOUT_MS: 90_000,
 }));
 
-vi.mock("@/utils/server/cache", () => ({
-  fileFingerprint: vi.fn(async () => "mock-fingerprint"),
-  generateCacheKey: vi.fn(() => "mock-cache-key"),
-  imageGenerationCache: {
-    get: vi.fn(),
-    set: vi.fn(),
-  },
-}));
-
 import { POST } from "./route";
 
 function createRequest(
@@ -122,15 +113,9 @@ describe("POST /api/create-story", () => {
   });
 
   it("returns 200 on successful story generation", async () => {
-    const { handleApiError } = await import("@/utils/server/api-helpers");
     const { filesToParts } = await import("@/utils/server/imageProcessing");
-    const { imageGenerationCache } = await import("@/utils/server/cache");
 
     vi.mocked(filesToParts).mockResolvedValue({ parts: [{ text: "processed" }] });
-    vi.mocked(imageGenerationCache.get).mockReturnValue(undefined);
-    vi.mocked(handleApiError).mockImplementation((e) =>
-      jsonResponse({ error: e instanceof Error ? e.message : String(e) }, 500),
-    );
     mockGenerateImage.mockResolvedValue({
       imageBase64: "story-base64-data",
       mimeType: "image/png",
@@ -145,9 +130,7 @@ describe("POST /api/create-story", () => {
 
   it("passes the shared generation deadline to generateImage", async () => {
     const { filesToParts } = await import("@/utils/server/imageProcessing");
-    const { imageGenerationCache } = await import("@/utils/server/cache");
     vi.mocked(filesToParts).mockResolvedValue({ parts: [{ text: "processed" }] });
-    vi.mocked(imageGenerationCache.get).mockReturnValue(undefined);
     mockGenerateImage.mockResolvedValue({ imageBase64: "x", mimeType: "image/png" });
 
     await POST(createRequest("picture-book", [new File(["a"], "a.png")]));

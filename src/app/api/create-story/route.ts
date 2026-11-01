@@ -6,7 +6,6 @@ import { filesToParts } from "@/utils/server/imageProcessing";
 import { generateImage, IMAGE_GENERATION_TIMEOUT_MS } from "@/utils/server/imageGeneration";
 import { CreateStoryFormSchema } from "@/utils/server/validation";
 import { buildStoryPrompt } from "@/utils/server/storyPromptBuilder";
-import { fileFingerprint, generateCacheKey, imageGenerationCache } from "@/utils/server/cache";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -44,19 +43,6 @@ export async function POST(request: Request) {
     images: validatedFiles,
   } = parsed.data;
 
-  const cacheKey = generateCacheKey({
-    storyType: validStoryType,
-    tone: validTone,
-    language: validLang,
-    customPrompt: trimmedCustomPrompt ?? "",
-    images: (await Promise.all(validatedFiles.map(fileFingerprint))).sort(),
-  });
-
-  const cached = imageGenerationCache.get<{ imageBase64: string; mimeType: string }>(cacheKey);
-  if (cached) {
-    return NextResponse.json(cached);
-  }
-
   try {
     const partsResult = await filesToParts(validatedFiles);
     if ("error" in partsResult) {
@@ -86,7 +72,6 @@ export async function POST(request: Request) {
       );
     }
 
-    imageGenerationCache.set(cacheKey, generationResult);
     return NextResponse.json(generationResult);
   } catch (error) {
     return handleApiError(error, "create-story", session.user?.email ?? "unknown");

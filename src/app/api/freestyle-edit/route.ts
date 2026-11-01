@@ -6,7 +6,6 @@ import { generateImage, IMAGE_GENERATION_TIMEOUT_MS } from "@/utils/server/image
 import { FreestyleEditFormSchema } from "@/utils/server/validation";
 import { buildFreestylePrompt } from "@/utils/server/freestylePromptBuilder";
 import { handleApiError, validateFormData } from "@/utils/server/api-helpers";
-import { fileFingerprint, generateCacheKey, imageGenerationCache } from "@/utils/server/cache";
 
 export const runtime = "nodejs";
 // Image generation takes 10-40s; the Vercel hobby default (10s) kills every call.
@@ -32,15 +31,6 @@ export async function POST(request: Request) {
   }
   const { prompt: trimmedPrompt, images: validatedFiles } = parsed.data;
 
-  const cacheKey = generateCacheKey({
-    prompt: trimmedPrompt,
-    images: (await Promise.all(validatedFiles.map(fileFingerprint))).sort(),
-  });
-  const cached = imageGenerationCache.get<{ imageBase64: string; mimeType: string }>(cacheKey);
-  if (cached) {
-    return NextResponse.json(cached);
-  }
-
   try {
     const partsResult = await filesToParts(validatedFiles);
     if ("error" in partsResult) {
@@ -63,7 +53,6 @@ export async function POST(request: Request) {
       );
     }
 
-    imageGenerationCache.set(cacheKey, generationResult);
     return NextResponse.json(generationResult);
   } catch (error) {
     return handleApiError(error, "freestyle-edit", session.user?.email ?? "unknown");
