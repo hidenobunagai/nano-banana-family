@@ -205,6 +205,38 @@ describe("StoryCreator", () => {
     );
   });
 
+  it("leaves the comparison view when a photo slot is removed", async () => {
+    mockFetchDistinct();
+    const { container } = render(<StoryCreator />);
+
+    await uploadFirstFile(container);
+    fireEvent.click(screen.getByRole("button", { name: /画像を追加/ }));
+    const placeholderInputs = Array.from(container.querySelectorAll('input[type="file"]')).filter(
+      (input) => !input.getAttribute("aria-label"),
+    );
+    fireEvent.change(placeholderInputs[placeholderInputs.length - 1] as HTMLInputElement, {
+      target: { files: [makeFile("photo2.png")] },
+    });
+    await waitFor(() => expect(screen.getAllByAltText("選択した写真のプレビュー")).toHaveLength(2));
+
+    fireEvent.click(screen.getByRole("button", { name: "ストーリーを生成する" }));
+    await screen.findByAltText("ストーリー生成の結果画像");
+    const first = imageSrc("ストーリー生成の結果画像");
+    fireEvent.click(screen.getByRole("button", { name: "同じ写真でもう一度生成" }));
+    await waitFor(() => expect(imageSrc("ストーリー生成の結果画像")).not.toBe(first));
+
+    fireEvent.click(screen.getByRole("button", { name: "前の結果と比較" }));
+    expect(imageSrc("ストーリー生成の結果画像")).toBe(first);
+
+    fireEvent.click(screen.getByRole("button", { name: "写真 1 を削除" }));
+
+    // Without leaving the comparison view the previous story would stay on
+    // screen with no control left to exit it.
+    await waitFor(() =>
+      expect(screen.queryByAltText("ストーリー生成の結果画像")).not.toBeInTheDocument(),
+    );
+  });
+
   it("disables the download while comparing with the previous result", async () => {
     mockFetchDistinct();
     const { container } = render(<StoryCreator />);

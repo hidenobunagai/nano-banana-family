@@ -233,6 +233,7 @@ export function FreestyleEditor() {
             optimizingIds={optimizingIds}
             onFileChange={handleFileChange}
             onRemoveSlot={handleRemoveUploadSlot}
+            removeDisabled={isSubmitting}
             onAddSlot={addUploadSlot}
           />
         </Section>

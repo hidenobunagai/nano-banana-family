@@ -162,8 +162,10 @@ export function StoryCreator() {
   const handleRemoveUploadSlot = useCallback(
     (id: string) => {
       removeUploadSlot(id);
-      // The generated image belongs to the photos that were used for it.
+      // The generated image belongs to the photos that were used for it, and
+      // the comparison view would otherwise keep showing the previous story.
       resetSubmit();
+      setIsComparing(false);
     },
     [removeUploadSlot, resetSubmit],
   );
@@ -255,6 +257,7 @@ export function StoryCreator() {
             optimizingIds={optimizingIds}
             onFileChange={handleFileChange}
             onRemoveSlot={handleRemoveUploadSlot}
+            removeDisabled={isSubmitting}
             onAddSlot={addUploadSlot}
             labelPrefix="写真"
           />
