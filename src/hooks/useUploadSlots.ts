@@ -7,8 +7,21 @@ export interface UploadSlot {
   previewUrl: string | null;
 }
 
+/**
+ * Generate the id of an upload slot.
+ *
+ * crypto.randomUUID() is only available in secure contexts, so relying on it
+ * alone would crash the editor on the first render over plain HTTP.
+ */
+function createSlotId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `slot_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
 function createUploadSlot(): UploadSlot {
-  return { id: crypto.randomUUID(), file: null, previewUrl: null };
+  return { id: createSlotId(), file: null, previewUrl: null };
 }
 
 interface UseUploadSlotsOptions {
