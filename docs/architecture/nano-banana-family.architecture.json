@@ -52,13 +52,13 @@
       "type": "security",
       "label": "NextAuth Gate",
       "sublabel": "Google OAuth + Whitelist",
-      "tag": "middleware route guard",
+      "tag": "proxy route guard",
       "sources": [
         {
           "path": "src/auth.ts"
         },
         {
-          "path": "src/middleware.ts"
+          "path": "src/proxy.ts"
         }
       ],
       "pos": [190, 240],
