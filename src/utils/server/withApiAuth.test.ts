@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // Mock dependencies
 const mockGetServerSession = vi.hoisted(() => vi.fn());
@@ -34,15 +34,17 @@ vi.mock("next/server", () => ({
   },
 }));
 
-// Set environment variable for API key
-process.env.GEMINI_API_KEY = "test-api-key";
-
 import { withApiAuth } from "./withApiAuth";
 
 describe("withApiAuth", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockIsEmailAllowed.mockReturnValue(true);
+    vi.stubEnv("GEMINI_API_KEY", "test-api-key");
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it("should return 401 when no session", async () => {
@@ -68,7 +70,7 @@ describe("withApiAuth", () => {
   });
 
   it("should return 500 when API key missing", async () => {
-    delete process.env.GEMINI_API_KEY;
+    vi.stubEnv("GEMINI_API_KEY", undefined);
     const mockSession = { user: { email: "test@example.com" } };
     mockGetServerSession.mockResolvedValue(mockSession);
 
@@ -77,9 +79,6 @@ describe("withApiAuth", () => {
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error("Expected ok: false");
     expect(result.response.status).toBe(500);
-
-    // Restore for other tests
-    process.env.GEMINI_API_KEY = "test-api-key";
   });
 
   it("should return 403 when the session email is not on the allow list", async () => {

@@ -15,19 +15,6 @@ vi.mock("@/utils/server/withApiAuth", () => ({
   withApiAuth: mockWithApiAuth,
 }));
 
-vi.mock("@/utils/server/api-helpers", () => ({
-  handleApiError: vi.fn((e) =>
-    jsonResponse({ error: e instanceof Error ? e.message : String(e) }, 500),
-  ),
-  validateFormData: vi.fn((schema, data) => {
-    const result = schema.safeParse(data);
-    if (result.success) {
-      return { success: true, data: result.data };
-    }
-    return { success: false, error: result.error.issues.map((i: any) => i.message).join(", ") };
-  }),
-}));
-
 vi.mock("@/utils/server/imageProcessing", () => ({
   filesToParts: vi.fn(),
 }));
@@ -116,6 +103,21 @@ describe("POST /api/create-story", () => {
     expect(res.status).toBe(400);
     const body = await res.json();
     expect(body.error).toContain("写真を1枚以上");
+    expect(mockGenerateImage).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 when the real schema rejects too many images", async () => {
+    const images = Array.from(
+      { length: 6 },
+      (_, index) => new File(["a"], `a-${index}.png`, { type: "image/png" }),
+    );
+
+    const res = await POST(createRequest("picture-book", images));
+
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toContain("最大5枚");
+    expect(mockGenerateImage).not.toHaveBeenCalled();
   });
 
   it("returns 200 on successful story generation", async () => {
