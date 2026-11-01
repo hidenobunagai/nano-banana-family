@@ -26,8 +26,7 @@ export async function fetchUrlMetadata(url: string): Promise<UrlMetadata | null>
       // the headers cannot hold the request open past the budget.
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
       headers: {
-        "User-Agent":
-          "Mozilla/5.0 (compatible; HideNBStudio/1.0; +https://hide-nb-studio.vercel.app)",
+        "User-Agent": "NanoBananaFamily/1.0; +https://nb-studio.misato-labs.com",
         Accept: "text/html,application/xhtml+xml",
       },
     });
