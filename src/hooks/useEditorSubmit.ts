@@ -37,6 +37,15 @@ const TIMEOUT_ERROR = "生成に時間がかかっています。時間をおい
 const REQUEST_TIMEOUT_MS = 120_000;
 
 /**
+ * True for the error a fetch rejects with when its signal is aborted.
+ * AbortSignal.timeout() rejects with a DOMException named "TimeoutError"
+ * instead, which is why the deadline is detected through the signal itself.
+ */
+function isAbortError(error: unknown): boolean {
+  return error instanceof Error && error.name === "AbortError";
+}
+
+/**
  * Shared submit flow for the editors: validation, AbortController, fetch,
  * response shape checking, result/error state, and progress reporting.
  */
@@ -136,13 +145,14 @@ export function useEditorSubmit({
       onSuccess(image);
       setResultImage(image);
     } catch (error) {
-      if (error instanceof Error && error.name === "AbortError") {
-        if (timeoutSignal.aborted) {
-          // Deadline hit, not a user abort: surface it and let progress finish.
-          setErrorMessage(TIMEOUT_ERROR);
-        } else {
-          aborted = true;
-        }
+      if (timeoutSignal.aborted) {
+        // Deadline hit, not a user abort: surface it and let progress finish.
+        // Checked first because the timeout rejects with a DOMException named
+        // "TimeoutError", so the error name alone cannot tell the two apart.
+        setErrorMessage(TIMEOUT_ERROR);
+      } else if (controller.signal.aborted || isAbortError(error)) {
+        // The user aborted the request: stay silent and skip the completion.
+        aborted = true;
       } else if (error instanceof TypeError) {
         setErrorMessage(NETWORK_ERROR);
       } else {
