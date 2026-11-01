@@ -89,7 +89,7 @@ describe("fetchUrlMetadata", () => {
     const init = fetchSpy.mock.calls[0][1] as RequestInit | undefined;
     const headers = init?.headers as Record<string, string> | undefined;
     expect(headers?.["User-Agent"]).toBe(
-      "NanoBananaFamily/1.0; +https://nb-studio.misato-labs.com",
+      "Mozilla/5.0 (compatible; NanoBananaFamily/1.0; +https://nb-studio.misato-labs.com)",
     );
   });
 
