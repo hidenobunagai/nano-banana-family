@@ -1,3 +1,4 @@
+import { GENERATION_ERROR_MESSAGES } from "./generationErrorMessages";
 import { getRequestErrorMessage } from "./requestErrorMessage";
 
 describe("getRequestErrorMessage", () => {
@@ -11,7 +12,7 @@ describe("getRequestErrorMessage", () => {
     ).toBe("セッションの確認が必要です。もう一度サインインしてからお試しください。");
   });
 
-  it("returns auth message for 403", () => {
+  it("returns auth message for 403 without a server message", () => {
     expect(
       getRequestErrorMessage({
         status: 403,
@@ -19,6 +20,16 @@ describe("getRequestErrorMessage", () => {
         fallback: "error",
       }),
     ).toBe("セッションの確認が必要です。もう一度サインインしてからお試しください。");
+  });
+
+  it("shows the server message for 403 so a removed account is told why", () => {
+    expect(
+      getRequestErrorMessage({
+        status: 403,
+        payload: { error: "このアカウントは利用が許可されていません。" },
+        fallback: "error",
+      }),
+    ).toBe("このアカウントは利用が許可されていません。");
   });
 
   it("returns size message for 413", () => {
@@ -71,5 +82,45 @@ describe("getRequestErrorMessage", () => {
         fallback: "fallback",
       }),
     ).toBe("fallback");
+  });
+
+  it("falls back to the rate limit message for a 429 without an error body", () => {
+    expect(
+      getRequestErrorMessage({
+        status: 429,
+        payload: null,
+        fallback: "fallback",
+      }),
+    ).toBe(GENERATION_ERROR_MESSAGES.rateLimited);
+  });
+
+  it("falls back to the busy message for a 503 without an error body", () => {
+    expect(
+      getRequestErrorMessage({
+        status: 503,
+        payload: { message: "platform error page" },
+        fallback: "fallback",
+      }),
+    ).toBe(GENERATION_ERROR_MESSAGES.serviceUnavailable);
+  });
+
+  it("shows the server message for a 429 when the body carries one", () => {
+    expect(
+      getRequestErrorMessage({
+        status: 429,
+        payload: { error: "server rate limit message" },
+        fallback: "fallback",
+      }),
+    ).toBe("server rate limit message");
+  });
+
+  it("shows the server message for a 503 when the body carries one", () => {
+    expect(
+      getRequestErrorMessage({
+        status: 503,
+        payload: { error: "server busy message" },
+        fallback: "fallback",
+      }),
+    ).toBe("server busy message");
   });
 });

@@ -131,6 +131,61 @@ describe("fetchOgImage", () => {
     expect(result).toBeNull();
   });
 
+  it.each(["image/svg+xml", "image/gif", "image/avif", "image/bmp"])(
+    "returns null for the unsupported image type %s",
+    async (contentType) => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(
+        new Response("image-bytes", {
+          status: 200,
+          headers: { "content-type": contentType },
+        }),
+      );
+
+      const result = await fetchOgImage("https://example.com/og");
+
+      expect(result).toBeNull();
+    },
+  );
+
+  it("accepts image/webp", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response("fake-image-bytes", {
+        status: 200,
+        headers: { "content-type": "image/webp" },
+      }),
+    );
+
+    const result = await fetchOgImage("https://example.com/og.webp");
+
+    expect(result?.mimeType).toBe("image/webp");
+  });
+
+  it("normalizes image/jpg to image/jpeg", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response("fake-image-bytes", {
+        status: 200,
+        headers: { "content-type": "image/jpg" },
+      }),
+    );
+
+    const result = await fetchOgImage("https://example.com/og.jpg");
+
+    expect(result?.mimeType).toBe("image/jpeg");
+  });
+
+  it("ignores the parameters of the content type", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response("fake-image-bytes", {
+        status: 200,
+        headers: { "content-type": "image/png; charset=utf-8" },
+      }),
+    );
+
+    const result = await fetchOgImage("https://example.com/og.png");
+
+    expect(result?.mimeType).toBe("image/png");
+  });
+
   it("returns null on fetch error", async () => {
     vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("network error"));
     const result = await fetchOgImage("https://example.com/og.jpg");

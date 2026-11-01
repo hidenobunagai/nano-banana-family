@@ -8,8 +8,17 @@ import { dirname, resolve } from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const README_URL =
-  "https://raw.githubusercontent.com/PicoTrex/Awesome-Nano-Banana-images/refs/heads/main/README_ja.md";
+
+/**
+ * The upstream revision the prompt list is generated from. It is pinned to a
+ * commit SHA instead of a branch, so a regeneration always reads the same
+ * upstream file, and the SHA is written into the header of the generated file.
+ * Move it on purpose, with:
+ *   gh api repos/PicoTrex/Awesome-Nano-Banana-images/commits/main --jq .sha
+ */
+const UPSTREAM_REF = "2558bf0bb825be150c5d1aeab918cd90004882d3";
+
+const README_URL = `https://raw.githubusercontent.com/PicoTrex/Awesome-Nano-Banana-images/${UPSTREAM_REF}/README_ja.md`;
 
 const GENDER_FIXES = [
   { from: /彼の/g, to: "その人の" },
@@ -319,6 +328,7 @@ function parseReadme(markdown) {
 
 function generateTypeScript(entries) {
   const header = `// Auto-generated from Awesome-Nano-Banana-images README_ja.md
+// Upstream revision: ${UPSTREAM_REF}
 // Do not edit manually. Run \`bun run scripts/extract-prompts.mjs\` to regenerate.
 
 export type PromptReference = {
@@ -336,7 +346,7 @@ export const PROMPT_REFERENCES: PromptReference[] = ${JSON.stringify(entries, nu
 }
 
 async function main() {
-  console.log("Fetching README_ja.md...");
+  console.log(`Fetching README_ja.md at ${UPSTREAM_REF}...`);
   const response = await fetch(README_URL);
   if (!response.ok) {
     throw new Error(`Failed to fetch README: ${response.status} ${response.statusText}`);

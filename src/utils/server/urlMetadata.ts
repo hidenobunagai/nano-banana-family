@@ -27,7 +27,7 @@ export async function fetchUrlMetadata(url: string): Promise<UrlMetadata | null>
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
       headers: {
         "User-Agent":
-          "Mozilla/5.0 (compatible; HideNBStudio/1.0; +https://hide-nb-studio.vercel.app)",
+          "Mozilla/5.0 (compatible; NanoBananaFamily/1.0; +https://nb-studio.misato-labs.com)",
         Accept: "text/html,application/xhtml+xml",
       },
     });

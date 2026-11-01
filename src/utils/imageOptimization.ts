@@ -1,4 +1,4 @@
-import { resolveMimeType } from "@/utils/server/imageValidation";
+import { resolveMimeType } from "@/utils/imageMime";
 
 /**
  * Image optimization utilities for automatic resizing

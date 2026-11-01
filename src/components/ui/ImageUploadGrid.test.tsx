@@ -61,6 +61,25 @@ describe("ImageUploadGrid", () => {
     expect(handleRemoveSlot).toHaveBeenCalledWith("slot-1");
   });
 
+  it("disables the delete buttons while removal is not allowed", () => {
+    const handleRemoveSlot = vi.fn();
+    render(
+      <ImageUploadGrid
+        uploads={sampleSlots}
+        maxUploads={4}
+        onFileChange={vi.fn()}
+        onRemoveSlot={handleRemoveSlot}
+        removeDisabled
+        onAddSlot={vi.fn()}
+      />,
+    );
+
+    const removeButton = screen.getByRole("button", { name: "参考画像 1 を削除" });
+    expect(removeButton).toBeDisabled();
+    fireEvent.click(removeButton);
+    expect(handleRemoveSlot).not.toHaveBeenCalled();
+  });
+
   it("hides add button when max uploads limit is reached", () => {
     render(
       <ImageUploadGrid

@@ -26,6 +26,22 @@ describe("useUploadSlots", () => {
     expect(result.current.activeUploads).toHaveLength(0);
   });
 
+  it("falls back to a generated id when crypto.randomUUID is unavailable", () => {
+    // A non-secure context has no crypto.randomUUID.
+    vi.stubGlobal("crypto", { getRandomValues: () => new Uint8Array(8) });
+
+    try {
+      const { result } = renderHook(() => useUploadSlots({ maxSlots: 5, initialSlots: 2 }));
+
+      const ids = result.current.uploads.map((upload) => upload.id);
+      expect(ids).toHaveLength(2);
+      expect(new Set(ids).size).toBe(2);
+      ids.forEach((id) => expect(id).toMatch(/^slot_/));
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("adds slots up to the max", () => {
     const { result } = renderHook(() => useUploadSlots({ maxSlots: 2 }));
 

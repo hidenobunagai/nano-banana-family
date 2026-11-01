@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { FileInput } from "./FileInput";
 
@@ -19,6 +19,27 @@ function dropFile(target: HTMLElement, file: File): void {
   const dropEvent = new Event("drop", { bubbles: true, cancelable: true });
   Object.defineProperty(dropEvent, "dataTransfer", { value: dataTransfer });
   target.dispatchEvent(dropEvent);
+}
+
+/**
+ * Records what the component writes to the input value. jsdom only accepts the
+ * empty string for a file input, so the assignment is observed instead of the
+ * resulting value.
+ */
+function trackValueAssignments(input: HTMLInputElement): { assigned: () => string | undefined } {
+  const descriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
+  let assigned: string | undefined;
+  Object.defineProperty(input, "value", {
+    configurable: true,
+    get() {
+      return descriptor?.get?.call(this);
+    },
+    set(value: string) {
+      assigned = value;
+      descriptor?.set?.call(this, value);
+    },
+  });
+  return { assigned: () => assigned };
 }
 
 describe("FileInput", () => {
@@ -106,6 +127,34 @@ describe("FileInput", () => {
     render(<FileInput previewUrl="blob:mock-preview" isOptimizing={false} onChange={vi.fn()} />);
     expect(screen.getByAltText("選択した参考画像のプレビュー")).toBeInTheDocument();
     expect(screen.getByText("画像を変更")).toBeInTheDocument();
+  });
+
+  it("resets the change input after handling a selection", () => {
+    const onChange = vi.fn();
+    render(<FileInput previewUrl="blob:mock-preview" isOptimizing={false} onChange={onChange} />);
+
+    const input = screen.getByLabelText("画像を変更") as HTMLInputElement;
+    const tracker = trackValueAssignments(input);
+
+    fireEvent.change(input);
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(tracker.assigned()).toBe("");
+  });
+
+  it("resets the placeholder input after handling a selection", () => {
+    const onChange = vi.fn();
+    const { container } = render(
+      <FileInput previewUrl={null} isOptimizing={false} onChange={onChange} />,
+    );
+
+    const input = container.querySelector("input[type=file]") as HTMLInputElement;
+    const tracker = trackValueAssignments(input);
+
+    fireEvent.change(input);
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(tracker.assigned()).toBe("");
   });
 
   it("uses imageAlt for the preview when given one", () => {

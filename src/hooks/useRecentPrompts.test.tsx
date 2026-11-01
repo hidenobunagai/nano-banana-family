@@ -1,5 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
-import { beforeEach, describe, expect, it } from "vitest";
+import { StrictMode } from "react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useRecentPrompts } from "./useRecentPrompts";
 
 const STORAGE_KEY = "test-recent-prompts";
@@ -73,5 +74,20 @@ describe("useRecentPrompts", () => {
     const { result } = renderHook(() => useRecentPrompts(STORAGE_KEY, 6));
 
     expect(result.current.recentPrompts).toEqual([]);
+  });
+
+  it("writes the stored list once, outside the state updater", () => {
+    const setItem = vi.spyOn(Storage.prototype, "setItem");
+    const { result } = renderHook(() => useRecentPrompts(STORAGE_KEY, 6), {
+      wrapper: ({ children }) => <StrictMode>{children}</StrictMode>,
+    });
+
+    act(() => result.current.pushRecent("only once"));
+
+    // StrictMode invokes a state updater twice, so a write inside the updater
+    // would run twice as well.
+    expect(setItem).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? "[]")).toEqual(["only once"]);
+    expect(result.current.recentPrompts).toEqual(["only once"]);
   });
 });

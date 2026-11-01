@@ -1,9 +1,14 @@
 import { act, renderHook } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useEditorSubmit } from "./useEditorSubmit";
 
 describe("useEditorSubmit", () => {
   beforeEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  afterEach(() => {
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
@@ -186,12 +191,15 @@ describe("useEditorSubmit", () => {
   it("reports a timeout and still finishes when the request exceeds the deadline", async () => {
     // Spy on the static instead of replacing the global: AbortSignal's statics
     // are non-enumerable, so `{ ...AbortSignal }` would drop abort/any/timeout.
-    vi.spyOn(AbortSignal, "timeout").mockImplementation(() => AbortSignal.abort());
-    const abortError = new Error("aborted");
-    abortError.name = "AbortError";
+    // AbortSignal.timeout() aborts with a DOMException named "TimeoutError",
+    // which is what production does.
+    vi.spyOn(AbortSignal, "timeout").mockImplementation(() =>
+      AbortSignal.abort(new DOMException("timed out", "TimeoutError")),
+    );
+    const timeoutError = new DOMException("timed out", "TimeoutError");
     vi.stubGlobal(
       "fetch",
-      vi.fn(async () => Promise.reject(abortError)),
+      vi.fn(async () => Promise.reject(timeoutError)),
     );
     const { result, onFinished } = setup();
 
@@ -203,6 +211,28 @@ describe("useEditorSubmit", () => {
       "生成に時間がかかっています。時間をおいてもう一度お試しください。",
     );
     expect(onFinished).toHaveBeenCalled();
+  });
+
+  it("does not show the raw browser timeout message", async () => {
+    vi.spyOn(AbortSignal, "timeout").mockImplementation(() =>
+      AbortSignal.abort(new DOMException("The operation timed out.", "TimeoutError")),
+    );
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        Promise.reject(new DOMException("The operation timed out.", "TimeoutError")),
+      ),
+    );
+    const { result } = setup();
+
+    await act(async () => {
+      await result.current.submit();
+    });
+
+    expect(result.current.errorMessage).not.toContain("The operation timed out.");
+    expect(result.current.errorMessage).toBe(
+      "生成に時間がかかっています。時間をおいてもう一度お試しください。",
+    );
   });
 
   it("stays silent and skips onFinished when the request is aborted", async () => {
@@ -220,6 +250,149 @@ describe("useEditorSubmit", () => {
 
     expect(result.current.errorMessage).toBeNull();
     expect(onFinished).not.toHaveBeenCalled();
+  });
+
+  it("stays silent when the user aborts the running request", async () => {
+    // A second submit aborts the controller of the first one.
+    const abortError = new DOMException("This operation was aborted", "AbortError");
+    let call = 0;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((_input: RequestInfo | URL, init?: RequestInit) => {
+        call += 1;
+        if (call > 1) {
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            text: async () => JSON.stringify({ imageBase64: "QUJD" }),
+          } as Response);
+        }
+        return new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener("abort", () => reject(abortError));
+        });
+      }),
+    );
+    const { result, onFinished } = setup();
+
+    await act(async () => {
+      const first = result.current.submit();
+      await Promise.resolve();
+      await result.current.submit();
+      await first;
+    });
+
+    expect(result.current.errorMessage).toBeNull();
+    // Only the second (successful) request reports its duration.
+    expect(onFinished).toHaveBeenCalledTimes(1);
+  });
+
+  it("uses a plain AbortController when AbortSignal.timeout is unavailable", async () => {
+    const descriptor = Object.getOwnPropertyDescriptor(AbortSignal, "timeout");
+    delete (AbortSignal as { timeout?: unknown }).timeout;
+    try {
+      mockFetchResponse({
+        ok: true,
+        status: 200,
+        body: { imageBase64: "QUJD", mimeType: "image/png" },
+      });
+      const { result } = setup();
+
+      await act(async () => {
+        await result.current.submit();
+      });
+
+      expect(result.current.resultImage).toBe("data:image/png;base64,QUJD");
+      expect(result.current.errorMessage).toBeNull();
+    } finally {
+      if (descriptor) Object.defineProperty(AbortSignal, "timeout", descriptor);
+    }
+  });
+
+  it("uses a plain AbortController when AbortSignal.any is unavailable", async () => {
+    const descriptor = Object.getOwnPropertyDescriptor(AbortSignal, "any");
+    delete (AbortSignal as { any?: unknown }).any;
+    try {
+      mockFetchResponse({
+        ok: true,
+        status: 200,
+        body: { imageBase64: "QUJD", mimeType: "image/png" },
+      });
+      const { result } = setup();
+
+      await act(async () => {
+        await result.current.submit();
+      });
+
+      expect(result.current.resultImage).toBe("data:image/png;base64,QUJD");
+      expect(result.current.errorMessage).toBeNull();
+    } finally {
+      if (descriptor) Object.defineProperty(AbortSignal, "any", descriptor);
+    }
+  });
+
+  it("reports the timeout through the fallback timer when AbortSignal.timeout is unavailable", async () => {
+    const descriptor = Object.getOwnPropertyDescriptor(AbortSignal, "timeout");
+    delete (AbortSignal as { timeout?: unknown }).timeout;
+    vi.useFakeTimers();
+    try {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(
+          (_input: RequestInfo | URL, init?: RequestInit) =>
+            new Promise<Response>((_resolve, reject) => {
+              init?.signal?.addEventListener("abort", () => reject(init.signal?.reason));
+            }),
+        ),
+      );
+      const { result } = setup();
+
+      await act(async () => {
+        result.current.submit();
+      });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(120_000);
+      });
+
+      expect(result.current.errorMessage).toBe(
+        "生成に時間がかかっています。時間をおいてもう一度お試しください。",
+      );
+    } finally {
+      vi.useRealTimers();
+      if (descriptor) Object.defineProperty(AbortSignal, "timeout", descriptor);
+    }
+  });
+
+  it("scrolls to the result pane once when a second submit replaces a pending scroll", async () => {
+    vi.useFakeTimers();
+    try {
+      const scrollIntoView = vi.fn();
+      const pane = document.createElement("div");
+      pane.id = "result-pane";
+      pane.scrollIntoView = scrollIntoView;
+      document.body.appendChild(pane);
+
+      mockFetchResponse({
+        ok: true,
+        status: 200,
+        body: { imageBase64: "QUJD", mimeType: "image/png" },
+      });
+      const { result } = setup();
+
+      await act(async () => {
+        await result.current.submit();
+      });
+      await act(async () => {
+        await result.current.submit();
+      });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+
+      expect(scrollIntoView).toHaveBeenCalledTimes(1);
+      pane.remove();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("clears result and error state on reset", async () => {

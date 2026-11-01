@@ -8,8 +8,7 @@ vi.mock("@/utils/server/withApiAuth", () => ({
 }));
 
 vi.mock("@/utils/server/imageProcessing", () => ({
-  filesToParts: vi.fn().mockImplementation(async (files: File[]) => {
-    console.log("filesToParts called with:", files);
+  filesToParts: vi.fn().mockImplementation(async () => {
     return { parts: [{ text: "processed image" }] };
   }),
 }));
@@ -19,37 +18,8 @@ vi.mock("@/utils/server/imageGeneration", () => ({
   IMAGE_GENERATION_TIMEOUT_MS: 90_000,
 }));
 
-vi.mock("@/utils/server/cache", () => ({
-  fileFingerprint: vi.fn().mockResolvedValue("fingerprint123"),
-  generateCacheKey: vi.fn().mockReturnValue("cache-key"),
-  imageGenerationCache: {
-    get: vi.fn().mockReturnValue(null),
-    set: vi.fn(),
-  },
-}));
-
 vi.mock("@/utils/server/urlMetadata", () => ({
   fetchUrlMetadata: vi.fn().mockResolvedValue(null),
-}));
-
-vi.mock("@/utils/server/api-helpers", () => ({
-  validateFormData: vi.fn((schema, data) => {
-    const result = schema.safeParse(data);
-    if (result.success) {
-      return { success: true, data: result.data };
-    }
-    return {
-      success: false,
-      error: result.error.issues.map((i: any) => i.message).join(", "),
-    };
-  }),
-  handleApiError: vi.fn(
-    (e) =>
-      new Response(JSON.stringify({ error: e instanceof Error ? e.message : String(e) }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }),
-  ),
 }));
 
 import { POST } from "./route";
@@ -59,6 +29,12 @@ function createRequest(prompt: string, images: File[] = []): Request {
   fd.set("prompt", prompt);
   for (const img of images) fd.append("images", img);
   return { formData: () => Promise.resolve(fd) } as unknown as Request;
+}
+
+function createMalformedRequest(): Request {
+  return {
+    formData: () => Promise.reject(new TypeError("Could not parse content as FormData")),
+  } as unknown as Request;
 }
 
 describe("POST /api/freestyle-edit", () => {
@@ -98,5 +74,38 @@ describe("POST /api/freestyle-edit", () => {
     const res = await POST(req);
 
     expect(res.status).toBe(502);
+  });
+
+  it("returns 400 when the request body is not a valid form", async () => {
+    const res = await POST(createMalformedRequest());
+
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toContain("形式");
+  });
+
+  it("returns 400 when the real schema rejects an empty prompt", async () => {
+    const mockFile = new File(["test"], "test.png", { type: "image/png" });
+
+    const res = await POST(createRequest("", [mockFile]));
+
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toContain("編集内容を入力してください");
+    expect(mockGenerateImage).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 when the real schema rejects too many images", async () => {
+    const images = Array.from(
+      { length: 6 },
+      (_, index) => new File(["test"], `test-${index}.png`, { type: "image/png" }),
+    );
+
+    const res = await POST(createRequest("prompt", images));
+
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toContain("最大5枚");
+    expect(mockGenerateImage).not.toHaveBeenCalled();
   });
 });

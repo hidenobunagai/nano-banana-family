@@ -76,6 +76,23 @@ describe("fetchUrlMetadata", () => {
     });
   });
 
+  it("sends the product user agent", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(htmlTemplate(), {
+        status: 200,
+        headers: { "content-type": "text/html" },
+      }),
+    );
+
+    await fetchUrlMetadata("https://example.com");
+
+    const init = fetchSpy.mock.calls[0][1] as RequestInit | undefined;
+    const headers = init?.headers as Record<string, string> | undefined;
+    expect(headers?.["User-Agent"]).toBe(
+      "Mozilla/5.0 (compatible; NanoBananaFamily/1.0; +https://nb-studio.misato-labs.com)",
+    );
+  });
+
   it("decodes HTML entities in extracted text", async () => {
     mockFetch({
       body: htmlTemplate({

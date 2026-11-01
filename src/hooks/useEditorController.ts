@@ -6,6 +6,7 @@ import { useEditorSubmit } from "@/hooks/useEditorSubmit";
 import { useProgressSimulation } from "@/hooks/useProgressSimulation";
 import { useRecentPrompts } from "@/hooks/useRecentPrompts";
 import { useResultHistory } from "@/hooks/useResultHistory";
+import { scrollMainContentToTop } from "@/hooks/scrollToMainContent";
 import { useTextUndoRedo } from "@/hooks/useTextUndoRedo";
 import { useUndoRedoShortcuts } from "@/hooks/useUndoRedoShortcuts";
 import { type UploadSlot, useUploadSlots } from "@/hooks/useUploadSlots";
@@ -214,6 +215,9 @@ export function useEditorController(
   useEffect(() => {
     if (!pasteToUpload) return;
     const handleWindowPaste = (e: ClipboardEvent) => {
+      // A component already handled this paste (the upload slot calls
+      // preventDefault), so the image must not be added a second time.
+      if (e.defaultPrevented) return;
       const target = e.target as HTMLElement;
       if (
         (target.tagName === "INPUT" || target.tagName === "TEXTAREA") &&
@@ -272,7 +276,7 @@ export function useEditorController(
     resetSubmit();
     resetFields?.();
     if (scrollToTopOnReset && typeof window !== "undefined") {
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      scrollMainContentToTop();
     }
   }, [
     resetUploads,

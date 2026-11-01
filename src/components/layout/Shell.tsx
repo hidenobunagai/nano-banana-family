@@ -38,6 +38,7 @@ export function Shell({ children, onSignOut, navMode, onNavModeChange }: ShellPr
                 <button
                   key={item.id}
                   onClick={() => onNavModeChange(item.id)}
+                  aria-current={active ? "page" : undefined}
                   className={cn(
                     "relative flex items-center gap-2 px-4 py-2 rounded-[var(--radius-md)] text-oln-16 font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]",
                     active
@@ -109,7 +110,7 @@ export function Shell({ children, onSignOut, navMode, onNavModeChange }: ShellPr
         <div
           id="main-content"
           tabIndex={-1}
-          className="flex-1 overflow-y-auto overflow-x-hidden px-4 sm:px-6 lg:px-12 py-6 lg:py-8 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-8 scroll-smooth relative"
+          className="flex-1 overflow-y-auto overflow-x-hidden px-4 sm:px-6 lg:px-12 py-6 lg:py-8 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-8 scroll-smooth motion-reduce:scroll-auto relative"
         >
           <div className="max-w-[1400px] mx-auto w-full">{children}</div>
         </div>

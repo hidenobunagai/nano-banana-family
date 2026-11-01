@@ -36,6 +36,8 @@ interface ResultPaneProps {
   onForward: () => void;
   downloadFilename: string | null;
   downloadLabel: string;
+  /** Set while another result is displayed for comparison: the filename belongs to the newest result. */
+  downloadDisabled?: boolean;
   onRetry: () => void;
   retryLabel: string;
   canRetry: boolean;
@@ -60,6 +62,7 @@ export function ResultPane({
   onForward,
   downloadFilename,
   downloadLabel,
+  downloadDisabled = false,
   onRetry,
   retryLabel,
   canRetry,
@@ -232,12 +235,25 @@ export function ResultPane({
           </div>
 
           <div className="grid gap-2.5 sm:grid-cols-2">
-            <Button asChild className="w-full h-12" size="default">
-              <a href={resultImage} download={downloadFilename ?? undefined}>
+            {downloadDisabled ? (
+              <Button
+                type="button"
+                className="w-full h-12"
+                size="default"
+                disabled
+                title="比較中はダウンロードできません"
+              >
                 <Download className="w-4 h-4 mr-2" />
                 {downloadLabel}
-              </a>
-            </Button>
+              </Button>
+            ) : (
+              <Button asChild className="w-full h-12" size="default">
+                <a href={resultImage} download={downloadFilename ?? undefined}>
+                  <Download className="w-4 h-4 mr-2" />
+                  {downloadLabel}
+                </a>
+              </Button>
+            )}
             <Button
               type="button"
               variant="secondary"
@@ -267,6 +283,7 @@ export function ResultPane({
                 size="default"
                 className="w-full h-11"
                 onClick={handleShare}
+                disabled={downloadDisabled}
               >
                 <Share2 className="w-4 h-4 mr-2" />
                 共有する
@@ -331,16 +348,28 @@ export function ResultPane({
                   className="max-h-[75vh] max-w-full rounded-[var(--radius-lg)] object-contain shadow-[var(--shadow-overlay)] border border-white/10"
                 />
                 <div className="mt-4 flex items-center gap-3">
-                  <Button
-                    asChild
-                    size="sm"
-                    className="bg-white text-[var(--color-neutral-900)] hover:bg-neutral-100 border-0"
-                  >
-                    <a href={resultImage} download={downloadFilename ?? undefined}>
+                  {downloadDisabled ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="bg-white text-[var(--color-neutral-900)] hover:bg-neutral-100 border-0"
+                      disabled
+                    >
                       <Download className="w-4 h-4 mr-1.5" />
                       {downloadLabel}
-                    </a>
-                  </Button>
+                    </Button>
+                  ) : (
+                    <Button
+                      asChild
+                      size="sm"
+                      className="bg-white text-[var(--color-neutral-900)] hover:bg-neutral-100 border-0"
+                    >
+                      <a href={resultImage} download={downloadFilename ?? undefined}>
+                        <Download className="w-4 h-4 mr-1.5" />
+                        {downloadLabel}
+                      </a>
+                    </Button>
+                  )}
                   <Button
                     size="sm"
                     variant="secondary"

@@ -1,13 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Noto_Sans_JP, Noto_Sans_Mono } from "next/font/google";
-import Script from "next/script";
 import "./globals.css";
 import { AuthProvider } from "./providers";
 
 import { SerwistProvider } from "@serwist/turbopack/react";
 import { Analytics } from "@vercel/analytics/next";
-
-const GTM_ID = "GTM-NP6VPKT6";
 
 const notoSansJP = Noto_Sans_JP({
   subsets: ["latin"],
@@ -54,19 +51,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja" className={`${notoSansJP.className} ${notoSansMono.className}`}>
-      <head>
-        <Script
-          id="gtm"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','${GTM_ID}');`,
-          }}
-        />
-      </head>
       <body className="font-sans antialiased selection:bg-[var(--color-primary-600)]/20 selection:text-[var(--color-neutral-900)]">
         <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
           <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[var(--color-primary-200)]/30 rounded-[9999px] blur-[120px]" />

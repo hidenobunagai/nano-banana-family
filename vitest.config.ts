@@ -14,16 +14,30 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "json", "html"],
       thresholds: {
-        // Measured under vitest 4.1.11 (v8 + AST-aware remapping, on by default
-        // since v4): 85.49 stmts / 75.48 branch / 79.84 funcs / 87.40 lines.
-        // The old 90/80/65/90 assumed v3's less precise mapping of the same tests.
-        lines: 87,
-        functions: 79,
-        branches: 75,
-        statements: 85,
+        // Measured under vitest 4.1.11 with the image API route handlers
+        // included: 87.44 stmts / 77.58 branch / 83.77 funcs / 89.03 lines.
+        // Each threshold sits 1-2 points below the measurement so unrelated
+        // changes do not trip CI, while a real drop still does.
+        lines: 88,
+        functions: 82,
+        branches: 76,
+        statements: 86,
       },
       include: ["src/**/*.{ts,tsx}"],
-      exclude: ["src/**/*.d.ts", "src/app/**", "src/**/*.test.{ts,tsx}", "node_modules/**"],
+      exclude: [
+        "src/**/*.d.ts",
+        // src/app is page, layout and platform glue that is measured through
+        // its components. The image API route handlers carry the request
+        // handling logic, so they stay measured. A negated pattern such as
+        // "!src/app/api/**/route.ts" empties the whole report in vitest 4, so
+        // the non-API parts are listed explicitly instead.
+        "src/app/**/*.tsx",
+        "src/app/*.ts",
+        "src/app/{about,privacy,terms,serwist}/**",
+        "src/app/api/auth/**",
+        "src/**/*.test.{ts,tsx}",
+        "node_modules/**",
+      ],
     },
   },
   resolve: {
