@@ -37,6 +37,71 @@ const TIMEOUT_ERROR = "生成に時間がかかっています。時間をおい
 const REQUEST_TIMEOUT_MS = 120_000;
 
 /**
+ * True for the error a fetch rejects with when its signal is aborted.
+ * AbortSignal.timeout() rejects with a DOMException named "TimeoutError"
+ * instead, which is why the deadline is detected through the signal itself.
+ */
+function isAbortError(error: unknown): boolean {
+  return error instanceof Error && error.name === "AbortError";
+}
+
+interface RequestAbortPlan {
+  /** Signal handed to fetch. */
+  signal: AbortSignal;
+  /** True when the deadline (not the user) ended the request. */
+  timedOut: () => boolean;
+  /** Releases the fallback timer and listeners. */
+  dispose: () => void;
+}
+
+/**
+ * Build the signal used for one request.
+ *
+ * AbortSignal.timeout() and AbortSignal.any() are missing on older browsers and
+ * in some embedded webviews, and touching them there throws before the request
+ * even starts. The fallback keeps the deadline with a plain AbortController
+ * plus a timer, and keeps a timeout distinguishable from a user abort.
+ */
+function createAbortPlan(userSignal: AbortSignal, timeoutMs: number): RequestAbortPlan {
+  const hasTimeout =
+    typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function";
+  const hasAny = typeof AbortSignal !== "undefined" && typeof AbortSignal.any === "function";
+
+  if (hasTimeout && hasAny) {
+    const timeoutSignal = AbortSignal.timeout(timeoutMs);
+    return {
+      signal: AbortSignal.any([userSignal, timeoutSignal]),
+      timedOut: () => timeoutSignal.aborted,
+      dispose: () => {},
+    };
+  }
+
+  const controller = new AbortController();
+  let timedOut = false;
+  const timer = setTimeout(() => {
+    if (controller.signal.aborted) return;
+    timedOut = true;
+    controller.abort(new DOMException("The request timed out.", "TimeoutError"));
+  }, timeoutMs);
+
+  const forwardUserAbort = () => controller.abort(userSignal.reason);
+  if (userSignal.aborted) {
+    controller.abort(userSignal.reason);
+  } else {
+    userSignal.addEventListener("abort", forwardUserAbort, { once: true });
+  }
+
+  return {
+    signal: controller.signal,
+    timedOut: () => timedOut,
+    dispose: () => {
+      clearTimeout(timer);
+      userSignal.removeEventListener("abort", forwardUserAbort);
+    },
+  };
+}
+
+/**
  * Shared submit flow for the editors: validation, AbortController, fetch,
  * response shape checking, result/error state, and progress reporting.
  */
@@ -79,7 +144,14 @@ export function useEditorSubmit({
 
     if (typeof window !== "undefined" && window.innerWidth < 1280) {
       const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      // Drop a pending scroll from an earlier submit: it would fire later and
+      // scroll away from whatever the user is looking at by then.
+      if (scrollTimeoutRef.current !== null) {
+        clearTimeout(scrollTimeoutRef.current);
+        scrollTimeoutRef.current = null;
+      }
       scrollTimeoutRef.current = setTimeout(() => {
+        scrollTimeoutRef.current = null;
         if (typeof document !== "undefined") {
           document.getElementById("result-pane")?.scrollIntoView({
             behavior: prefersReducedMotion ? "auto" : "smooth",
@@ -92,15 +164,19 @@ export function useEditorSubmit({
     abortControllerRef.current?.abort();
     const controller = new AbortController();
     abortControllerRef.current = controller;
-    const timeoutSignal = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
 
     const startTime = Date.now();
     let aborted = false;
+    let abortPlan: RequestAbortPlan | null = null;
     try {
+      // The signal is built inside the try: a browser without the AbortSignal
+      // statics would otherwise throw before the request starts and leave the
+      // editor stuck in the submitting state.
+      abortPlan = createAbortPlan(controller.signal, REQUEST_TIMEOUT_MS);
       const res = await fetch(endpoint, {
         method: "POST",
         body: buildFormData(),
-        signal: AbortSignal.any([controller.signal, timeoutSignal]),
+        signal: abortPlan.signal,
       });
       // Non-JSON bodies (platform error pages, empty 500s) used to throw a raw
       // SyntaxError and make the status-specific messages unreachable.
@@ -136,19 +212,21 @@ export function useEditorSubmit({
       onSuccess(image);
       setResultImage(image);
     } catch (error) {
-      if (error instanceof Error && error.name === "AbortError") {
-        if (timeoutSignal.aborted) {
-          // Deadline hit, not a user abort: surface it and let progress finish.
-          setErrorMessage(TIMEOUT_ERROR);
-        } else {
-          aborted = true;
-        }
+      if (abortPlan?.timedOut()) {
+        // Deadline hit, not a user abort: surface it and let progress finish.
+        // Checked first because the timeout rejects with a DOMException named
+        // "TimeoutError", so the error name alone cannot tell the two apart.
+        setErrorMessage(TIMEOUT_ERROR);
+      } else if (controller.signal.aborted || isAbortError(error)) {
+        // The user aborted the request: stay silent and skip the completion.
+        aborted = true;
       } else if (error instanceof TypeError) {
         setErrorMessage(NETWORK_ERROR);
       } else {
         setErrorMessage(error instanceof Error ? error.message : GENERIC_ERROR);
       }
     } finally {
+      abortPlan?.dispose();
       if (!aborted) onFinished?.(Date.now() - startTime);
     }
   }, [

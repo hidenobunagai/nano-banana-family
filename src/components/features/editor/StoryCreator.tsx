@@ -26,7 +26,7 @@ import {
   Wand2,
 } from "lucide-react";
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import type { ProgressStep } from "@/components/ProgressDisplay";
 
 const STORY_TYPES = [
@@ -107,6 +107,7 @@ export function StoryCreator() {
     errorMessage,
     resultImage,
     resultFilename,
+    resetSubmit,
     uploads,
     isOptimizingAny,
     optimizingIds,
@@ -158,6 +159,17 @@ export function StoryCreator() {
 
   const canSubmit = hasActiveFiles && !isSubmitting && !isOptimizingAny;
 
+  const handleRemoveUploadSlot = useCallback(
+    (id: string) => {
+      removeUploadSlot(id);
+      // The generated image belongs to the photos that were used for it, and
+      // the comparison view would otherwise keep showing the previous story.
+      resetSubmit();
+      setIsComparing(false);
+    },
+    [removeUploadSlot, resetSubmit],
+  );
+
   const handleRecentSelect = (selectedPrompt: string) => {
     handlePromptChange(selectedPrompt);
     toast.info("履歴からプロンプトを適用しました");
@@ -199,6 +211,7 @@ export function StoryCreator() {
           onForward={goForward}
           downloadFilename={resultFilename}
           downloadLabel="ストーリー画像をダウンロード"
+          downloadDisabled={isComparing}
           onRetry={handleRetry}
           retryLabel="同じ写真でもう一度生成"
           canRetry={canSubmit}
@@ -243,7 +256,8 @@ export function StoryCreator() {
             maxUploads={MAX_STORY_UPLOADS}
             optimizingIds={optimizingIds}
             onFileChange={handleFileChange}
-            onRemoveSlot={removeUploadSlot}
+            onRemoveSlot={handleRemoveUploadSlot}
+            removeDisabled={isSubmitting}
             onAddSlot={addUploadSlot}
             labelPrefix="写真"
           />

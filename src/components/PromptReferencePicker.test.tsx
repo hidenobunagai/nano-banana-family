@@ -1,8 +1,11 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { PromptReferencePicker } from "./PromptReferencePicker";
 
 describe("PromptReferencePicker", () => {
+  afterEach(() => {
+    document.body.style.overflow = "";
+  });
   it("selects a prompt and closes on click", () => {
     const onSelect = vi.fn();
     const onClose = vi.fn();
@@ -51,5 +54,33 @@ describe("PromptReferencePicker", () => {
     fireEvent.click(screen.getAllByRole("button", { name: "お気に入りに追加" })[0]);
 
     expect(screen.getByRole("button", { name: /お気に入り\(1\)/ })).toBeInTheDocument();
+  });
+
+  it("restores the previous body overflow when it closes", () => {
+    document.body.style.overflow = "auto";
+
+    const { rerender, unmount } = render(
+      <PromptReferencePicker onSelect={vi.fn()} onClose={vi.fn()} />,
+    );
+    expect(document.body.style.overflow).toBe("hidden");
+
+    // A parent re-render with a new inline handler must not re-run the effect:
+    // it would capture the already hidden overflow as the value to restore.
+    rerender(<PromptReferencePicker onSelect={vi.fn()} onClose={vi.fn()} />);
+    expect(document.body.style.overflow).toBe("hidden");
+
+    unmount();
+    expect(document.body.style.overflow).toBe("auto");
+  });
+
+  it("uses the inverse text color for the active category count", () => {
+    render(<PromptReferencePicker onSelect={vi.fn()} onClose={vi.fn()} />);
+
+    const activeTab = screen
+      .getAllByRole("tab")
+      .find((tab) => tab.getAttribute("aria-selected") === "true");
+    const count = activeTab?.querySelector("span");
+
+    expect(count?.className).toContain("text-[var(--color-text-inverse)]");
   });
 });

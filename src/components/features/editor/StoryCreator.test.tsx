@@ -180,6 +180,85 @@ describe("StoryCreator", () => {
     ).toBeInTheDocument();
   });
 
+  it("clears the generated result when a photo slot is removed", async () => {
+    mockFetchSuccess();
+    const { container } = render(<StoryCreator />);
+
+    await uploadFirstFile(container);
+    fireEvent.click(screen.getByRole("button", { name: /画像を追加/ }));
+
+    const placeholderInputs = Array.from(container.querySelectorAll('input[type="file"]')).filter(
+      (input) => !input.getAttribute("aria-label"),
+    );
+    fireEvent.change(placeholderInputs[placeholderInputs.length - 1] as HTMLInputElement, {
+      target: { files: [makeFile("photo2.png")] },
+    });
+    await waitFor(() => expect(screen.getAllByAltText("選択した写真のプレビュー")).toHaveLength(2));
+
+    fireEvent.click(screen.getByRole("button", { name: "ストーリーを生成する" }));
+    expect(await screen.findByAltText("ストーリー生成の結果画像")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "写真 1 を削除" }));
+
+    await waitFor(() =>
+      expect(screen.queryByAltText("ストーリー生成の結果画像")).not.toBeInTheDocument(),
+    );
+  });
+
+  it("leaves the comparison view when a photo slot is removed", async () => {
+    mockFetchDistinct();
+    const { container } = render(<StoryCreator />);
+
+    await uploadFirstFile(container);
+    fireEvent.click(screen.getByRole("button", { name: /画像を追加/ }));
+    const placeholderInputs = Array.from(container.querySelectorAll('input[type="file"]')).filter(
+      (input) => !input.getAttribute("aria-label"),
+    );
+    fireEvent.change(placeholderInputs[placeholderInputs.length - 1] as HTMLInputElement, {
+      target: { files: [makeFile("photo2.png")] },
+    });
+    await waitFor(() => expect(screen.getAllByAltText("選択した写真のプレビュー")).toHaveLength(2));
+
+    fireEvent.click(screen.getByRole("button", { name: "ストーリーを生成する" }));
+    await screen.findByAltText("ストーリー生成の結果画像");
+    const first = imageSrc("ストーリー生成の結果画像");
+    fireEvent.click(screen.getByRole("button", { name: "同じ写真でもう一度生成" }));
+    await waitFor(() => expect(imageSrc("ストーリー生成の結果画像")).not.toBe(first));
+
+    fireEvent.click(screen.getByRole("button", { name: "前の結果と比較" }));
+    expect(imageSrc("ストーリー生成の結果画像")).toBe(first);
+
+    fireEvent.click(screen.getByRole("button", { name: "写真 1 を削除" }));
+
+    // Without leaving the comparison view the previous story would stay on
+    // screen with no control left to exit it.
+    await waitFor(() =>
+      expect(screen.queryByAltText("ストーリー生成の結果画像")).not.toBeInTheDocument(),
+    );
+  });
+
+  it("disables the download while comparing with the previous result", async () => {
+    mockFetchDistinct();
+    const { container } = render(<StoryCreator />);
+
+    await uploadFirstFile(container);
+    fireEvent.click(screen.getByRole("button", { name: "ストーリーを生成する" }));
+    await screen.findByAltText("ストーリー生成の結果画像");
+    const first = imageSrc("ストーリー生成の結果画像");
+
+    fireEvent.click(screen.getByRole("button", { name: "同じ写真でもう一度生成" }));
+    await waitFor(() => expect(imageSrc("ストーリー生成の結果画像")).not.toBe(first));
+
+    // The download filename belongs to the newest result, so it must not be
+    // offered while an older result is on screen.
+    expect(screen.getByRole("link", { name: /ストーリー画像をダウンロード/ })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "前の結果と比較" }));
+    expect(screen.getByRole("button", { name: /ストーリー画像をダウンロード/ })).toBeDisabled();
+
+    fireEvent.click(screen.getByRole("button", { name: "最新の結果に戻る" }));
+    expect(screen.getByRole("link", { name: /ストーリー画像をダウンロード/ })).toBeInTheDocument();
+  });
+
   it("steps the result history back and forward with the pane buttons", async () => {
     mockFetchDistinct();
     const { container } = render(<StoryCreator />);

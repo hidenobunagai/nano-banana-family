@@ -1,14 +1,7 @@
 /// <reference lib="esnext" />
 /// <reference lib="webworker" />
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
-import {
-  CacheFirst,
-  ExpirationPlugin,
-  NetworkFirst,
-  NetworkOnly,
-  Serwist,
-  StaleWhileRevalidate,
-} from "serwist";
+import { CacheFirst, ExpirationPlugin, NetworkFirst, Serwist, StaleWhileRevalidate } from "serwist";
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -64,8 +57,13 @@ const serwist = new Serwist({
       }),
     },
     {
-      matcher: ({ url }) =>
-        url.origin === self.location.origin && !url.pathname.startsWith("/api/"),
+      // Navigation requests only. Caching every same-origin GET (including
+      // RSC payloads) would let the app serve stale data for 24 hours after a
+      // deploy.
+      matcher: ({ url, request }) =>
+        request.mode === "navigate" &&
+        url.origin === self.location.origin &&
+        !url.pathname.startsWith("/api/"),
       method: "GET",
       handler: new NetworkFirst({
         cacheName: "pages",

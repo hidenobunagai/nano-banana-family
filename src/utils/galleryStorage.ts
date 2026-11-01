@@ -15,6 +15,8 @@ export interface GalleryItem {
   mimeType: string;
 }
 
+// The old name is kept on purpose: renaming the database would orphan every
+// gallery the family has already saved in this browser.
 const DB_NAME = "hide-nb-studio-gallery";
 const STORE_NAME = "artworks";
 const DB_VERSION = 1;
@@ -25,6 +27,26 @@ const memoryStore = new Map<string, GalleryItem>();
 
 function isIndexedDBAvailable(): boolean {
   return typeof window !== "undefined" && Boolean(window.indexedDB);
+}
+
+/**
+ * Close a connection once the operation that used it is done.
+ *
+ * IndexedDB keeps a connection open until it is closed, so leaving it open
+ * leaks the connection (and its transactions) on every call.
+ */
+function closeDB(db: IDBDatabase | null): void {
+  if (!db) return;
+  try {
+    db.close();
+  } catch {
+    // Closing is best effort: a failed close must not fail the operation.
+  }
+}
+
+/** The in-memory fallback store, newest first. */
+function memoryItems(): GalleryItem[] {
+  return Array.from(memoryStore.values()).sort((a, b) => b.createdAt - a.createdAt);
 }
 
 function openDB(): Promise<IDBDatabase> {
@@ -137,7 +159,7 @@ export async function saveToGallery(
     return newItem;
   }
 
-  let db: IDBDatabase;
+  let db: IDBDatabase | null = null;
   try {
     db = await openDB();
   } catch {
@@ -147,19 +169,23 @@ export async function saveToGallery(
   }
 
   try {
-    await writeItem(db, newItem);
-  } catch {
-    // QuotaExceededError and friends: the artwork is not in the database.
-    return null;
-  }
+    try {
+      await writeItem(db, newItem);
+    } catch {
+      // QuotaExceededError and friends: the artwork is not in the database.
+      return null;
+    }
 
-  try {
-    await pruneGallery(db);
-  } catch {
-    // Pruning is best-effort; the artwork itself was saved.
-  }
+    try {
+      await pruneGallery(db);
+    } catch {
+      // Pruning is best-effort; the artwork itself was saved.
+    }
 
-  return newItem;
+    return newItem;
+  } finally {
+    closeDB(db);
+  }
 }
 
 /**
@@ -167,15 +193,22 @@ export async function saveToGallery(
  */
 export async function loadFromGallery(): Promise<GalleryItem[]> {
   if (!isIndexedDBAvailable()) {
-    return Array.from(memoryStore.values()).sort((a, b) => b.createdAt - a.createdAt);
+    return memoryItems();
   }
 
+  let db: IDBDatabase | null = null;
   try {
-    const db = await openDB();
+    db = await openDB();
+  } catch {
+    return memoryItems();
+  }
+
+  let read: Promise<GalleryItem[]>;
+  try {
     const tx = db.transaction(STORE_NAME, "readonly");
     const store = tx.objectStore(STORE_NAME);
 
-    return new Promise((resolve, reject) => {
+    read = new Promise<GalleryItem[]>((resolve, reject) => {
       const req = store.getAll();
       req.onsuccess = () => {
         const results = (req.result as GalleryItem[]) || [];
@@ -185,7 +218,15 @@ export async function loadFromGallery(): Promise<GalleryItem[]> {
       req.onerror = () => reject(req.error);
     });
   } catch {
-    return Array.from(memoryStore.values()).sort((a, b) => b.createdAt - a.createdAt);
+    // The store could not be read: fall back to the in-memory store.
+    closeDB(db);
+    return memoryItems();
+  }
+
+  try {
+    return await read;
+  } finally {
+    closeDB(db);
   }
 }
 
@@ -197,17 +238,31 @@ export async function deleteFromGallery(id: string): Promise<boolean> {
     return memoryStore.delete(id);
   }
 
+  let db: IDBDatabase | null = null;
   try {
-    const db = await openDB();
+    db = await openDB();
+  } catch {
+    return memoryStore.delete(id);
+  }
+
+  let deletion: Promise<boolean>;
+  try {
     const tx = db.transaction(STORE_NAME, "readwrite");
     const store = tx.objectStore(STORE_NAME);
 
-    return new Promise((resolve, reject) => {
+    deletion = new Promise<boolean>((resolve, reject) => {
       const req = store.delete(id);
       req.onsuccess = () => resolve(true);
       req.onerror = () => reject(req.error);
     });
   } catch {
+    closeDB(db);
     return memoryStore.delete(id);
+  }
+
+  try {
+    return await deletion;
+  } finally {
+    closeDB(db);
   }
 }

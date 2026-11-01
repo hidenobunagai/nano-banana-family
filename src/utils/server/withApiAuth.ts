@@ -1,8 +1,11 @@
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
-import { authOptions } from "@/auth";
+import { authOptions, isEmailAllowed } from "@/auth";
 import { logger } from "@/utils/server/logger";
+
+const EMAIL_NOT_ALLOWED_MESSAGE =
+  "このアカウントは利用が許可されていません。アクセス権をご確認ください。";
 
 /**
  * Shared auth guard for image-generation API routes.
@@ -23,7 +26,21 @@ export async function withApiAuth(
     };
   }
 
-  // 2. API key
+  // 2. Allow list check: a valid session is not enough, the email must still
+  // be allowed, so removing an address revokes access right away.
+  const email = session.user?.email ?? null;
+  if (!isEmailAllowed(email)) {
+    logger.error(`${routeName}: email is not on the allow list`, undefined, {
+      route: routeName,
+      email: email ?? "unknown",
+    });
+    return {
+      ok: false,
+      response: NextResponse.json({ error: EMAIL_NOT_ALLOWED_MESSAGE }, { status: 403 }),
+    };
+  }
+
+  // 3. API key
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     logger.error(`${routeName}: missing GEMINI_API_KEY`);

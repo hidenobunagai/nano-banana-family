@@ -3,7 +3,7 @@ import nextConfig from "eslint-config-next";
 const config = [
   ...nextConfig,
   {
-    ignores: ["public/sw.js", "public/workbox-*.js", "public/fallback-*.js", "coverage/**"],
+    ignores: ["coverage/**"],
   },
   {
     files: ["eslint.config.mjs"],

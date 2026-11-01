@@ -7,6 +7,7 @@ type SignInParams = Parameters<SignIn>[0];
 type AuthModule = {
   authOptions: NextAuthOptions;
   hasGoogleAuthConfig: boolean;
+  isEmailAllowed: (email: string | null | undefined) => boolean;
 };
 
 // auth.ts reads the environment (and throws) at module scope, so every case
@@ -83,14 +84,54 @@ describe("auth", () => {
       ).resolves.toBe(false);
     });
 
-    it("allows every Google account and warns when ALLOWED_EMAILS is empty", async () => {
-      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    it("denies every Google account and logs an error when ALLOWED_EMAILS is empty", async () => {
+      const error = vi.spyOn(console, "error").mockImplementation(() => {});
       const auth = await importAuth({ allowedEmails: "" });
 
       await expect(
         getSignIn(auth)(signInParams({ email: "anyone@example.com", email_verified: true })),
-      ).resolves.toBe(true);
-      expect(warn).toHaveBeenCalledWith(expect.stringContaining("ALLOWED_EMAILS"));
+      ).resolves.toBe(false);
+      expect(error).toHaveBeenCalledWith(expect.stringContaining("ALLOWED_EMAILS"));
+    });
+  });
+
+  describe("isEmailAllowed", () => {
+    it("allows an email on the list regardless of casing", async () => {
+      const auth = await importAuth({ allowedEmails: "Mom@Example.com" });
+
+      expect(auth.isEmailAllowed("mom@example.com")).toBe(true);
+      expect(auth.isEmailAllowed("MOM@EXAMPLE.COM")).toBe(true);
+    });
+
+    it("denies an email that is not on the list", async () => {
+      const auth = await importAuth({ allowedEmails: "mom@example.com" });
+
+      expect(auth.isEmailAllowed("stranger@example.com")).toBe(false);
+    });
+
+    it("denies every email when the list is empty", async () => {
+      vi.spyOn(console, "error").mockImplementation(() => {});
+      const auth = await importAuth({ allowedEmails: "" });
+
+      expect(auth.isEmailAllowed("mom@example.com")).toBe(false);
+    });
+
+    it("denies a missing email", async () => {
+      const auth = await importAuth({ allowedEmails: "mom@example.com" });
+
+      expect(auth.isEmailAllowed(null)).toBe(false);
+      expect(auth.isEmailAllowed(undefined)).toBe(false);
+      expect(auth.isEmailAllowed("")).toBe(false);
+    });
+
+    it("revokes access as soon as the email leaves the list", async () => {
+      const auth = await importAuth({ allowedEmails: "mom@example.com" });
+      expect(auth.isEmailAllowed("mom@example.com")).toBe(true);
+
+      vi.stubEnv("ALLOWED_EMAILS", "dad@example.com");
+
+      expect(auth.isEmailAllowed("mom@example.com")).toBe(false);
+      expect(auth.isEmailAllowed("dad@example.com")).toBe(true);
     });
   });
 

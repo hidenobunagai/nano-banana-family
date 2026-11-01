@@ -2,10 +2,20 @@
  * Shared Gemini image generation for API routes.
  * Encapsulates the client setup, content generation call, and
  * image-part extraction so route handlers stay focused on
- * validation, caching, and prompt construction.
+ * validation and prompt construction.
  */
 
-import { GoogleGenAI, type Part } from "@google/genai";
+import {
+  ApiError,
+  BlockedReason,
+  FinishReason,
+  GoogleGenAI,
+  type GenerateContentResponse,
+  type Part,
+} from "@google/genai";
+
+import { GENERATION_ERROR_MESSAGES } from "@/utils/generationErrorMessages";
+import { logger } from "@/utils/server/logger";
 import { ImageGenerationResponseSchema } from "@/utils/server/validation";
 
 const FALLBACK_MODEL = "gemini-3.1-flash-lite-image";
@@ -20,9 +30,92 @@ function getDefaultModel(): string {
  */
 export const IMAGE_GENERATION_TIMEOUT_MS = 90_000;
 
+const TIMEOUT_MESSAGE = "生成がタイムアウトしました。時間をおいて再度お試しください。";
+
 export interface GeneratedImage {
   imageBase64: string;
   mimeType: string;
+}
+
+/** A failure the route can return to the client as-is. */
+export interface GenerationFailure {
+  error: string;
+  status: number;
+}
+
+/**
+ * Finish reasons that mean the model stopped for safety or policy reasons.
+ * The values come from the SDK enum, so they cannot drift from it.
+ */
+const SAFETY_FINISH_REASONS = new Set<string>([
+  FinishReason.SAFETY,
+  FinishReason.RECITATION,
+  FinishReason.BLOCKLIST,
+  FinishReason.PROHIBITED_CONTENT,
+  FinishReason.SPII,
+  FinishReason.IMAGE_SAFETY,
+  FinishReason.IMAGE_PROHIBITED_CONTENT,
+]);
+
+/** Prompt block reasons that mean the request was refused by the filters. */
+const SAFETY_BLOCK_REASONS = new Set<string>([
+  BlockedReason.SAFETY,
+  BlockedReason.BLOCKLIST,
+  BlockedReason.PROHIBITED_CONTENT,
+  BlockedReason.IMAGE_SAFETY,
+]);
+
+/**
+ * Markers of a 400 that is caused by the server's own setup (an invalid or
+ * revoked API key, billing or region preconditions) rather than by the
+ * user's input. These must not tell the family to change their photos.
+ */
+const CONFIGURATION_ERROR_MARKERS = ["API_KEY_INVALID", "API key", "FAILED_PRECONDITION"];
+
+function isConfigurationError(error: ApiError): boolean {
+  return CONFIGURATION_ERROR_MARKERS.some((marker) => error.message.includes(marker));
+}
+
+/**
+ * Translate an SDK failure into a user-facing failure.
+ *
+ * The mapping is chosen by the numeric status. The SDK message may name
+ * models, quotas or internal URLs, so it is only inspected to recognize
+ * configuration errors and never reaches the client. Unmapped statuses and
+ * configuration errors keep the generic error path.
+ */
+function mapGeminiError(error: ApiError): GenerationFailure | null {
+  switch (error.status) {
+    case 400:
+      // The message is only inspected, never returned to the client.
+      if (isConfigurationError(error)) {
+        return null;
+      }
+      return { error: GENERATION_ERROR_MESSAGES.invalidRequest, status: 400 };
+    case 429:
+      return { error: GENERATION_ERROR_MESSAGES.rateLimited, status: 429 };
+    case 500:
+    case 503:
+    case 504:
+      return { error: GENERATION_ERROR_MESSAGES.serviceUnavailable, status: 503 };
+    default:
+      return null;
+  }
+}
+
+/**
+ * Whether the response was stopped by a safety or policy filter.
+ * Blocked prompts carry no candidate at all, so the prompt feedback is the
+ * only signal; blocked generations still carry a finish reason.
+ */
+function isSafetyBlock(response: GenerateContentResponse): boolean {
+  const blockReason = response.promptFeedback?.blockReason;
+  if (blockReason && SAFETY_BLOCK_REASONS.has(blockReason)) {
+    return true;
+  }
+
+  const finishReason = response.candidates?.[0]?.finishReason;
+  return Boolean(finishReason && SAFETY_FINISH_REASONS.has(finishReason));
 }
 
 /**
@@ -38,23 +131,30 @@ export async function generateImage(
   parts: Part[],
   failureMessage: string,
   abortSignal?: AbortSignal,
-): Promise<GeneratedImage | { error: string; status: number }> {
+): Promise<GeneratedImage | GenerationFailure> {
   const client = new GoogleGenAI({ apiKey });
-  const response = await client.models
-    .generateContent({
+
+  let response: GenerateContentResponse;
+  try {
+    response = await client.models.generateContent({
       model: getDefaultModel(),
       contents: [{ role: "user", parts }],
       config: abortSignal ? { abortSignal } : undefined,
-    })
-    .catch((error: unknown) => {
-      if (abortSignal?.aborted) {
-        return null;
-      }
-      throw error;
     });
+  } catch (error) {
+    if (abortSignal?.aborted) {
+      return { error: TIMEOUT_MESSAGE, status: 504 };
+    }
 
-  if (!response) {
-    return { error: "生成がタイムアウトしました。時間をおいて再度お試しください。", status: 504 };
+    if (error instanceof ApiError) {
+      logger.error("gemini image generation failed", error, { status: error.status });
+      const failure = mapGeminiError(error);
+      if (failure) {
+        return failure;
+      }
+    }
+
+    throw error;
   }
 
   const responseParts = response.candidates?.[0]?.content?.parts ?? [];
@@ -63,6 +163,9 @@ export async function generateImage(
   const mimeType = imageResult?.inlineData?.mimeType ?? "image/png";
 
   if (!base64Data) {
+    if (isSafetyBlock(response)) {
+      return { error: GENERATION_ERROR_MESSAGES.safetyBlocked, status: 422 };
+    }
     return { error: failureMessage, status: 502 };
   }
 

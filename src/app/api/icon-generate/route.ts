@@ -8,7 +8,7 @@ import { filesToParts, fetchOgImage } from "@/utils/server/imageProcessing";
 import { generateImage, IMAGE_GENERATION_TIMEOUT_MS } from "@/utils/server/imageGeneration";
 import { fetchUrlMetadata } from "@/utils/server/urlMetadata";
 import { IconGenerateFormSchema } from "@/utils/server/validation";
-import { fileFingerprint, generateCacheKey, imageGenerationCache } from "@/utils/server/cache";
+import { readFormData } from "@/utils/server/requestFormData";
 
 export const runtime = "nodejs";
 // Image generation takes 10-40s; the Vercel hobby default (10s) kills every call.
@@ -19,7 +19,9 @@ export async function POST(request: Request) {
   if (!auth.ok) return auth.response;
   const { session, apiKey } = auth;
 
-  const formData = await request.formData();
+  const formResult = await readFormData(request);
+  if (!formResult.ok) return formResult.response;
+  const formData = formResult.formData;
   const name = (formData.get("name") as string | null) || "";
   const url = (formData.get("url") as string | null) || undefined;
   const style = (formData.get("style") as IconStyleId | null) || undefined;
@@ -47,18 +49,6 @@ export async function POST(request: Request) {
   } = parsed.data;
 
   const resolvedStyle = typeof validatedStyle === "string" ? validatedStyle : "auto";
-
-  const cacheKey = generateCacheKey({
-    name: trimmedName,
-    url: trimmedUrl ?? "",
-    style: resolvedStyle,
-    customPrompt: trimmedCustomPrompt ?? "",
-    images: (await Promise.all(validatedFiles.map(fileFingerprint))).sort(),
-  });
-  const cached = imageGenerationCache.get<{ imageBase64: string; mimeType: string }>(cacheKey);
-  if (cached) {
-    return NextResponse.json(cached);
-  }
 
   try {
     const [urlMeta, partsResult] = await Promise.all([
@@ -109,7 +99,6 @@ export async function POST(request: Request) {
       );
     }
 
-    imageGenerationCache.set(cacheKey, generationResult);
     return NextResponse.json(generationResult);
   } catch (error) {
     return handleApiError(error, "icon-generate", session.user?.email ?? "unknown");

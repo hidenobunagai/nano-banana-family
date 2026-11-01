@@ -2,11 +2,21 @@ import type { NextAuthOptions } from "next-auth";
 import type { GoogleProfile } from "next-auth/providers/google";
 import GoogleProvider from "next-auth/providers/google";
 
-const allowedEmails = new Set(
-  process.env.ALLOWED_EMAILS?.split(",")
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean),
-);
+/**
+ * Parse the comma separated allow list into a normalized set.
+ * The sign-in callback and the per-request check share this parsing so the
+ * two can never disagree about who is allowed.
+ */
+function parseAllowedEmails(raw: string | undefined): Set<string> {
+  return new Set(
+    raw
+      ?.split(",")
+      .map((email) => email.trim().toLowerCase())
+      .filter(Boolean) ?? [],
+  );
+}
+
+const allowedEmails = parseAllowedEmails(process.env.ALLOWED_EMAILS);
 
 const authSecret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET;
 
@@ -26,9 +36,29 @@ if (!hasGoogleAuthConfig) {
 }
 
 if (allowedEmails.size === 0) {
-  console.warn(
-    "ALLOWED_EMAILS が未設定のため全認証ユーザーを許可します。家族以外をブロックする場合は ALLOWED_EMAILS を設定してください。",
+  console.error(
+    "ALLOWED_EMAILS が未設定のため、どのアカウントもサインインできません。家族用のメールアドレスを ALLOWED_EMAILS に設定してください。",
   );
+}
+
+/**
+ * Whether the email may use the app.
+ *
+ * Fails closed: an empty allow list allows nobody. The list is read on every
+ * call, so removing an address revokes access for sessions that already
+ * exist.
+ */
+export function isEmailAllowed(email: string | null | undefined): boolean {
+  if (!email) {
+    return false;
+  }
+
+  const allowed = parseAllowedEmails(process.env.ALLOWED_EMAILS);
+  if (allowed.size === 0) {
+    return false;
+  }
+
+  return allowed.has(email.trim().toLowerCase());
 }
 
 export const authOptions: NextAuthOptions = {
@@ -53,11 +83,7 @@ export const authOptions: NextAuthOptions = {
         return false;
       }
 
-      if (allowedEmails.size === 0) {
-        return true;
-      }
-
-      return allowedEmails.has(email);
+      return isEmailAllowed(email);
     },
   },
 };

@@ -7,6 +7,23 @@ const OG_IMAGE_FETCH_TIMEOUT_MS = 5000;
 const MAX_OG_IMAGE_BYTES = 4 * 1024 * 1024;
 
 /**
+ * Image types that can be sent to Gemini as inline data.
+ * An og:image in another format (SVG, GIF, AVIF) makes the whole icon
+ * generation fail, so anything outside this list is ignored.
+ */
+const ALLOWED_OG_IMAGE_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+
+const MIME_TYPE_NORMALIZATION: Record<string, string> = {
+  "image/jpg": "image/jpeg",
+};
+
+/** Reduce a content type header to the bare, lower case mime type. */
+function normalizeMimeType(contentType: string): string {
+  const mimeType = contentType.split(";")[0].trim().toLowerCase();
+  return MIME_TYPE_NORMALIZATION[mimeType] ?? mimeType;
+}
+
+/**
  * Convert files to Gemini API inline data parts with validation.
  * Returns parts on success or an error response object.
  */
@@ -62,12 +79,12 @@ export async function fetchOgImage(
     if (!response.ok) return null;
 
     const contentType = response.headers.get("content-type") ?? "";
-    if (!contentType.startsWith("image/")) return null;
+    const mimeType = normalizeMimeType(contentType);
+    if (!ALLOWED_OG_IMAGE_MIME_TYPES.has(mimeType)) return null;
 
     const buffer = await readBodyWithLimit(response, MAX_OG_IMAGE_BYTES);
     if (!buffer) return null;
 
-    const mimeType = contentType.split(";")[0].trim();
     return {
       base64: buffer.toString("base64"),
       mimeType,

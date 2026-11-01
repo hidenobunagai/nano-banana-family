@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
  * LocalStorage-backed list of recently used prompt strings.
@@ -31,11 +31,16 @@ export function useRecentPrompts(
   const [recentPrompts, setRecentPrompts] = useState<readonly string[]>(() =>
     readStored(storageKey, maxItems),
   );
+  // Mirror of the state. The next list is computed from it outside the state
+  // updater, because a state updater must stay pure.
+  const recentPromptsRef = useRef(recentPrompts);
 
   useEffect(() => {
     const handleStorage = (event: StorageEvent) => {
       if (event.key === null || event.key === storageKey) {
-        setRecentPrompts(readStored(storageKey, maxItems));
+        const next = readStored(storageKey, maxItems);
+        recentPromptsRef.current = next;
+        setRecentPrompts(next);
       }
     };
     window.addEventListener("storage", handleStorage);
@@ -46,15 +51,20 @@ export function useRecentPrompts(
     (text: string) => {
       const trimmed = text.trim();
       if (!trimmed) return;
-      setRecentPrompts((prev) => {
-        const next = [trimmed, ...prev.filter((item) => item !== trimmed)].slice(0, maxItems);
-        try {
-          window.localStorage.setItem(storageKey, JSON.stringify(next));
-        } catch {
-          // ignore
-        }
-        return next;
-      });
+      // Both the next list and the storage write happen outside the state
+      // updater: React may invoke an updater twice (StrictMode), and a side
+      // effect inside it would run twice as well.
+      const next = [trimmed, ...recentPromptsRef.current.filter((item) => item !== trimmed)].slice(
+        0,
+        maxItems,
+      );
+      recentPromptsRef.current = next;
+      setRecentPrompts(next);
+      try {
+        window.localStorage.setItem(storageKey, JSON.stringify(next));
+      } catch {
+        // ignore
+      }
     },
     [storageKey, maxItems],
   );

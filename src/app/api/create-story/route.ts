@@ -6,7 +6,7 @@ import { filesToParts } from "@/utils/server/imageProcessing";
 import { generateImage, IMAGE_GENERATION_TIMEOUT_MS } from "@/utils/server/imageGeneration";
 import { CreateStoryFormSchema } from "@/utils/server/validation";
 import { buildStoryPrompt } from "@/utils/server/storyPromptBuilder";
-import { fileFingerprint, generateCacheKey, imageGenerationCache } from "@/utils/server/cache";
+import { readFormData } from "@/utils/server/requestFormData";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -16,7 +16,9 @@ export async function POST(request: Request) {
   if (!auth.ok) return auth.response;
   const { session, apiKey } = auth;
 
-  const formData = await request.formData();
+  const formResult = await readFormData(request);
+  if (!formResult.ok) return formResult.response;
+  const formData = formResult.formData;
   const storyType = (formData.get("storyType") as string | null) || "picture-book";
   const tone = (formData.get("tone") as string | null) || "funny";
   const language = (formData.get("language") as string | null) || "ja";
@@ -43,19 +45,6 @@ export async function POST(request: Request) {
     customPrompt: trimmedCustomPrompt,
     images: validatedFiles,
   } = parsed.data;
-
-  const cacheKey = generateCacheKey({
-    storyType: validStoryType,
-    tone: validTone,
-    language: validLang,
-    customPrompt: trimmedCustomPrompt ?? "",
-    images: (await Promise.all(validatedFiles.map(fileFingerprint))).sort(),
-  });
-
-  const cached = imageGenerationCache.get<{ imageBase64: string; mimeType: string }>(cacheKey);
-  if (cached) {
-    return NextResponse.json(cached);
-  }
 
   try {
     const partsResult = await filesToParts(validatedFiles);
@@ -86,7 +75,6 @@ export async function POST(request: Request) {
       );
     }
 
-    imageGenerationCache.set(cacheKey, generationResult);
     return NextResponse.json(generationResult);
   } catch (error) {
     return handleApiError(error, "create-story", session.user?.email ?? "unknown");

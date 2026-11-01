@@ -59,6 +59,66 @@ describe("GalleryModal", () => {
     expect(screen.getByRole("link", { name: "ダウンロード" })).toBeInTheDocument();
   });
 
+  it("renders every tile as a button with an accessible name", async () => {
+    vi.spyOn(storage, "loadFromGallery").mockResolvedValue([galleryItem]);
+
+    await act(async () => {
+      renderWithToast(<GalleryModal isOpen={true} onClose={vi.fn()} />);
+    });
+
+    const tile = await screen.findByRole("button", { name: /自由生成の画像を表示/ });
+    expect(tile).toHaveAttribute("type", "button");
+    // The delete action must not be nested inside the tile button.
+    expect(tile.querySelector("button")).toBeNull();
+  });
+
+  it("locks the body scroll while open and restores it with the focus on close", async () => {
+    vi.spyOn(storage, "loadFromGallery").mockResolvedValue([]);
+    const opener = document.createElement("button");
+    opener.textContent = "ギャラリー";
+    document.body.appendChild(opener);
+    opener.focus();
+
+    const { rerender } = render(<GalleryModal isOpen={true} onClose={vi.fn()} />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(document.body.style.overflow).toBe("hidden");
+
+    rerender(<GalleryModal isOpen={false} onClose={vi.fn()} />);
+
+    expect(document.body.style.overflow).toBe("");
+    expect(document.activeElement).toBe(opener);
+    opener.remove();
+  });
+
+  it("renders the gallery in pages and loads the next page on demand", async () => {
+    const items = Array.from({ length: 15 }, (_, index) => ({
+      id: `art-${index}`,
+      createdAt: Date.now() - index,
+      mode: "freestyle" as const,
+      prompt: `作品 ${index}`,
+      imageBase64: "QUJD",
+      mimeType: "image/png",
+    }));
+    vi.spyOn(storage, "loadFromGallery").mockResolvedValue(items);
+
+    await act(async () => {
+      renderWithToast(<GalleryModal isOpen={true} onClose={vi.fn()} />);
+    });
+
+    expect(await screen.findByText("作品ギャラリー (15件)")).toBeInTheDocument();
+    expect(screen.getAllByRole("img")).toHaveLength(12);
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /もっと見る/ }));
+    });
+
+    expect(screen.getAllByRole("img")).toHaveLength(15);
+    expect(screen.queryByRole("button", { name: /もっと見る/ })).not.toBeInTheDocument();
+  });
+
   it("calls onClose on close button click", async () => {
     const handleClose = vi.fn();
     vi.spyOn(storage, "loadFromGallery").mockResolvedValue([]);

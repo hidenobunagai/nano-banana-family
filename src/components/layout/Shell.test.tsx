@@ -26,6 +26,19 @@ describe("Shell", () => {
     expect(screen.getByText("content")).toBeInTheDocument();
   });
 
+  it("turns off smooth scrolling of the content region for reduced motion", () => {
+    render(
+      <Shell onSignOut={vi.fn()} navMode="freestyle" onNavModeChange={vi.fn()}>
+        <p>content</p>
+      </Shell>,
+    );
+    // scrollTo({ behavior: "auto" }) follows the element's scroll-behavior, so
+    // the reduced-motion choice only takes effect if this class resets it.
+    const region = document.getElementById("main-content");
+    expect(region).toHaveClass("scroll-smooth");
+    expect(region).toHaveClass("motion-reduce:scroll-auto");
+  });
+
   it("renders all nav items", () => {
     render(
       <Shell onSignOut={vi.fn()} navMode="freestyle" onNavModeChange={vi.fn()}>
@@ -46,6 +59,20 @@ describe("Shell", () => {
     );
     await userEvent.click(screen.getByRole("button", { name: "アイコン" }));
     expect(onNavModeChange).toHaveBeenCalledWith("icon");
+  });
+
+  it("marks the active nav item with aria-current", () => {
+    render(
+      <Shell onSignOut={vi.fn()} navMode="freestyle" onNavModeChange={vi.fn()}>
+        <p>content</p>
+      </Shell>,
+    );
+
+    expect(screen.getByRole("button", { name: "自由生成" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(screen.getByRole("button", { name: "アイコン" })).not.toHaveAttribute("aria-current");
   });
 
   it("calls onSignOut when the sign-out button is clicked", async () => {

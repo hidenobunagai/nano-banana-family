@@ -15,19 +15,6 @@ vi.mock("@/utils/server/withApiAuth", () => ({
   withApiAuth: mockWithApiAuth,
 }));
 
-vi.mock("@/utils/server/api-helpers", () => ({
-  handleApiError: vi.fn((e) =>
-    jsonResponse({ error: e instanceof Error ? e.message : String(e) }, 500),
-  ),
-  validateFormData: vi.fn((schema, data) => {
-    const result = schema.safeParse(data);
-    if (result.success) {
-      return { success: true, data: result.data };
-    }
-    return { success: false, error: result.error.issues.map((i: any) => i.message).join(", ") };
-  }),
-}));
-
 vi.mock("@/utils/server/imageProcessing", () => ({
   filesToParts: vi.fn(),
 }));
@@ -35,15 +22,6 @@ vi.mock("@/utils/server/imageProcessing", () => ({
 vi.mock("@/utils/server/imageGeneration", () => ({
   generateImage: mockGenerateImage,
   IMAGE_GENERATION_TIMEOUT_MS: 90_000,
-}));
-
-vi.mock("@/utils/server/cache", () => ({
-  fileFingerprint: vi.fn(async () => "mock-fingerprint"),
-  generateCacheKey: vi.fn(() => "mock-cache-key"),
-  imageGenerationCache: {
-    get: vi.fn(),
-    set: vi.fn(),
-  },
 }));
 
 import { POST } from "./route";
@@ -60,6 +38,12 @@ function createRequest(
   if (customPrompt) fd.set("customPrompt", customPrompt);
   if (images) for (const img of images) fd.append("images", img);
   return { formData: () => Promise.resolve(fd) } as unknown as Request;
+}
+
+function createMalformedRequest(): Request {
+  return {
+    formData: () => Promise.reject(new TypeError("Could not parse content as FormData")),
+  } as unknown as Request;
 }
 
 describe("POST /api/create-story", () => {
@@ -119,18 +103,27 @@ describe("POST /api/create-story", () => {
     expect(res.status).toBe(400);
     const body = await res.json();
     expect(body.error).toContain("写真を1枚以上");
+    expect(mockGenerateImage).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 when the real schema rejects too many images", async () => {
+    const images = Array.from(
+      { length: 6 },
+      (_, index) => new File(["a"], `a-${index}.png`, { type: "image/png" }),
+    );
+
+    const res = await POST(createRequest("picture-book", images));
+
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toContain("最大5枚");
+    expect(mockGenerateImage).not.toHaveBeenCalled();
   });
 
   it("returns 200 on successful story generation", async () => {
-    const { handleApiError } = await import("@/utils/server/api-helpers");
     const { filesToParts } = await import("@/utils/server/imageProcessing");
-    const { imageGenerationCache } = await import("@/utils/server/cache");
 
     vi.mocked(filesToParts).mockResolvedValue({ parts: [{ text: "processed" }] });
-    vi.mocked(imageGenerationCache.get).mockReturnValue(undefined);
-    vi.mocked(handleApiError).mockImplementation((e) =>
-      jsonResponse({ error: e instanceof Error ? e.message : String(e) }, 500),
-    );
     mockGenerateImage.mockResolvedValue({
       imageBase64: "story-base64-data",
       mimeType: "image/png",
@@ -143,11 +136,17 @@ describe("POST /api/create-story", () => {
     expect(body.mimeType).toBe("image/png");
   });
 
+  it("returns 400 when the request body is not a valid form", async () => {
+    const res = await POST(createMalformedRequest());
+
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toContain("形式");
+  });
+
   it("passes the shared generation deadline to generateImage", async () => {
     const { filesToParts } = await import("@/utils/server/imageProcessing");
-    const { imageGenerationCache } = await import("@/utils/server/cache");
     vi.mocked(filesToParts).mockResolvedValue({ parts: [{ text: "processed" }] });
-    vi.mocked(imageGenerationCache.get).mockReturnValue(undefined);
     mockGenerateImage.mockResolvedValue({ imageBase64: "x", mimeType: "image/png" });
 
     await POST(createRequest("picture-book", [new File(["a"], "a.png")]));

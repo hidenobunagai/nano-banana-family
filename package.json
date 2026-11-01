@@ -8,9 +8,9 @@
     "start": "dotenvx run --convention=nextjs --ignore=MISSING_ENV_FILE -- next start",
     "lint": "eslint",
     "typecheck": "dotenvx run --convention=nextjs --ignore=MISSING_ENV_FILE -- tsc --noEmit",
-    "test": "dotenvx run --convention=nextjs --ignore=MISSING_ENV_FILE -- cross-env VITE_CJS_IGNORE_WARNING=1 vitest run",
-    "test:watch": "dotenvx run --convention=nextjs --ignore=MISSING_ENV_FILE -- cross-env VITE_CJS_IGNORE_WARNING=1 vitest",
-    "test:coverage": "dotenvx run --convention=nextjs --ignore=MISSING_ENV_FILE -- cross-env VITE_CJS_IGNORE_WARNING=1 vitest run --coverage",
+    "test": "dotenvx run --convention=nextjs --ignore=MISSING_ENV_FILE -- vitest run",
+    "test:watch": "dotenvx run --convention=nextjs --ignore=MISSING_ENV_FILE -- vitest",
+    "test:coverage": "dotenvx run --convention=nextjs --ignore=MISSING_ENV_FILE -- vitest run --coverage",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "env:encrypt": "dotenvx encrypt -f .env.local",
@@ -38,12 +38,11 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
-    "@types/node": "^20",
+    "@types/node": "^24",
     "@types/react": "^19.2.3",
     "@types/react-dom": "^19.2.3",
+    "@typescript/native": "npm:typescript@^7.0.2",
     "@vitest/coverage-v8": "4.1.11",
-    "autoprefixer": "^10.4.23",
-    "cross-env": "^7.0.3",
     "esbuild": "^0.28.1",
     "eslint": "^9",
     "eslint-config-next": "^16.0.10",
@@ -53,7 +52,9 @@
     "serwist": "9.5.12",
     "tailwindcss": "^4.1.18",
     "typescript": "npm:typescript@^6.0.2",
-    "@typescript/native": "npm:typescript@^7.0.2",
     "vitest": "4.1.11"
+  },
+  "overrides": {
+    "typescript-eslint": "^8.72.0"
   }
 }

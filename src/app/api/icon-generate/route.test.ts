@@ -8,8 +8,7 @@ vi.mock("@/utils/server/withApiAuth", () => ({
 }));
 
 vi.mock("@/utils/server/imageProcessing", () => ({
-  filesToParts: vi.fn().mockImplementation(async (files: File[]) => {
-    console.log("filesToParts called with:", files);
+  filesToParts: vi.fn().mockImplementation(async () => {
     return { parts: [{ text: "processed image" }] };
   }),
   fetchOgImage: vi.fn(),
@@ -20,29 +19,8 @@ vi.mock("@/utils/server/imageGeneration", () => ({
   IMAGE_GENERATION_TIMEOUT_MS: 90_000,
 }));
 
-vi.mock("@/utils/server/cache", () => ({
-  fileFingerprint: vi.fn().mockResolvedValue("fingerprint123"),
-  generateCacheKey: vi.fn().mockReturnValue("cache-key"),
-  imageGenerationCache: {
-    get: vi.fn().mockReturnValue(null),
-    set: vi.fn(),
-  },
-}));
-
 vi.mock("@/utils/server/urlMetadata", () => ({
   fetchUrlMetadata: vi.fn().mockResolvedValue(null),
-}));
-
-vi.mock("@/utils/server/api-helpers", () => ({
-  validateFormData: vi.fn().mockImplementation((schema: unknown, data: unknown) => {
-    const result = (
-      schema as { safeParse: (data: unknown) => { success: boolean; data: unknown } }
-    ).safeParse(data);
-    if (result.success) {
-      return { success: true, data: result.data };
-    }
-    return { success: false, error: "Validation error" };
-  }),
 }));
 
 vi.mock("@/utils/server/iconPromptBuilder", () => ({
@@ -61,6 +39,12 @@ function createRequest(overrides: Record<string, unknown> = {}): Request {
     for (const img of overrides.images as File[]) fd.append("images", img);
   }
   return { formData: () => Promise.resolve(fd) } as unknown as Request;
+}
+
+function createMalformedRequest(): Request {
+  return {
+    formData: () => Promise.reject(new TypeError("Could not parse content as FormData")),
+  } as unknown as Request;
 }
 
 describe("POST /api/icon-generate", () => {
@@ -98,5 +82,36 @@ describe("POST /api/icon-generate", () => {
     const res = await POST(req);
 
     expect(res.status).toBe(502);
+  });
+
+  it("returns 400 when the request body is not a valid form", async () => {
+    const res = await POST(createMalformedRequest());
+
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toContain("形式");
+  });
+
+  it("returns 400 when the real schema rejects too many images", async () => {
+    const images = Array.from(
+      { length: 4 },
+      (_, index) => new File(["test"], `test-${index}.png`, { type: "image/png" }),
+    );
+
+    const res = await POST(createRequest({ name: "Test User", images }));
+
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toContain("最大3枚");
+    expect(mockGenerateImage).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 when the real schema rejects an empty name", async () => {
+    const res = await POST(createRequest({ name: "" }));
+
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toContain("連絡先名");
+    expect(mockGenerateImage).not.toHaveBeenCalled();
   });
 });

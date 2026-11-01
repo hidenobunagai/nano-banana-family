@@ -12,6 +12,8 @@ export interface ImageUploadGridProps {
   optimizingIds?: string[];
   onFileChange: (event: ChangeEvent<HTMLInputElement>, slotId: string) => void;
   onRemoveSlot: (slotId: string) => void;
+  /** Disables the remove buttons, e.g. while a generation for these images runs. */
+  removeDisabled?: boolean;
   onAddSlot: () => void;
   labelPrefix?: string;
   gridClassName?: string;
@@ -24,6 +26,7 @@ export function ImageUploadGrid({
   optimizingIds = [],
   onFileChange,
   onRemoveSlot,
+  removeDisabled = false,
   onAddSlot,
   labelPrefix = "参考画像",
   gridClassName = "grid grid-cols-1 md:grid-cols-2 gap-4",
@@ -47,8 +50,9 @@ export function ImageUploadGrid({
             <button
               type="button"
               onClick={() => onRemoveSlot(slot.id)}
+              disabled={removeDisabled}
               aria-label={`${labelPrefix} ${index + 1} を削除`}
-              className="absolute top-2 right-2 rounded-[var(--radius-full)] bg-[var(--color-error-dark)]/90 p-1.5 text-white shadow-[var(--shadow-level-1)] transition-colors hover:bg-[var(--color-error-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error-dark)]"
+              className="absolute top-2 right-2 rounded-[var(--radius-full)] bg-[var(--color-error-dark)]/90 p-1.5 text-white shadow-[var(--shadow-level-1)] transition-colors hover:bg-[var(--color-error-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error-dark)] disabled:cursor-not-allowed disabled:opacity-50"
             >
               <X className="w-4 h-4" />
             </button>

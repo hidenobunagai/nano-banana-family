@@ -32,7 +32,7 @@ interface FakeOptions {
 interface FakeIndexedDB {
   factory: IDBFactory;
   records: Map<string, GalleryItem>;
-  state: { getAllCalls: number };
+  state: { getAllCalls: number; closeCalls: number };
 }
 
 /**
@@ -43,7 +43,7 @@ interface FakeIndexedDB {
  */
 function createFakeIndexedDB(options: FakeOptions = {}): FakeIndexedDB {
   const records = new Map<string, GalleryItem>();
-  const state = { getAllCalls: 0 };
+  const state = { getAllCalls: 0, closeCalls: 0 };
 
   function request<T>(run: () => T, failWith: DOMException | null = null): FakeRequest<T> {
     const req: FakeRequest<T> = {
@@ -69,6 +69,9 @@ function createFakeIndexedDB(options: FakeOptions = {}): FakeIndexedDB {
     return {
       objectStoreNames: { contains: (name: string) => name === "artworks" },
       createObjectStore: () => ({ createIndex: () => {} }),
+      close: () => {
+        state.closeCalls += 1;
+      },
       transaction: () => {
         const tx = {
           error: null as DOMException | null,
@@ -291,6 +294,25 @@ describe("galleryStorage", () => {
     expect(fake.records.has("art-1")).toBe(false);
     expect(fake.records.has("art-2")).toBe(true);
     expect(fake.records.has("art-51")).toBe(true);
+  });
+
+  it("closes the database connection after every operation", async () => {
+    const fake = createFakeIndexedDB();
+    vi.stubGlobal("indexedDB", fake.factory);
+
+    const saved = await saveToGallery({
+      mode: "freestyle",
+      imageBase64: "QUJD",
+      mimeType: "image/png",
+    });
+    expect(saved).not.toBeNull();
+    expect(fake.state.closeCalls).toBe(1);
+
+    await loadFromGallery();
+    expect(fake.state.closeCalls).toBe(2);
+
+    await deleteFromGallery((saved as GalleryItem).id);
+    expect(fake.state.closeCalls).toBe(3);
   });
 
   it("keeps the in-memory fallback when IndexedDB is unavailable", async () => {

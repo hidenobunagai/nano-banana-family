@@ -19,6 +19,7 @@ import { STARTER_PROMPTS } from "@/utils/starterPrompts";
 import { TONE_PROMPTS } from "@/utils/tonePrompts";
 import { Section } from "@/components/ui/Section";
 import { useEditorController } from "@/hooks/useEditorController";
+import { scrollMainContentToTop } from "@/hooks/scrollToMainContent";
 import { MAX_FREESTYLE_UPLOADS, MAX_PROMPT_LENGTH } from "@/utils/promptConstants";
 import { appendPromptTag } from "@/utils/promptText";
 import { STYLE_SUGGESTIONS } from "@/utils/server/stylePrompts";
@@ -106,10 +107,7 @@ export function FreestyleEditor() {
     onBeforeSubmit: () => setIsComparing(false),
     onNavigate: () => {
       setIsComparing(false);
-      window.scrollTo({
-        top: 0,
-        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-      });
+      scrollMainContentToTop();
     },
     resetFields: () => setIsComparing(false),
     scrollToTopOnReset: true,
@@ -194,6 +192,7 @@ export function FreestyleEditor() {
           onForward={goForward}
           downloadFilename={resultFilename}
           downloadLabel="画像をダウンロード"
+          downloadDisabled={isComparing}
           onRetry={() => void submit()}
           retryLabel="同じ内容でもう一度"
           canRetry={canSubmit}
@@ -234,6 +233,7 @@ export function FreestyleEditor() {
             optimizingIds={optimizingIds}
             onFileChange={handleFileChange}
             onRemoveSlot={handleRemoveUploadSlot}
+            removeDisabled={isSubmitting}
             onAddSlot={addUploadSlot}
           />
         </Section>
