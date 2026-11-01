@@ -110,7 +110,7 @@ export function Shell({ children, onSignOut, navMode, onNavModeChange }: ShellPr
         <div
           id="main-content"
           tabIndex={-1}
-          className="flex-1 overflow-y-auto overflow-x-hidden px-4 sm:px-6 lg:px-12 py-6 lg:py-8 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-8 scroll-smooth relative"
+          className="flex-1 overflow-y-auto overflow-x-hidden px-4 sm:px-6 lg:px-12 py-6 lg:py-8 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-8 scroll-smooth motion-reduce:scroll-auto relative"
         >
           <div className="max-w-[1400px] mx-auto w-full">{children}</div>
         </div>
