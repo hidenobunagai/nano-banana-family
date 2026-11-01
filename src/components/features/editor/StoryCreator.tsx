@@ -209,6 +209,7 @@ export function StoryCreator() {
           onForward={goForward}
           downloadFilename={resultFilename}
           downloadLabel="ストーリー画像をダウンロード"
+          downloadDisabled={isComparing}
           onRetry={handleRetry}
           retryLabel="同じ写真でもう一度生成"
           canRetry={canSubmit}

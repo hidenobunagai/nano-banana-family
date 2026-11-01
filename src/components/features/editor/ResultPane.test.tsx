@@ -55,6 +55,17 @@ describe("ResultPane", () => {
     expect(screen.getByRole("button", { name: /最初からやり直す/ })).toBeInTheDocument();
   });
 
+  it("disables the download while another result is shown for comparison", () => {
+    render(
+      <ResultPane {...defaultProps} resultImage="data:image/png;base64,QUJD" downloadDisabled>
+        <img src="data:image/png;base64,QUJD" alt="結果画像" />
+      </ResultPane>,
+    );
+
+    expect(screen.queryByRole("link", { name: /ダウンロード/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /ダウンロード/ })).toBeDisabled();
+  });
+
   it("opens lightbox on expand click and closes on Escape", async () => {
     render(
       <ResultPane {...defaultProps} resultImage="data:image/png;base64,QUJD">

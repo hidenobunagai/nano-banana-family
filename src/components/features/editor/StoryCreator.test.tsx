@@ -205,6 +205,28 @@ describe("StoryCreator", () => {
     );
   });
 
+  it("disables the download while comparing with the previous result", async () => {
+    mockFetchDistinct();
+    const { container } = render(<StoryCreator />);
+
+    await uploadFirstFile(container);
+    fireEvent.click(screen.getByRole("button", { name: "ストーリーを生成する" }));
+    await screen.findByAltText("ストーリー生成の結果画像");
+    const first = imageSrc("ストーリー生成の結果画像");
+
+    fireEvent.click(screen.getByRole("button", { name: "同じ写真でもう一度生成" }));
+    await waitFor(() => expect(imageSrc("ストーリー生成の結果画像")).not.toBe(first));
+
+    // The download filename belongs to the newest result, so it must not be
+    // offered while an older result is on screen.
+    expect(screen.getByRole("link", { name: /ストーリー画像をダウンロード/ })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "前の結果と比較" }));
+    expect(screen.getByRole("button", { name: /ストーリー画像をダウンロード/ })).toBeDisabled();
+
+    fireEvent.click(screen.getByRole("button", { name: "最新の結果に戻る" }));
+    expect(screen.getByRole("link", { name: /ストーリー画像をダウンロード/ })).toBeInTheDocument();
+  });
+
   it("steps the result history back and forward with the pane buttons", async () => {
     mockFetchDistinct();
     const { container } = render(<StoryCreator />);

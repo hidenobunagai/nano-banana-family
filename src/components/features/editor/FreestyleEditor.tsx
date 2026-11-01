@@ -192,6 +192,7 @@ export function FreestyleEditor() {
           onForward={goForward}
           downloadFilename={resultFilename}
           downloadLabel="画像をダウンロード"
+          downloadDisabled={isComparing}
           onRetry={() => void submit()}
           retryLabel="同じ内容でもう一度"
           canRetry={canSubmit}
