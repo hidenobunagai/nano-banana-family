@@ -97,9 +97,11 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ showToast, success, info, error }}>
       {children}
+      {/* Not atomic: only the toast that was added is announced, instead of
+          re-reading every toast that is still on screen. */}
       <div
         aria-live="polite"
-        aria-atomic="true"
+        aria-atomic="false"
         className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] md:bottom-6 right-4 sm:right-6 z-[60] flex flex-col gap-2 pointer-events-none max-w-sm w-[calc(100%-2rem)] sm:w-auto"
       >
         <AnimatePresence>

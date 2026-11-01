@@ -62,6 +62,8 @@ describe("Toast", () => {
     expect(liveRegion).toContainElement(screen.getByText("エラーが発生しました"));
     // One live mechanism only: no nested live regions and no per-toast roles.
     expect(liveRegion?.querySelectorAll("[aria-live]")).toHaveLength(0);
+    // A new toast must not make screen readers re-read the ones still shown.
+    expect(liveRegion).toHaveAttribute("aria-atomic", "false");
     expect(liveRegion?.querySelectorAll("[role]")).toHaveLength(0);
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
