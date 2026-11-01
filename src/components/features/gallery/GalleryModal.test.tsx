@@ -59,6 +59,32 @@ describe("GalleryModal", () => {
     expect(screen.getByRole("link", { name: "ダウンロード" })).toBeInTheDocument();
   });
 
+  it("renders the gallery in pages and loads the next page on demand", async () => {
+    const items = Array.from({ length: 15 }, (_, index) => ({
+      id: `art-${index}`,
+      createdAt: Date.now() - index,
+      mode: "freestyle" as const,
+      prompt: `作品 ${index}`,
+      imageBase64: "QUJD",
+      mimeType: "image/png",
+    }));
+    vi.spyOn(storage, "loadFromGallery").mockResolvedValue(items);
+
+    await act(async () => {
+      renderWithToast(<GalleryModal isOpen={true} onClose={vi.fn()} />);
+    });
+
+    expect(await screen.findByText("作品ギャラリー (15件)")).toBeInTheDocument();
+    expect(screen.getAllByRole("img")).toHaveLength(12);
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /もっと見る/ }));
+    });
+
+    expect(screen.getAllByRole("img")).toHaveLength(15);
+    expect(screen.queryByRole("button", { name: /もっと見る/ })).not.toBeInTheDocument();
+  });
+
   it("calls onClose on close button click", async () => {
     const handleClose = vi.fn();
     vi.spyOn(storage, "loadFromGallery").mockResolvedValue([]);

@@ -13,9 +13,20 @@ interface GalleryModalProps {
   onSelectImage?: (item: GalleryItem) => void;
 }
 
+/**
+ * Number of tiles rendered at once.
+ *
+ * The gallery keeps whole base64 images, so rendering every tile at once
+ * builds one large string per artwork in memory. The follow-up is to split the
+ * metadata from the image blobs into a separate store and load the blobs on
+ * demand; until then the pages keep the rendering cost bounded.
+ */
+const GALLERY_PAGE_SIZE = 12;
+
 export function GalleryModal({ isOpen, onClose, onSelectImage }: GalleryModalProps) {
   const { error: showError, success: showSuccess } = useToast();
   const [items, setItems] = useState<GalleryItem[]>([]);
+  const [visibleCount, setVisibleCount] = useState(GALLERY_PAGE_SIZE);
   const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -28,6 +39,7 @@ export function GalleryModal({ isOpen, onClose, onSelectImage }: GalleryModalPro
         .then((loaded) => {
           if (!ignore) {
             setItems(loaded);
+            setVisibleCount(GALLERY_PAGE_SIZE);
             setIsLoading(false);
           }
         })
@@ -117,6 +129,9 @@ export function GalleryModal({ isOpen, onClose, onSelectImage }: GalleryModalPro
     onClose();
   };
 
+  const visibleItems = items.slice(0, visibleCount);
+  const remainingCount = items.length - visibleItems.length;
+
   if (!isOpen) return null;
 
   return (
@@ -170,55 +185,70 @@ export function GalleryModal({ isOpen, onClose, onSelectImage }: GalleryModalPro
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {items.map((item) => {
-                const src = `data:${item.mimeType};base64,${item.imageBase64}`;
-                const modeLabel =
-                  item.mode === "freestyle"
-                    ? "自由生成"
-                    : item.mode === "icon"
-                      ? "アイコン"
-                      : "ストーリー";
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {visibleItems.map((item) => {
+                  const src = `data:${item.mimeType};base64,${item.imageBase64}`;
+                  const modeLabel =
+                    item.mode === "freestyle"
+                      ? "自由生成"
+                      : item.mode === "icon"
+                        ? "アイコン"
+                        : "ストーリー";
 
-                return (
-                  <div
-                    key={item.id}
-                    className="group relative flex flex-col rounded-2xl overflow-hidden border border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)] hover:shadow-[var(--shadow-level-2)] transition-all cursor-pointer"
-                    onClick={() => setSelectedItem(item)}
+                  return (
+                    <div
+                      key={item.id}
+                      className="group relative flex flex-col rounded-2xl overflow-hidden border border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)] hover:shadow-[var(--shadow-level-2)] transition-all cursor-pointer"
+                      onClick={() => setSelectedItem(item)}
+                    >
+                      <div className="relative aspect-square w-full bg-[var(--color-neutral-100)] overflow-hidden">
+                        <Image
+                          src={src}
+                          alt={item.title || item.prompt || "生成画像"}
+                          fill
+                          className="object-cover transition-transform duration-300 group-hover:scale-105"
+                          unoptimized
+                          loading="lazy"
+                          decoding="async"
+                        />
+                        <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-xs font-semibold bg-black/60 text-white backdrop-blur-xs">
+                          {modeLabel}
+                        </span>
+                      </div>
+
+                      <div className="p-2.5 flex items-center justify-between gap-1 bg-white">
+                        <span className="text-xs text-[var(--color-neutral-500)] truncate">
+                          {new Date(item.createdAt).toLocaleDateString("ja-JP", {
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => handleDelete(item.id, e)}
+                          className="p-2 rounded-full text-[var(--color-neutral-600)] hover:text-[var(--color-error-dark)] hover:bg-[var(--color-error-light)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error-dark)]"
+                          aria-label="削除"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              {remainingCount > 0 && (
+                <div className="mt-6 flex justify-center">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => setVisibleCount((count) => count + GALLERY_PAGE_SIZE)}
                   >
-                    <div className="relative aspect-square w-full bg-[var(--color-neutral-100)] overflow-hidden">
-                      <Image
-                        src={src}
-                        alt={item.title || item.prompt || "生成画像"}
-                        fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                        unoptimized
-                      />
-                      <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-xs font-semibold bg-black/60 text-white backdrop-blur-xs">
-                        {modeLabel}
-                      </span>
-                    </div>
-
-                    <div className="p-2.5 flex items-center justify-between gap-1 bg-white">
-                      <span className="text-xs text-[var(--color-neutral-500)] truncate">
-                        {new Date(item.createdAt).toLocaleDateString("ja-JP", {
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={(e) => handleDelete(item.id, e)}
-                        className="p-2 rounded-full text-[var(--color-neutral-600)] hover:text-[var(--color-error-dark)] hover:bg-[var(--color-error-light)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error-dark)]"
-                        aria-label="削除"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                    もっと見る（残り {remainingCount}件）
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </div>
 
