@@ -286,6 +286,115 @@ describe("useEditorSubmit", () => {
     expect(onFinished).toHaveBeenCalledTimes(1);
   });
 
+  it("uses a plain AbortController when AbortSignal.timeout is unavailable", async () => {
+    const descriptor = Object.getOwnPropertyDescriptor(AbortSignal, "timeout");
+    delete (AbortSignal as { timeout?: unknown }).timeout;
+    try {
+      mockFetchResponse({
+        ok: true,
+        status: 200,
+        body: { imageBase64: "QUJD", mimeType: "image/png" },
+      });
+      const { result } = setup();
+
+      await act(async () => {
+        await result.current.submit();
+      });
+
+      expect(result.current.resultImage).toBe("data:image/png;base64,QUJD");
+      expect(result.current.errorMessage).toBeNull();
+    } finally {
+      if (descriptor) Object.defineProperty(AbortSignal, "timeout", descriptor);
+    }
+  });
+
+  it("uses a plain AbortController when AbortSignal.any is unavailable", async () => {
+    const descriptor = Object.getOwnPropertyDescriptor(AbortSignal, "any");
+    delete (AbortSignal as { any?: unknown }).any;
+    try {
+      mockFetchResponse({
+        ok: true,
+        status: 200,
+        body: { imageBase64: "QUJD", mimeType: "image/png" },
+      });
+      const { result } = setup();
+
+      await act(async () => {
+        await result.current.submit();
+      });
+
+      expect(result.current.resultImage).toBe("data:image/png;base64,QUJD");
+      expect(result.current.errorMessage).toBeNull();
+    } finally {
+      if (descriptor) Object.defineProperty(AbortSignal, "any", descriptor);
+    }
+  });
+
+  it("reports the timeout through the fallback timer when AbortSignal.timeout is unavailable", async () => {
+    const descriptor = Object.getOwnPropertyDescriptor(AbortSignal, "timeout");
+    delete (AbortSignal as { timeout?: unknown }).timeout;
+    vi.useFakeTimers();
+    try {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(
+          (_input: RequestInfo | URL, init?: RequestInit) =>
+            new Promise<Response>((_resolve, reject) => {
+              init?.signal?.addEventListener("abort", () => reject(init.signal?.reason));
+            }),
+        ),
+      );
+      const { result } = setup();
+
+      await act(async () => {
+        result.current.submit();
+      });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(120_000);
+      });
+
+      expect(result.current.errorMessage).toBe(
+        "生成に時間がかかっています。時間をおいてもう一度お試しください。",
+      );
+    } finally {
+      vi.useRealTimers();
+      if (descriptor) Object.defineProperty(AbortSignal, "timeout", descriptor);
+    }
+  });
+
+  it("scrolls to the result pane once when a second submit replaces a pending scroll", async () => {
+    vi.useFakeTimers();
+    try {
+      const scrollIntoView = vi.fn();
+      const pane = document.createElement("div");
+      pane.id = "result-pane";
+      pane.scrollIntoView = scrollIntoView;
+      document.body.appendChild(pane);
+
+      mockFetchResponse({
+        ok: true,
+        status: 200,
+        body: { imageBase64: "QUJD", mimeType: "image/png" },
+      });
+      const { result } = setup();
+
+      await act(async () => {
+        await result.current.submit();
+      });
+      await act(async () => {
+        await result.current.submit();
+      });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+
+      expect(scrollIntoView).toHaveBeenCalledTimes(1);
+      pane.remove();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("clears result and error state on reset", async () => {
     const { result } = setup();
 
