@@ -12,6 +12,16 @@ describe("Dock", () => {
     }
   });
 
+  it("marks the active nav item with aria-current", () => {
+    render(<Dock currentMode="freestyle" onModeChange={vi.fn()} />);
+
+    expect(screen.getByRole("button", { name: "自由生成" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(screen.getByRole("button", { name: "アイコン" })).not.toHaveAttribute("aria-current");
+  });
+
   it("calls onModeChange with the clicked mode", async () => {
     const onModeChange = vi.fn();
     render(<Dock currentMode="freestyle" onModeChange={onModeChange} />);

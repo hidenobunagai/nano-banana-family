@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { ToastProvider, useToast } from "./Toast";
 
 function TestConsumer() {
@@ -51,11 +51,53 @@ describe("Toast", () => {
     });
   });
 
-  it("renders error toast with alert role", () => {
+  it("announces toasts through a single live region", () => {
     renderWithToast(<TestConsumer />);
 
     fireEvent.click(screen.getByText("エラートースト"));
-    expect(screen.getByRole("alert")).toBeInTheDocument();
     expect(screen.getByText("エラーが発生しました")).toBeInTheDocument();
+
+    const liveRegion = document.querySelector('[aria-live="polite"]');
+    expect(liveRegion).not.toBeNull();
+    expect(liveRegion).toContainElement(screen.getByText("エラーが発生しました"));
+    // One live mechanism only: no nested live regions and no per-toast roles.
+    expect(liveRegion?.querySelectorAll("[aria-live]")).toHaveLength(0);
+    expect(liveRegion?.querySelectorAll("[role]")).toHaveLength(0);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
+
+  it("cancels the auto-dismiss timer when a toast is dismissed manually", () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    try {
+      const before = vi.getTimerCount();
+      renderWithToast(<TestConsumer />);
+
+      fireEvent.click(screen.getByText("情報トースト"));
+      expect(screen.getByText("情報メッセージ")).toBeInTheDocument();
+      expect(vi.getTimerCount()).toBe(before + 1);
+
+      fireEvent.click(screen.getByRole("button", { name: "閉じる" }));
+      expect(vi.getTimerCount()).toBe(before);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("cancels the pending timers when the provider unmounts", () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    try {
+      const before = vi.getTimerCount();
+      const { unmount } = renderWithToast(<TestConsumer />);
+
+      fireEvent.click(screen.getByText("情報トースト"));
+      expect(screen.getByText("情報メッセージ")).toBeInTheDocument();
+      expect(vi.getTimerCount()).toBe(before + 1);
+
+      unmount();
+      expect(vi.getTimerCount()).toBe(before);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

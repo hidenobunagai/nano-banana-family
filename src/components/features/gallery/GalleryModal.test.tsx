@@ -59,6 +59,40 @@ describe("GalleryModal", () => {
     expect(screen.getByRole("link", { name: "ダウンロード" })).toBeInTheDocument();
   });
 
+  it("renders every tile as a button with an accessible name", async () => {
+    vi.spyOn(storage, "loadFromGallery").mockResolvedValue([galleryItem]);
+
+    await act(async () => {
+      renderWithToast(<GalleryModal isOpen={true} onClose={vi.fn()} />);
+    });
+
+    const tile = await screen.findByRole("button", { name: /自由生成の画像を表示/ });
+    expect(tile).toHaveAttribute("type", "button");
+    // The delete action must not be nested inside the tile button.
+    expect(tile.querySelector("button")).toBeNull();
+  });
+
+  it("locks the body scroll while open and restores it with the focus on close", async () => {
+    vi.spyOn(storage, "loadFromGallery").mockResolvedValue([]);
+    const opener = document.createElement("button");
+    opener.textContent = "ギャラリー";
+    document.body.appendChild(opener);
+    opener.focus();
+
+    const { rerender } = render(<GalleryModal isOpen={true} onClose={vi.fn()} />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(document.body.style.overflow).toBe("hidden");
+
+    rerender(<GalleryModal isOpen={false} onClose={vi.fn()} />);
+
+    expect(document.body.style.overflow).toBe("");
+    expect(document.activeElement).toBe(opener);
+    opener.remove();
+  });
+
   it("renders the gallery in pages and loads the next page on demand", async () => {
     const items = Array.from({ length: 15 }, (_, index) => ({
       id: `art-${index}`,

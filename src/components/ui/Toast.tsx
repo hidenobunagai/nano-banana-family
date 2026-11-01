@@ -2,7 +2,15 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertCircle, CheckCircle2, Info, X } from "lucide-react";
-import React, { createContext, useCallback, useContext, useId, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from "react";
 
 export type ToastType = "success" | "info" | "error";
 
@@ -35,8 +43,15 @@ export function useToast() {
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
+  // Auto-dismiss timers, so a manual dismiss (or unmount) can cancel them.
+  const timersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   const removeToast = useCallback((id: string) => {
+    const timer = timersRef.current.get(id);
+    if (timer !== undefined) {
+      clearTimeout(timer);
+      timersRef.current.delete(id);
+    }
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
@@ -46,13 +61,23 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       setToasts((prev) => [...prev.slice(-3), { id, message, type }]); // Keep at most 4 toasts
 
       if (duration > 0) {
-        setTimeout(() => {
+        const timer = setTimeout(() => {
+          timersRef.current.delete(id);
           removeToast(id);
         }, duration);
+        timersRef.current.set(id, timer);
       }
     },
     [removeToast],
   );
+
+  useEffect(() => {
+    const timers = timersRef.current;
+    return () => {
+      timers.forEach((timer) => clearTimeout(timer));
+      timers.clear();
+    };
+  }, []);
 
   const success = useCallback(
     (message: string, duration?: number) => showToast(message, "success", duration),
@@ -108,7 +133,6 @@ function ToastCard({ toast, onDismiss }: { toast: ToastItem; onDismiss: () => vo
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
       transition={{ duration: 0.2, ease: "easeOut" }}
-      role={toast.type === "error" ? "alert" : "status"}
       aria-labelledby={labelId}
       className={`pointer-events-auto flex items-center gap-3 px-4 py-3 bg-white/95 backdrop-blur-md rounded-[var(--radius-md)] border shadow-[var(--shadow-level-3)] text-dns-14 text-[var(--color-neutral-900)] ${borderMap[toast.type]}`}
     >

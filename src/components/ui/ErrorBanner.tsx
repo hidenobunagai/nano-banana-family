@@ -21,7 +21,7 @@ export function ErrorBanner({
   onReset,
 }: ErrorBannerProps) {
   return (
-    <div className="dads-banner dads-banner--error text-dns-15 flex gap-3" aria-live="polite">
+    <div className="dads-banner dads-banner--error text-dns-15 flex gap-3" role="alert">
       <AlertCircle
         className="w-5 h-5 flex-shrink-0 mt-0.5 text-[var(--color-error-dark)]"
         aria-hidden="true"

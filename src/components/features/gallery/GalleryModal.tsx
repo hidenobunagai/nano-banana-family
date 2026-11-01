@@ -32,6 +32,20 @@ export function GalleryModal({ isOpen, onClose, onSelectImage }: GalleryModalPro
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
+  // Remember the opener and lock the background scroll while the dialog is open.
+  // Declared before the load effect so the opener is captured before the focus
+  // moves into the dialog.
+  useEffect(() => {
+    if (!isOpen) return;
+    const opener = document.activeElement as HTMLElement | null;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      opener?.focus?.();
+    };
+  }, [isOpen]);
+
   useEffect(() => {
     let ignore = false;
     if (isOpen) {
@@ -199,23 +213,29 @@ export function GalleryModal({ isOpen, onClose, onSelectImage }: GalleryModalPro
                   return (
                     <div
                       key={item.id}
-                      className="group relative flex flex-col rounded-2xl overflow-hidden border border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)] hover:shadow-[var(--shadow-level-2)] transition-all cursor-pointer"
-                      onClick={() => setSelectedItem(item)}
+                      className="group relative flex flex-col rounded-2xl overflow-hidden border border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)] hover:shadow-[var(--shadow-level-2)] transition-all"
                     >
-                      <div className="relative aspect-square w-full bg-[var(--color-neutral-100)] overflow-hidden">
-                        <Image
-                          src={src}
-                          alt={item.title || item.prompt || "生成画像"}
-                          fill
-                          className="object-cover transition-transform duration-300 group-hover:scale-105"
-                          unoptimized
-                          loading="lazy"
-                          decoding="async"
-                        />
-                        <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-xs font-semibold bg-black/60 text-white backdrop-blur-xs">
-                          {modeLabel}
-                        </span>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedItem(item)}
+                        aria-label={`${modeLabel}の画像を表示: ${item.title || item.prompt || "無題の作品"}`}
+                        className="relative block w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-primary-600)]"
+                      >
+                        <div className="relative aspect-square w-full bg-[var(--color-neutral-100)] overflow-hidden">
+                          <Image
+                            src={src}
+                            alt={item.title || item.prompt || "生成画像"}
+                            fill
+                            className="object-cover transition-transform duration-300 group-hover:scale-105"
+                            unoptimized
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-xs font-semibold bg-black/60 text-white backdrop-blur-xs">
+                            {modeLabel}
+                          </span>
+                        </div>
+                      </button>
 
                       <div className="p-2.5 flex items-center justify-between gap-1 bg-white">
                         <span className="text-xs text-[var(--color-neutral-500)] truncate">

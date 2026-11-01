@@ -46,6 +46,7 @@ function NavItem({
   return (
     <button
       onClick={onClick}
+      aria-current={active ? "page" : undefined}
       className={cn(
         "relative flex flex-col items-center justify-center flex-1 gap-1 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)] focus-visible:ring-inset",
         active

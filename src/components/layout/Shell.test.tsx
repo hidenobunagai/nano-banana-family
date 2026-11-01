@@ -48,6 +48,20 @@ describe("Shell", () => {
     expect(onNavModeChange).toHaveBeenCalledWith("icon");
   });
 
+  it("marks the active nav item with aria-current", () => {
+    render(
+      <Shell onSignOut={vi.fn()} navMode="freestyle" onNavModeChange={vi.fn()}>
+        <p>content</p>
+      </Shell>,
+    );
+
+    expect(screen.getByRole("button", { name: "自由生成" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(screen.getByRole("button", { name: "アイコン" })).not.toHaveAttribute("aria-current");
+  });
+
   it("calls onSignOut when the sign-out button is clicked", async () => {
     const onSignOut = vi.fn();
     render(

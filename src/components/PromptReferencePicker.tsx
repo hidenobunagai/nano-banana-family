@@ -35,6 +35,13 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
   const legendId = useId();
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
+  // The close handler is often an inline arrow in the parent, so it changes on
+  // every render. Keeping it in a ref lets the mount effect run only once.
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   const persistFavorites = useCallback((next: string[]) => {
     setFavorites(next);
@@ -111,12 +118,13 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
 
   useEffect(() => {
     const previouslyFocused = document.activeElement as HTMLElement | null;
+    const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
     const handleGlobalKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
-        onClose();
+        onCloseRef.current();
       }
       if (event.key === "Tab" && dialogRef.current) {
         const focusables = dialogRef.current.querySelectorAll<HTMLElement>(
@@ -137,10 +145,10 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
     window.addEventListener("keydown", handleGlobalKeyDown);
     return () => {
       window.removeEventListener("keydown", handleGlobalKeyDown);
-      document.body.style.overflow = "";
+      document.body.style.overflow = originalOverflow;
       previouslyFocused?.focus();
     };
-  }, [onClose]);
+  }, []);
 
   const isFavoritesActive = showFavoritesOnly && !normalizedQuery;
 
@@ -241,7 +249,7 @@ export function PromptReferencePicker({ onSelect, onClose }: PromptReferencePick
                           className={cn(
                             "ml-1.5 text-[12px]",
                             isActive
-                              ? "text-[var(--color-primary-100)]"
+                              ? "text-[var(--color-text-inverse)]"
                               : "text-[var(--color-neutral-500)]",
                           )}
                         >

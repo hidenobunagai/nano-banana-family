@@ -38,6 +38,7 @@ export function Shell({ children, onSignOut, navMode, onNavModeChange }: ShellPr
                 <button
                   key={item.id}
                   onClick={() => onNavModeChange(item.id)}
+                  aria-current={active ? "page" : undefined}
                   className={cn(
                     "relative flex items-center gap-2 px-4 py-2 rounded-[var(--radius-md)] text-oln-16 font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-600)]",
                     active
