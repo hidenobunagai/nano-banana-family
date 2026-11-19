@@ -1,3 +1,4 @@
+import { fitFormDataImagesWithinTotalSize } from "@/utils/imageSizeGuard";
 import { getRequestErrorMessage } from "@/utils/requestErrorMessage";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -173,9 +174,12 @@ export function useEditorSubmit({
       // statics would otherwise throw before the request starts and leave the
       // editor stuck in the submitting state.
       abortPlan = createAbortPlan(controller.signal, REQUEST_TIMEOUT_MS);
+      // Keep the combined image size under Vercel's request-body limit so an
+      // oversized upload fails with an in-app message, not a platform 413.
+      const body = await fitFormDataImagesWithinTotalSize(buildFormData());
       const res = await fetch(endpoint, {
         method: "POST",
-        body: buildFormData(),
+        body,
         signal: abortPlan.signal,
       });
       // Non-JSON bodies (platform error pages, empty 500s) used to throw a raw

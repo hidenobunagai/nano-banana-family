@@ -51,6 +51,8 @@ The three generation routes are `POST` multipart handlers on the Node.js runtime
 - `GET /api/health` returns a liveness payload (`{ "status": "ok", "timestamp": "<ISO 8601>" }`). It is not exempt from `src/proxy.ts`, so it sits behind the NextAuth session check like every other non-static route.
 - `GET|POST /api/auth/*` handles NextAuth Google sign-in.
 
+Before submitting, the client checks the combined image size against Vercel's 4.5 MB request-body limit (`fitFormDataImagesWithinTotalSize` in `src/utils/imageSizeGuard.ts`): oversized sets are progressively shrunk (long edge 1600 → 1280 → 1024 → 800 px), and a set that still does not fit fails with an in-app error instead of a platform 413 that bypasses the app's error handling.
+
 ## Getting Started
 
 ### 1. Clone and install
