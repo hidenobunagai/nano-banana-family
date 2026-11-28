@@ -44,7 +44,7 @@
     "@typescript/native": "npm:typescript@^7.0.2",
     "@vitest/coverage-v8": "4.1.11",
     "esbuild": "^0.28.2",
-    "eslint": "^9",
+    "eslint": "^10",
     "eslint-config-next": "^16.4.6",
     "jsdom": "^26.0.0",
     "postcss": "^8.5.33",
